@@ -19,13 +19,17 @@ dotted_name: CNAME ("." CNAME)*                                    -> dotted
 class_section: "type" class_def+                                  -> class_section
 class_def:   CNAME "=" "public" "partial"? "class" "("? CNAME? ")"? class_signature "end" ";" -> class_def
 
-class_signature: method_decl*                                     -> class_sign
-method_decl: access_modifier? "class"? method_kind method_sig ";" "override"? ";"? -> method_decl
+class_signature: member_decl*                                     -> class_sign
+member_decl: access_modifier                                      -> section
+           | access_modifier? "class"? method_kind method_sig ";" "override"? ";"? -> method_decl
 method_kind: "method" | "procedure" | "function"
 access_modifier: "public" | "protected" | "private"
 
-method_sig:   CNAME "." CNAME "(" param_list? ")" (":" type_name)? -> m_sig
-             | CNAME "(" param_list? ")" (":" type_name)?                  -> m_sig
+method_sig:   method_name param_block? return_block?              -> m_sig
+method_name: CNAME "." CNAME               -> dotted_method
+           | CNAME                         -> simple_method
+param_block: "(" param_list? ")"           -> params
+return_block: ":" type_name                -> rettype
 param_list:  param (";" param)*
 param:       name_list ":" type_name                              -> param
 name_list:   CNAME ("," CNAME)*                                 -> names
@@ -37,8 +41,8 @@ generic_type: dotted_name LT type_name ("," type_name)* GT
 
 class_impl:  "class" method_kind method_impl
             | method_kind method_impl
-method_impl: m_head ";" var_section? block                     -> m_impl
-m_head:      CNAME "." CNAME "(" param_list? ")" (":" type_name)?
+method_impl: impl_head ";" var_section? block                     -> m_impl
+impl_head:   method_name param_block? return_block?
 
 block:       "begin" stmt* "end" ";"?
 
@@ -202,36 +206,48 @@ class ToCSharp(Transformer):
         return "\n".join(members)
 
     # ── method declarations (interface part) ────────────────
-    def m_sig(self, *args):
-        if len(args) == 4:
-            _, name, params, rettype = args
-        elif len(args) == 3:
-            name, params, rettype = args
-        elif len(args) == 2:
-            name, params = args
-            rettype = None
+    def m_sig(self, name_parts, params=None, rettype=None):
+        if isinstance(name_parts, tuple):
+            _, name = name_parts
         else:
-            name = args[0]
-            params = rettype = None
-        params_cs = params or ""
-        ret       = map_type_ext(str(rettype)) if rettype else "void"
+            name = name_parts
+        params_cs = ", ".join(params or [])
+        ret = map_type_ext(str(rettype)) if rettype else "void"
         return f"public static {ret} {name}({params_cs});"
+
+    def dotted_method(self, cls, name):
+        return (cls, name)
+
+    def simple_method(self, name):
+        return name
+
+    def params(self, items=None):
+        return items or []
+
+    def rettype(self, typ):
+        return typ
 
     def names(self, *parts):
         return list(parts)
 
     def param(self, names, ptype):
         t = map_type_ext(str(ptype))
-        return ", ".join(f"{t} {n}" for n in names)
+        return [f"{t} {n}" for n in names]
 
     def param_list(self, *ps):
-        return ", ".join(ps)
+        out = []
+        for p in ps:
+            out.extend(p)
+        return out
 
     def arg_list(self, *args):
         return list(args)
 
     def method_decl(self, *parts):
         return parts[-1]
+
+    def section(self, token=None):
+        return ""
 
     def method_kind(self, token=None):
         return ""
@@ -262,8 +278,9 @@ class ToCSharp(Transformer):
         method = f"public static {ret} {name}({params_cs}) {body}"
         return f"public static partial class {cls} {{\n{indent(method)}\n}}"
 
-    def m_head(self, cls, name, params=None, rettype=None):
-        return (cls, name, params or "", str(rettype or ""))
+    def impl_head(self, name_parts, params=None, rettype=None):
+        cls, name = name_parts
+        return (cls, name, ", ".join(params or []), str(rettype or ""))
 
     # ── statements ──────────────────────────────────────────
     def assign(self, var, expr):
