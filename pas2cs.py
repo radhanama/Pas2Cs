@@ -371,9 +371,19 @@ def transpile(source: str) -> tuple[str, list[str]]:
         maybe_placeholders=True,
         lexer_callbacks={"CNAME": fix_keyword},
     )
-    tree   = parser.parse(source)
-    gen    = ToCSharp()
-    body   = gen.transform(tree)
+    try:
+        tree = parser.parse(source)
+    except Exception as e:
+        from lark import UnexpectedInput
+        if isinstance(e, UnexpectedInput):
+            ctx = e.get_context(source)
+            expected = getattr(e, "expected", None)
+            exp = f" Expected: {', '.join(expected)}" if expected else ""
+            msg = f"Parse error at line {e.line}, column {e.column}:{exp}\n{ctx}"
+            raise SyntaxError(msg) from None
+        raise
+    gen = ToCSharp()
+    body = gen.transform(tree)
     header = f"namespace {gen.ns} {{\n{indent(body.rstrip())}\n}}"
     return header, gen.todo
 
