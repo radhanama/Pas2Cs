@@ -17,7 +17,7 @@ uses_clause:   "uses" dotted_name ("," dotted_name)* ";"         -> uses
 namespace:   "namespace" dotted_name ";"                          -> namespace
 dotted_name: CNAME ("." CNAME)*                                    -> dotted
 class_section: "type" class_def+                                  -> class_section
-class_def:   CNAME "=" "public" "partial"? "class" ("(" type_name ")")? class_signature "end" ";" -> class_def
+class_def:   CNAME "=" "public" "static"? "partial"? "class" ("(" type_name ")")? class_signature "end" ";" -> class_def
 
 class_signature: member_decl*                                     -> class_sign
 member_decl: access_modifier                                      -> section
@@ -65,7 +65,8 @@ call_stmt:   var_ref ("(" arg_list? ")")? ";"?     -> call_stmt
 
 inherited_stmt: "inherited" ";"?                          -> inherited
 
-?expr:       expr OP_SUM   expr          -> binop
+?expr:       NOT expr                    -> not_expr
+           | expr OP_SUM   expr          -> binop
            | expr OP_MUL   expr          -> binop
            | expr (OP_REL|LT|GT) expr    -> binop
            | "(" expr ")"
@@ -95,6 +96,8 @@ GT:          ">"
 OP_SUM:      "+" | "-" | "or"
 OP_MUL:      "*" | "/" | "and"
 OP_REL:      "=" | "<>" | "<=" | ">="
+
+NOT:         "not"i
 
 TRUE:        "true"i
 FALSE:       "false"i
@@ -141,6 +144,8 @@ def fix_keyword(tok):
         tok.type = "OP_MUL"
     elif v == "or":
         tok.type = "OP_SUM"
+    elif v == "not":
+        tok.type = "NOT"
     return tok
 
 # ─────────────── AST → C# visitor (Lark) ─────────────────────
@@ -313,6 +318,9 @@ class ToCSharp(Transformer):
     def binop(self, left, op, right):
         op_map = {"and": "&&", "or": "||", "<>": "!=", "=": "=="}
         return f"{left} {op_map.get(op, op)} {right}"
+
+    def not_expr(self, _tok, expr):
+        return f"!{expr}"
 
     def number(self, n):
         return n
