@@ -212,11 +212,20 @@ class ToCSharp(Transformer):
         return "\n".join(members)
 
     # ── method declarations (interface part) ────────────────
-    def m_sig(self, name_parts, params=None, rettype=None):
+    def m_sig(self, name_parts, *rest):
         if isinstance(name_parts, tuple):
             _, name = name_parts
         else:
             name = name_parts
+
+        params = None
+        rettype = None
+        for item in rest:
+            if isinstance(item, list):
+                params = item
+            else:
+                rettype = item
+
         params_cs = ", ".join(params or [])
         ret = map_type_ext(str(rettype)) if rettype else "void"
         return f"public static {ret} {name}({params_cs});"
@@ -284,8 +293,15 @@ class ToCSharp(Transformer):
         method = f"public static {ret} {name}({params_cs}) {body}"
         return f"public static partial class {cls} {{\n{indent(method)}\n}}"
 
-    def impl_head(self, name_parts, params=None, rettype=None):
+    def impl_head(self, name_parts, *rest):
         cls, name = name_parts
+        params = None
+        rettype = None
+        for item in rest:
+            if isinstance(item, list):
+                params = item
+            else:
+                rettype = item
         return (cls, name, ", ".join(params or []), str(rettype or ""))
 
     # ── statements ──────────────────────────────────────────
