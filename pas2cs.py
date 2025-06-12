@@ -17,7 +17,7 @@ uses_clause:   "uses" dotted_name ("," dotted_name)* ";"         -> uses
 namespace:   "namespace" dotted_name ";"                          -> namespace
 dotted_name: CNAME ("." CNAME)*                                    -> dotted
 class_section: "type" class_def+                                  -> class_section
-class_def:   CNAME "=" "public" "partial"? "class" "("? CNAME? ")"? class_signature "end" ";" -> class_def
+class_def:   CNAME "=" "public" "partial"? "class" ("(" type_name ")")? class_signature "end" ";" -> class_def
 
 class_signature: member_decl*                                     -> class_sign
 member_decl: access_modifier                                      -> section
@@ -195,7 +195,8 @@ class ToCSharp(Transformer):
             base = None
         prev = getattr(self, "curr_class", None)
         self.curr_class = str(cname)
-        body = f"public static partial class {cname} {{\n{indent(str(sign).rstrip())}\n}}"
+        base_cs = f" : {map_type_ext(str(base))}" if base else ""
+        body = f"public static partial class {cname}{base_cs} {{\n{indent(str(sign).rstrip())}\n}}"
         self.curr_class = prev
         return body
 
@@ -301,7 +302,9 @@ class ToCSharp(Transformer):
 
     def block(self, *stmts):
         body = "\n".join(indent(s, 0) for s in stmts if s.strip())
-        return "{\n" + indent(body) + "\n}"
+        if body:
+            return "{\n" + indent(body) + "\n}"
+        return "{\n}"
 
     def empty(self):
         return ""

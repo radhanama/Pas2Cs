@@ -1,5 +1,5 @@
 namespace SGUWeb {
-    public static partial class ExportarDados {
+    public static partial class ExportarDados : TPageBasico2 {
         public static void Button2_Click(object sender, System.EventArgs e);
         public static void Button1_Click(object sender, System.EventArgs e);
         public static void Page_Load(object sender, EventArgs e);
