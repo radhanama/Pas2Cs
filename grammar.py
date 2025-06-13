@@ -8,18 +8,18 @@ uses_clause:   "uses" dotted_name ("," dotted_name)* ";"         -> uses
 namespace:   "namespace" dotted_name ";"                          -> namespace
 dotted_name: CNAME ("." CNAME)*                                    -> dotted
 class_section: "type" class_def+                                  -> class_section
-class_def:   CNAME "=" "public" "static"? "partial"? "abstract"? "class" ("(" type_name ")")? class_signature "end" ";" -> class_def
+class_def:   CNAME "=" "public"i "static"? "partial"? "abstract"? "class"i ("(" type_name ")")? class_signature "end"i ";" -> class_def
 
 class_signature: member_decl*                                     -> class_sign
 member_decl: access_modifier                                      -> section
            | method_decl_rule
            | access_modifier? "class"? name_list ":" type_name ";"         -> field_decl
-           | access_modifier? "class"? "property" property_sig ";"          -> property_decl
-           | access_modifier? "class"? "const" const_decl+                  -> const_block
+           | access_modifier? "class"? "property"i property_sig ";"          -> property_decl
+           | access_modifier? "class"? "const"i const_decl+                  -> const_block
 method_decl_rule: access_modifier? "class"? method_kind method_sig ";" method_attr* ";"? -> method_decl
 method_attr: "override" | "static" | "abstract" | "virtual"
 method_kind: METHOD | PROCEDURE | FUNCTION | CONSTRUCTOR | DESTRUCTOR
-access_modifier: "public" | "protected" | "private"
+access_modifier: "public"i | "protected"i | "private"i
 
 method_sig:   method_name param_block? return_block?              -> m_sig
              | param_block? return_block?                        -> m_sig_no_name
@@ -101,7 +101,7 @@ inherited_stmt: "inherited" ";"?                          -> inherited
 
 set_lit: "[" (expr ("," expr)*)? "]"
 
-?name_base:  generic_type | dotted_name
+?name_base:  dotted_name | generic_type
 ?name_term:  dotted_name
 
 call_expr:   var_ref "(" arg_list? ")" ("." name_term ("(" arg_list? ")")?)*     -> call
@@ -109,7 +109,7 @@ arg_list:    expr ("," expr)*
 
 var_ref:     name_base (ARRAY_RANGE | "." name_term)*   -> var
 
-var_section: "var" var_decl+
+var_section: "var"i var_decl+
 var_decl:    name_list ":" type_name (":=" expr)? ";"        -> var_decl
 
 LT:          "<"
