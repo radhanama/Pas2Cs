@@ -51,6 +51,7 @@ block:       "begin" stmt* "end" ";"?
            | for_stmt
            | while_stmt
            | try_stmt
+           | case_stmt
            | inherited_stmt
            | call_stmt
            | block
@@ -63,6 +64,10 @@ if_stmt:     "if" expr "then" stmt ("else" stmt)?                 -> if_stmt
 for_stmt:    "for"i CNAME ":=" expr "to"i expr ("do"i)? stmt          -> for_stmt
 while_stmt:  "while"i expr "do"i stmt        -> while_stmt
 try_stmt:    "try" stmt* ("except" stmt*)? ("finally" stmt*)? "end" ";"?
+
+case_stmt:   "case" expr "of" case_branch+ "end" ";"?
+case_branch: case_label ("," case_label)* ":" stmt
+case_label: NUMBER | SQ_STRING | STRING | CNAME
 
 call_stmt:   var_ref ("(" arg_list? ")")? ("." name_term ("(" arg_list? ")")?)* ";"?     -> call_stmt
 
@@ -124,6 +129,8 @@ TRY:         "try"i
 EXCEPT:      "except"i
 FINALLY:     "finally"i
 ON:          "on"i
+CASE:        "case"i
+OF:          "of"i
 
 TRUE:        "true"i
 FALSE:       "false"i

@@ -318,6 +318,17 @@ class ToCSharp(Transformer):
             res += f" finally {{\n{indent(fin_cs)}\n}}"
         return res
 
+    def case_stmt(self, expr, *branches):
+        info = "// TODO: case statement"
+        self.todo.append(info)
+        return info
+
+    def case_branch(self, *parts):
+        return ""
+
+    def case_label(self, tok):
+        return str(tok)
+
     def block(self, *stmts):
         body = "\n".join(indent(s, 0) for s in stmts if s.strip())
         if body:
