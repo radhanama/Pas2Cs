@@ -1,0 +1,7 @@
+Pas2CsCS/bin/
+Pas2CsCS/obj/
+Pas2CsCS/Pas2CsScanner.lst
+Pas2CsCS/PascalScanner.cs
+Pas2CsCS.Tests/bin/
+Pas2CsCS.Tests/obj/
+__pycache__/
