@@ -5,6 +5,7 @@
 # ------------------------------------------------------------
 import sys, textwrap
 from pathlib import Path
+from typing import TextIO
 from lark import Lark, Transformer, v_args, Token
 
 # ────────────────────────── Grammar ──────────────────────────
@@ -431,11 +432,62 @@ def transpile(source: str) -> tuple[str, list[str]]:
     header = f"namespace {gen.ns} {{\n{indent(body.rstrip())}\n}}"
     return header, gen.todo
 
+def _write_output(src_path: Path, cs_out: str) -> None:
+    out_path = src_path.with_suffix(".cs")
+    out_path.write_text(cs_out, encoding="utf-8")
+
+
+def _log(msg: str, handle: TextIO | None) -> None:
+    if handle:
+        handle.write(msg + "\n")
+    else:
+        print(msg, file=sys.stderr)
+
+
+def main(argv: list[str] | None = None) -> None:
+    argv = argv or sys.argv[1:]
+    import argparse
+
+    ap = argparse.ArgumentParser(description="Transpile Pascal to C#")
+    ap.add_argument(
+        "paths",
+        nargs="+",
+        help="Input .pas files or directories containing .pas files",
+    )
+    ap.add_argument(
+        "--error-log",
+        dest="error_log",
+        metavar="FILE",
+        help="Write parse errors and TODO warnings to FILE",
+    )
+    args = ap.parse_args(argv)
+
+    log_handle = open(args.error_log, "w", encoding="utf-8") if args.error_log else None
+
+    def process_file(p: Path) -> None:
+        try:
+            src_text = p.read_text(encoding="utf-8")
+            cs_out, todos = transpile(src_text)
+        except Exception as exc:
+            _log(f"ERROR in {p}: {exc}", log_handle)
+            return
+
+        _write_output(p, cs_out)
+
+        for todo in todos:
+            _log(f"{p}: {todo}", log_handle)
+
+    for raw in args.paths:
+        path = Path(raw)
+        if path.is_dir():
+            for sub in path.rglob("*.pas"):
+                process_file(sub)
+        else:
+            process_file(path)
+
+    if log_handle:
+        log_handle.close()
+
+
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        sys.exit("usage: pas2cs.py <input.pas>  (redirect output to .cs)")
-    src_txt = Path(sys.argv[1]).read_text(encoding="utf-8")
-    cs_out, todos = transpile(src_txt)
-    print(cs_out)
-    if todos:
-        print("\n".join(todos), file=sys.stderr)
+    main()
