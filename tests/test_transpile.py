@@ -123,9 +123,9 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(
             todos,
             [
-                "// TODO: field count: int",
-                "// TODO: property Name: string",
-                "// TODO: const DefaultCount",
+                "// TODO: field count: int -> declare a field",
+                "// TODO: property Name: string -> implement as auto-property",
+                "// TODO: const DefaultCount -> define a constant",
             ],
         )
 
@@ -148,7 +148,7 @@ class TranspileTests(unittest.TestCase):
         expected = Path('tests/WriteProp.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, ["// TODO: property Flag: bool"])
+        self.assertEqual(todos, ["// TODO: property Flag: bool -> implement as auto-property"])
 
     def test_no_implementation(self):
         src = Path('tests/NoImpl.pas').read_text()

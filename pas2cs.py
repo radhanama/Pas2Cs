@@ -356,7 +356,7 @@ class ToCSharp(Transformer):
     def field_decl(self, *parts):
         names, typ = parts[-2:]
         t = map_type_ext(str(typ))
-        info = f"// TODO: field {', '.join(names)}: {t}"
+        info = f"// TODO: field {', '.join(names)}: {t} -> declare a field"
         self.todo.append(info)
         return info
 
@@ -366,12 +366,12 @@ class ToCSharp(Transformer):
     def property_decl(self, *parts):
         sig = parts[-1]
         name, typ = sig
-        info = f"// TODO: property {name}: {typ}"
+        info = f"// TODO: property {name}: {typ} -> implement as auto-property"
         self.todo.append(info)
         return info
 
     def const_decl(self, name, *parts):
-        info = f"// TODO: const {name}"
+        info = f"// TODO: const {name} -> define a constant"
         self.todo.append(info)
         return info
 
@@ -506,7 +506,16 @@ class ToCSharp(Transformer):
         first_args = []
         if parts and isinstance(parts[0], list):
             first_args = parts.pop(0)
-        call = f"{fn}({', '.join(first_args)})"
+        call = str(fn)
+        if not parts and len(first_args) == 1 and '.' not in call:
+            simple_casts = {'Integer','String','Boolean','Double','DateTime','Object'}
+            if call.split('.')[-1] in simple_casts:
+                typ = map_type_ext(call)
+                call = f"({typ}){first_args[0]}"
+            else:
+                call += f"({', '.join(first_args)})"
+        else:
+            call += f"({', '.join(first_args)})"
         i = 0
         while i < len(parts):
             name = parts[i]
