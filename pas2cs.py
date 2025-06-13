@@ -37,8 +37,18 @@ def transpile(source: str) -> tuple[str, list[str]]:
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         sys.exit("usage: pas2cs.py <input.pas>  (redirect output to .cs)")
-    src_txt = Path(sys.argv[1]).read_text(encoding="utf-8")
-    cs_out, todos = transpile(src_txt)
+    src_file = sys.argv[1]
+    src_txt = Path(src_file).read_text(encoding="utf-8")
+    try:
+        cs_out, todos = transpile(src_txt)
+    except SyntaxError as e:
+        print(str(e), file=sys.stderr)
+        print(
+            f"Manual intervention required near the location above in {src_file}."
+            " Please edit the source to resolve the issue and rerun.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
     print(cs_out)
     if todos:
         print("\n".join(todos), file=sys.stderr)
