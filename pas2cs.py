@@ -9,7 +9,7 @@ from lark import Lark, Transformer, v_args, Token
 
 # ────────────────────────── Grammar ──────────────────────────
 GRAMMAR = r"""
-?start:      namespace interface_section? class_section "implementation" class_impl+ ("end" ".")?
+?start:      namespace interface_section? class_section "implementation" class_impl* ("end" ".")?
 
 interface_section: "interface" uses_clause?
 uses_clause:   "uses" dotted_name ("," dotted_name)* ";"         -> uses
@@ -30,12 +30,12 @@ access_modifier: "public" | "protected" | "private"
 
 method_sig:   method_name param_block? return_block?              -> m_sig
              | param_block? return_block?                        -> m_sig_no_name
-method_name: CNAME "." CNAME               -> dotted_method
+method_name: CNAME ("." CNAME)+           -> dotted_method
            | CNAME                         -> simple_method
 param_block: "(" param_list? ")"           -> params
 return_block: ":" type_name                -> rettype
 param_list:  param (";" param)*
-param:       name_list ":" type_name                              -> param
+param:       ("var"|"out")? name_list ":" type_name (":=" expr)? -> param
 name_list:   CNAME ("," CNAME)*                                 -> names
 ?type_name:  array_type | generic_type | dotted_name
 ARRAY_RANGE: "[" /[^\]]*/ "]"
@@ -43,7 +43,7 @@ array_type:  "array" ARRAY_RANGE? "of" type_name
 
 generic_type: dotted_name LT type_name ("," type_name)* GT
 
-property_sig: CNAME ":" type_name ("read" CNAME)? ("write" CNAME)?
+property_sig: CNAME ":" type_name ("read" CNAME)? ("write" CNAME?)?
 const_decl: CNAME (":" type_name)? OP_REL expr ";"
 
 class_impl:  "class" method_kind method_impl
@@ -111,6 +111,8 @@ PROCEDURE:   "procedure"i
 FUNCTION:    "function"i
 CONSTRUCTOR: "constructor"i
 DESTRUCTOR:  "destructor"i
+VAR:         "var"i
+OUT:         "out"i
 
 TRUE:        "true"i
 FALSE:       "false"i
@@ -265,7 +267,16 @@ class ToCSharp(Transformer):
         ret = map_type_ext(str(rettype)) if rettype else "void"
         return f"public static {ret} {name}({params_cs});"
 
-    def dotted_method(self, cls, name):
+    def dotted_method(self, first, *rest):
+        parts = [str(first)]
+        for tok in rest:
+            if isinstance(tok, Token):
+                if tok.value != '.':
+                    parts.append(str(tok))
+            else:
+                parts.append(str(tok))
+        cls = ".".join(parts[:-1])
+        name = parts[-1]
         return (cls, name)
 
     def simple_method(self, name):
@@ -280,7 +291,12 @@ class ToCSharp(Transformer):
     def names(self, *parts):
         return list(parts)
 
-    def param(self, names, ptype):
+    def param(self, *parts):
+        # allow optional 'var'/'out' modifier and default value
+        parts = list(parts)
+        if parts and isinstance(parts[0], Token):
+            parts.pop(0)
+        names, ptype = parts[0], parts[1]
         t = map_type_ext(str(ptype))
         return [f"{t} {n}" for n in names]
 
@@ -360,7 +376,14 @@ class ToCSharp(Transformer):
         return result
 
     def impl_head(self, name_parts, *rest):
-        cls, name = name_parts
+        if isinstance(name_parts, (list, tuple)):
+            if len(name_parts) >= 2:
+                cls = ".".join(name_parts[:-1])
+                name = name_parts[-1]
+            else:
+                cls, name = name_parts[0], ""
+        else:
+            cls, name = name_parts
         params = None
         rettype = None
         for item in rest:

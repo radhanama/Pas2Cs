@@ -136,6 +136,27 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_param_defaults(self):
+        src = Path('tests/Defaults.pas').read_text()
+        expected = Path('tests/Defaults.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_property_write_only(self):
+        src = Path('tests/WriteProp.pas').read_text()
+        expected = Path('tests/WriteProp.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, ["// TODO: property Flag: bool"])
+
+    def test_no_implementation(self):
+        src = Path('tests/NoImpl.pas').read_text()
+        expected = Path('tests/NoImpl.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_error_reporting(self):
         src = Path('tests/BadSyntax.pas').read_text()
         with self.assertRaises(SyntaxError) as cm:
