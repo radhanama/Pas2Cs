@@ -21,10 +21,11 @@ class_def:   CNAME "=" "public" "static"? "partial"? "class" ("(" type_name ")")
 
 class_signature: member_decl*                                     -> class_sign
 member_decl: access_modifier                                      -> section
-           | access_modifier? "class"? method_kind method_sig ";" "override"? ";"? -> method_decl
+           | access_modifier? "class"? method_kind method_sig ";" method_attr* ";"? -> method_decl
            | access_modifier? name_list ":" type_name ";"         -> field_decl
            | access_modifier? "property" property_sig ";"          -> property_decl
            | access_modifier? "const" const_decl+                  -> const_block
+method_attr: "override" | "static" | "abstract" | "virtual"
 method_kind: METHOD | PROCEDURE | FUNCTION | CONSTRUCTOR | DESTRUCTOR
 access_modifier: "public" | "protected" | "private"
 
@@ -70,7 +71,7 @@ if_stmt:     "if" expr "then" stmt ("else" stmt)?                 -> if_stmt
 for_stmt:    "for"i CNAME ":=" expr "to"i expr ("do"i)? stmt          -> for_stmt
 while_stmt:  "while"i expr "do"i stmt        -> while_stmt
 
-call_stmt:   var_ref ("(" arg_list? ")")? ";"?     -> call_stmt
+call_stmt:   var_ref ("(" arg_list? ")")? ("." name_term ("(" arg_list? ")")?)* ";"?     -> call_stmt
 
 inherited_stmt: "inherited" ";"?                          -> inherited
 
@@ -92,7 +93,7 @@ inherited_stmt: "inherited" ";"?                          -> inherited
 
 ?name_term:  generic_type | dotted_name
 
-call_expr:   var_ref "(" arg_list? ")"     -> call
+call_expr:   var_ref "(" arg_list? ")" ("." name_term ("(" arg_list? ")")?)*     -> call
 arg_list:    expr ("," expr)*
 
 var_ref:     name_term (ARRAY_RANGE | "." name_term)*   -> var
@@ -324,7 +325,10 @@ class ToCSharp(Transformer):
         return list(args)
 
     def method_decl(self, *parts):
-        return parts[-1]
+        for p in parts:
+            if isinstance(p, str) and p.strip().startswith("public"):
+                return p
+        return ""
 
     def section(self, token=None):
         return ""
@@ -334,6 +338,9 @@ class ToCSharp(Transformer):
         return ""
 
     def access_modifier(self, token=None):
+        return ""
+
+    def method_attr(self, token=None):
         return ""
 
     def var_section(self, *decls):
@@ -494,16 +501,25 @@ class ToCSharp(Transformer):
                 out.append('.' + str(p))
         return ''.join(out)
 
-    def call(self, fn, *args):
-        if len(args) == 1 and isinstance(args[0], list):
-            arg_list = args[0]
-        else:
-            arg_list = list(args)
-        return f"{fn}({', '.join(arg_list)})"
+    def call(self, fn, *parts):
+        parts = list(parts)
+        first_args = []
+        if parts and isinstance(parts[0], list):
+            first_args = parts.pop(0)
+        call = f"{fn}({', '.join(first_args)})"
+        i = 0
+        while i < len(parts):
+            name = parts[i]
+            i += 1
+            arglist = []
+            if i < len(parts) and isinstance(parts[i], list):
+                arglist = parts[i]
+                i += 1
+            call += f".{name}({', '.join(arglist)})"
+        return call
 
-    def call_stmt(self, fn, args=None):
-        call = f"{fn}({', '.join(args)})" if args else f"{fn}()"
-        return call + ";"
+    def call_stmt(self, fn, *parts):
+        return self.call(fn, *parts) + ";"
 
     def inherited(self):
         if self.curr_method:
