@@ -42,7 +42,10 @@ pip install lark-parser
 # 1. Generate C# from one file
 python pas2cs.py  Demo/MathUtils.pas  >  Demo/MathUtils.cs
 
-# 2. Batch-convert a project (PowerShell example)
+# 2. Batch-convert on Linux/macOS
+./batch_transpile.sh errors.log Demo/
+
+# 3. Batch-convert a project (PowerShell example)
 Get-ChildItem . -Recurse -Filter *.pas | ForEach-Object {
     $out = $_.FullName -replace '\.pas$','.cs'
     python pas2cs.py $_.FullName > $out
