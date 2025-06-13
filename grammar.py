@@ -36,7 +36,8 @@ array_type:  "array"i ARRAY_RANGE? "of"i type_name
 
 generic_type: dotted_name LT type_name ("," type_name)* GT
 
-property_sig: CNAME ":" type_name ("read" CNAME)? ("write" CNAME?)?
+property_sig: CNAME property_index? ":" type_name ("read" CNAME)? ("write" CNAME?)?
+property_index: "[" param_list? "]"
 const_decl: CNAME (":" type_name)? OP_REL expr ";"
 const_block: "const" const_decl+
 

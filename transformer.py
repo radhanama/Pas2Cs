@@ -187,8 +187,15 @@ class ToCSharp(Transformer):
         self.todo.append(info)
         return info + "\n" + impl
 
-    def property_sig(self, name, typ, *rest):
+    def property_sig(self, name, *parts):
+        parts = list(parts)
+        if parts and isinstance(parts[0], list):
+            parts.pop(0)
+        typ = parts[0]
         return (str(name), map_type_ext(str(typ)))
+
+    def property_index(self, *args):
+        return []
 
     def property_decl(self, *parts):
         sig = parts[-1]

@@ -150,6 +150,13 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, ["// TODO: property Flag: bool -> implement as auto-property"])
 
+    def test_indexed_property(self):
+        src = Path('tests/IndexedProp.pas').read_text()
+        expected = Path('tests/IndexedProp.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, ["// TODO: property Items: string -> implement as auto-property"])
+
     def test_no_implementation(self):
         src = Path('tests/NoImpl.pas').read_text()
         expected = Path('tests/NoImpl.cs').read_text().strip()
