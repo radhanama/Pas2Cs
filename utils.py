@@ -42,4 +42,8 @@ def fix_keyword(tok):
         tok.type = "FINALLY"
     elif v == "on":
         tok.type = "ON"
+    elif v == "end":
+        tok.type = "END"
+    elif v == "begin":
+        tok.type = "BEGIN"
     return tok
