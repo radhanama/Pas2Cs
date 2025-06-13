@@ -153,6 +153,9 @@ class ToCSharp(Transformer):
                 return p
         return ""
 
+    def member_decl(self, item):
+        return item
+
     def section(self, token=None):
         return ""
 

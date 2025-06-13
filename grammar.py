@@ -2,7 +2,7 @@
 GRAMMAR = r"""
 ?start:      namespace interface_section? class_section ("implementation" class_impl*)? ("end" ".")?
 
-interface_section: "interface" uses_clause?
+interface_section: "interface" uses_clause? pre_class_decl*
 uses_clause:   "uses" dotted_name ("," dotted_name)* ";"         -> uses
 
 namespace:   "namespace" dotted_name ";"                          -> namespace
@@ -12,10 +12,11 @@ class_def:   CNAME "=" "public" "static"? "partial"? "abstract"? "class" ("(" ty
 
 class_signature: member_decl*                                     -> class_sign
 member_decl: access_modifier                                      -> section
-           | access_modifier? "class"? method_kind method_sig ";" method_attr* ";"? -> method_decl
+           | method_decl_rule
            | access_modifier? "class"? name_list ":" type_name ";"         -> field_decl
            | access_modifier? "class"? "property" property_sig ";"          -> property_decl
            | access_modifier? "class"? "const" const_decl+                  -> const_block
+method_decl_rule: access_modifier? "class"? method_kind method_sig ";" method_attr* ";"? -> method_decl
 method_attr: "override" | "static" | "abstract" | "virtual"
 method_kind: METHOD | PROCEDURE | FUNCTION | CONSTRUCTOR | DESTRUCTOR
 access_modifier: "public" | "protected" | "private"
@@ -37,6 +38,11 @@ generic_type: dotted_name LT type_name ("," type_name)* GT
 
 property_sig: CNAME ":" type_name ("read" CNAME)? ("write" CNAME?)?
 const_decl: CNAME (":" type_name)? OP_REL expr ";"
+const_block: "const" const_decl+
+
+pre_class_decl: const_block
+              | var_section
+              | method_decl_rule
 
 class_impl:  "class" method_kind method_impl
             | method_kind method_impl
