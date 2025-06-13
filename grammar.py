@@ -11,11 +11,11 @@ class_section: "type" class_def+                                  -> class_secti
 class_def:   CNAME "=" "public"i "static"? "partial"? "abstract"? "class"i ("(" type_name ")")? class_signature "end"i ";" -> class_def
 
 class_signature: member_decl*                                     -> class_sign
-member_decl: access_modifier                                      -> section
-           | method_decl_rule
+member_decl: method_decl_rule
            | access_modifier? "class"? name_list ":" type_name ";"         -> field_decl
            | access_modifier? "class"? "property"i property_sig ";"          -> property_decl
            | access_modifier? "class"? "const"i const_decl+                  -> const_block
+           | access_modifier                                      -> section
 method_decl_rule: access_modifier? "class"? method_kind method_sig ";" method_attr* ";"? -> method_decl
 method_attr: "override" | "static" | "abstract" | "virtual"
 method_kind: METHOD | PROCEDURE | FUNCTION | CONSTRUCTOR | DESTRUCTOR
