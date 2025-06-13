@@ -101,12 +101,13 @@ inherited_stmt: "inherited" ";"?                          -> inherited
 
 set_lit: "[" (expr ("," expr)*)? "]"
 
-?name_term:  generic_type | dotted_name
+?name_base:  generic_type | dotted_name
+?name_term:  dotted_name
 
 call_expr:   var_ref "(" arg_list? ")" ("." name_term ("(" arg_list? ")")?)*     -> call
 arg_list:    expr ("," expr)*
 
-var_ref:     name_term (ARRAY_RANGE | "." name_term)*   -> var
+var_ref:     name_base (ARRAY_RANGE | "." name_term)*   -> var
 
 var_section: "var" var_decl+
 var_decl:    name_list ":" type_name (":=" expr)? ";"        -> var_decl

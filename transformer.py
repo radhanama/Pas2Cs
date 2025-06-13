@@ -349,10 +349,10 @@ class ToCSharp(Transformer):
     def not_expr(self, _tok, expr):
         return f"!{expr}"
 
-    def neg(self, _tok, expr):
+    def neg(self, expr):
         return f"-{expr}"
 
-    def pos(self, _tok, expr):
+    def pos(self, expr):
         return f"{expr}"
 
     def number(self, n):
