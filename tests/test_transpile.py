@@ -115,6 +115,97 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_class_members(self):
+        src = Path('tests/ClassMembers.pas').read_text()
+        expected = Path('tests/ClassMembers.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(
+            todos,
+            [
+                "// TODO: field count: int -> declare a field",
+                "// TODO: property Name: string -> implement as auto-property",
+                "// TODO: const DefaultCount -> define a constant",
+            ],
+        )
+
+    def test_ctor_no_name(self):
+        src = Path('tests/CtorNoName.pas').read_text()
+        expected = Path('tests/CtorNoName.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_param_defaults(self):
+        src = Path('tests/Defaults.pas').read_text()
+        expected = Path('tests/Defaults.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_property_write_only(self):
+        src = Path('tests/WriteProp.pas').read_text()
+        expected = Path('tests/WriteProp.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, ["// TODO: property Flag: bool -> implement as auto-property"])
+
+    def test_indexed_property(self):
+        src = Path('tests/IndexedProp.pas').read_text()
+        expected = Path('tests/IndexedProp.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, ["// TODO: property Items: string -> implement as auto-property"])
+
+    def test_no_implementation(self):
+        src = Path('tests/NoImpl.pas').read_text()
+        expected = Path('tests/NoImpl.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_interface_only(self):
+        src = Path('tests/InterfaceOnly.pas').read_text()
+        expected = Path('tests/InterfaceOnly.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_ctor_impl_no_name(self):
+        src = Path('tests/CtorImplNoName.pas').read_text()
+        expected = Path('tests/CtorImplNoName.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_while_var_init(self):
+        src = Path('tests/WhileVarInit.pas').read_text()
+        expected = Path('tests/WhileVarInit.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_chained_call(self):
+        src = Path('tests/ChainedCall.pas').read_text()
+        expected = Path('tests/ChainedCall.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_method_attr(self):
+        src = Path('tests/MethodAttr.pas').read_text()
+        expected = Path('tests/MethodAttr.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_case_stmt(self):
+        src = Path('tests/CaseStmt.pas').read_text()
+        expected = Path('tests/CaseStmt.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, ['// TODO: case statement'])
+
     def test_error_reporting(self):
         src = Path('tests/BadSyntax.pas').read_text()
         with self.assertRaises(SyntaxError) as cm:
