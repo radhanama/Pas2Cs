@@ -79,9 +79,11 @@ inherited_stmt: "inherited" ";"?                          -> inherited
 
 ?expr:       NOT expr                    -> not_expr
            | "-" expr                   -> neg
+           | "+" expr                   -> pos
            | expr OP_SUM   expr          -> binop
            | expr OP_MUL   expr          -> binop
            | expr (OP_REL|LT|GT) expr    -> binop
+           | expr IN set_lit             -> in_expr
            | "(" expr ")"
            | NUMBER                       -> number
            | STRING                       -> string
@@ -91,8 +93,11 @@ inherited_stmt: "inherited" ";"?                          -> inherited
            | NIL                          -> null
            | var_ref
            | call_expr
+           | set_lit
            | "new" type_name "(" ")"   -> new_expr
            | "new" type_name             -> new_expr
+
+set_lit: "[" (expr ("," expr)*)? "]"
 
 ?name_term:  generic_type | dotted_name
 
@@ -121,6 +126,7 @@ VAR:         "var"i
 OUT:         "out"i
 FOR:         "for"i
 TO:          "to"i
+IN:          "in"i
 WHILE:       "while"i
 DO:          "do"i
 TRY:         "try"i
@@ -372,8 +378,9 @@ class ToCSharp(Transformer):
         names, typ = parts[-2:]
         t = map_type_ext(str(typ))
         info = f"// TODO: field {', '.join(names)}: {t} -> declare a field"
+        impl = f"public {t} {', '.join(names)};"
         self.todo.append(info)
-        return info
+        return info + "\n" + impl
 
     def property_sig(self, name, typ, *rest):
         return (str(name), map_type_ext(str(typ)))
@@ -382,13 +389,26 @@ class ToCSharp(Transformer):
         sig = parts[-1]
         name, typ = sig
         info = f"// TODO: property {name}: {typ} -> implement as auto-property"
+        impl = f"public {typ} {name} {{ get; set; }}"
         self.todo.append(info)
-        return info
+        return info + "\n" + impl
 
     def const_decl(self, name, *parts):
+        parts = list(parts)
+        typ = None
+        if parts and isinstance(parts[0], Token) and parts[0].type == 'OP_REL':
+            parts.pop(0)
+        else:
+            if parts:
+                typ = parts.pop(0)
+            if parts and isinstance(parts[0], Token) and parts[0].type == 'OP_REL':
+                parts.pop(0)
+        expr = parts[0] if parts else None
+        t = map_type_ext(str(typ)) if typ else 'var'
         info = f"// TODO: const {name} -> define a constant"
+        impl = f"public const {t} {name} = {expr};"
         self.todo.append(info)
-        return info
+        return info + "\n" + impl
 
     def const_block(self, *parts):
         decls = parts[1:] if parts and parts[0] == "" else parts
@@ -516,6 +536,9 @@ class ToCSharp(Transformer):
     def neg(self, _tok, expr):
         return f"-{expr}"
 
+    def pos(self, _tok, expr):
+        return f"{expr}"
+
     def number(self, n):
         return n
 
@@ -578,6 +601,13 @@ class ToCSharp(Transformer):
 
     def new_expr(self, name):
         return f"new {name}()"
+
+    def set_lit(self, *elems):
+        vals = ", ".join(elems)
+        return f"new[]{{{vals}}}"
+
+    def in_expr(self, val, _tok, set_):
+        return f"System.Array.Exists({set_}, x => x == {val})"
 
     # ── catch‑all for unimplemented rules ───────────────────
     def __default__(self, data, children, meta):
