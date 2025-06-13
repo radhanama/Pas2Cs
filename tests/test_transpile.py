@@ -157,6 +157,27 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_interface_only(self):
+        src = Path('tests/InterfaceOnly.pas').read_text()
+        expected = Path('tests/InterfaceOnly.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_ctor_impl_no_name(self):
+        src = Path('tests/CtorImplNoName.pas').read_text()
+        expected = Path('tests/CtorImplNoName.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_while_var_init(self):
+        src = Path('tests/WhileVarInit.pas').read_text()
+        expected = Path('tests/WhileVarInit.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_error_reporting(self):
         src = Path('tests/BadSyntax.pas').read_text()
         with self.assertRaises(SyntaxError) as cm:

@@ -9,7 +9,7 @@ from lark import Lark, Transformer, v_args, Token
 
 # ────────────────────────── Grammar ──────────────────────────
 GRAMMAR = r"""
-?start:      namespace interface_section? class_section "implementation" class_impl* ("end" ".")?
+?start:      namespace interface_section? class_section ("implementation" class_impl*)? ("end" ".")?
 
 interface_section: "interface" uses_clause?
 uses_clause:   "uses" dotted_name ("," dotted_name)* ";"         -> uses
@@ -39,7 +39,7 @@ param:       ("var"|"out")? name_list ":" type_name (":=" expr)? -> param
 name_list:   CNAME ("," CNAME)*                                 -> names
 ?type_name:  array_type | generic_type | dotted_name
 ARRAY_RANGE: "[" /[^\]]*/ "]"
-array_type:  "array" ARRAY_RANGE? "of" type_name
+array_type:  "array"i ARRAY_RANGE? "of"i type_name
 
 generic_type: dotted_name LT type_name ("," type_name)* GT
 
@@ -57,6 +57,7 @@ block:       "begin" stmt* "end" ";"?
            | return_stmt
            | if_stmt
            | for_stmt
+           | while_stmt
            | inherited_stmt
            | call_stmt
            | block
@@ -66,7 +67,8 @@ assign_stmt: var_ref ":=" expr ";"?                              -> assign
 return_stmt: RESULT ":=" expr ";"?                             -> result_ret
             | EXIT expr? ";"?                                  -> exit_ret
 if_stmt:     "if" expr "then" stmt ("else" stmt)?                 -> if_stmt
-for_stmt:    "for" CNAME ":=" expr "to" expr ("do") stmt          -> for_stmt
+for_stmt:    "for"i CNAME ":=" expr "to"i expr ("do"i)? stmt          -> for_stmt
+while_stmt:  "while"i expr "do"i stmt        -> while_stmt
 
 call_stmt:   var_ref ("(" arg_list? ")")? ";"?     -> call_stmt
 
@@ -96,7 +98,7 @@ arg_list:    expr ("," expr)*
 var_ref:     name_term (ARRAY_RANGE | "." name_term)*   -> var
 
 var_section: "var" var_decl+
-var_decl:    name_list ":" type_name ";"        -> var_decl
+var_decl:    name_list ":" type_name (":=" expr)? ";"        -> var_decl
 
 LT:          "<"
 GT:          ">"
@@ -113,6 +115,10 @@ CONSTRUCTOR: "constructor"i
 DESTRUCTOR:  "destructor"i
 VAR:         "var"i
 OUT:         "out"i
+FOR:         "for"i
+TO:          "to"i
+WHILE:       "while"i
+DO:          "do"i
 
 TRUE:        "true"i
 FALSE:       "false"i
@@ -161,6 +167,14 @@ def fix_keyword(tok):
         tok.type = "OP_SUM"
     elif v == "not":
         tok.type = "NOT"
+    elif v == "while":
+        tok.type = "WHILE"
+    elif v == "do":
+        tok.type = "DO"
+    elif v == "for":
+        tok.type = "FOR"
+    elif v == "to":
+        tok.type = "TO"
     return tok
 
 # ─────────────── AST → C# visitor (Lark) ─────────────────────
@@ -325,9 +339,12 @@ class ToCSharp(Transformer):
     def var_section(self, *decls):
         return "\n".join(decls)
 
-    def var_decl(self, names, typ):
+    def var_decl(self, names, typ, expr=None):
         t = map_type_ext(str(typ))
-        return f"{t} {', '.join(names)};"
+        decl = f"{t} {', '.join(names)}"
+        if expr is not None:
+            decl += f" = {expr}"
+        return decl + ";"
 
     def field_decl(self, *parts):
         names, typ = parts[-2:]
@@ -381,9 +398,22 @@ class ToCSharp(Transformer):
                 cls = ".".join(name_parts[:-1])
                 name = name_parts[-1]
             else:
-                cls, name = name_parts[0], ""
+                cls = name_parts[0]
+                kind = (self.curr_kind or "").lower()
+                if kind == "constructor":
+                    name = "Create"
+                elif kind == "destructor":
+                    name = "Destroy"
+                else:
+                    name = ""
         else:
-            cls, name = name_parts
+            kind = (self.curr_kind or "").lower()
+            if kind in ("constructor", "destructor"):
+                cls = str(name_parts)
+                name = "Create" if kind == "constructor" else "Destroy"
+            else:
+                cls = ""
+                name = str(name_parts)
         params = None
         rettype = None
         for item in rest:
@@ -419,6 +449,9 @@ class ToCSharp(Transformer):
 
     def for_stmt(self, var, start, stop, body):
         return f"for (var {var} = {start}; {var} <= {stop}; {var}++) {body}"
+
+    def while_stmt(self, cond, body):
+        return f"while ({cond}) {body}"
 
     def block(self, *stmts):
         body = "\n".join(indent(s, 0) for s in stmts if s.strip())
