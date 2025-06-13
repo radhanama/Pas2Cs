@@ -59,6 +59,7 @@ block:       "begin" stmt* "end" ";"?
            | if_stmt
            | for_stmt
            | while_stmt
+           | try_stmt
            | inherited_stmt
            | call_stmt
            | block
@@ -70,12 +71,14 @@ return_stmt: RESULT ":=" expr ";"?                             -> result_ret
 if_stmt:     "if" expr "then" stmt ("else" stmt)?                 -> if_stmt
 for_stmt:    "for"i CNAME ":=" expr "to"i expr ("do"i)? stmt          -> for_stmt
 while_stmt:  "while"i expr "do"i stmt        -> while_stmt
+try_stmt:    "try" stmt* ("except" stmt*)? ("finally" stmt*)? "end" ";"?
 
 call_stmt:   var_ref ("(" arg_list? ")")? ("." name_term ("(" arg_list? ")")?)* ";"?     -> call_stmt
 
 inherited_stmt: "inherited" ";"?                          -> inherited
 
 ?expr:       NOT expr                    -> not_expr
+           | "-" expr                   -> neg
            | expr OP_SUM   expr          -> binop
            | expr OP_MUL   expr          -> binop
            | expr (OP_REL|LT|GT) expr    -> binop
@@ -120,6 +123,10 @@ FOR:         "for"i
 TO:          "to"i
 WHILE:       "while"i
 DO:          "do"i
+TRY:         "try"i
+EXCEPT:      "except"i
+FINALLY:     "finally"i
+ON:          "on"i
 
 TRUE:        "true"i
 FALSE:       "false"i
@@ -176,6 +183,14 @@ def fix_keyword(tok):
         tok.type = "FOR"
     elif v == "to":
         tok.type = "TO"
+    elif v == "try":
+        tok.type = "TRY"
+    elif v == "except":
+        tok.type = "EXCEPT"
+    elif v == "finally":
+        tok.type = "FINALLY"
+    elif v == "on":
+        tok.type = "ON"
     return tok
 
 # ─────────────── AST → C# visitor (Lark) ─────────────────────
@@ -460,6 +475,27 @@ class ToCSharp(Transformer):
     def while_stmt(self, cond, body):
         return f"while ({cond}) {body}"
 
+    def try_stmt(self, *parts):
+        parts = list(parts)
+        body = []
+        while parts and not isinstance(parts[0], list):
+            body.append(parts.pop(0))
+        except_body = []
+        finally_body = []
+        if parts:
+            except_body = parts.pop(0)
+        if parts:
+            finally_body = parts.pop(0)
+        body_cs = "\n".join(indent(s, 0) for s in body if s.strip())
+        exc_cs = "\n".join(indent(s, 0) for s in except_body if s.strip())
+        fin_cs = "\n".join(indent(s, 0) for s in finally_body if s.strip())
+        res = f"try {{\n{indent(body_cs)}\n}}"
+        if except_body:
+            res += f" catch (Exception) {{\n{indent(exc_cs)}\n}}"
+        if finally_body:
+            res += f" finally {{\n{indent(fin_cs)}\n}}"
+        return res
+
     def block(self, *stmts):
         body = "\n".join(indent(s, 0) for s in stmts if s.strip())
         if body:
@@ -476,6 +512,9 @@ class ToCSharp(Transformer):
 
     def not_expr(self, _tok, expr):
         return f"!{expr}"
+
+    def neg(self, _tok, expr):
+        return f"-{expr}"
 
     def number(self, n):
         return n
