@@ -155,6 +155,8 @@ class ToCSharp(Transformer):
         super().__init__()
         self.todo = []   # collect unsupported notices
         self.ns   = "Unnamed"
+        self.curr_method = None
+        self.curr_params = []
 
     # ── root rule -------------------------------------------------
     def start(self, ns, *parts):
@@ -291,7 +293,11 @@ class ToCSharp(Transformer):
             inner = textwrap.dedent(body[2:-2]).strip()
             body = "{\n" + indent(vars_code + ("\n" + inner if inner else "")) + "\n}"
         method = f"public static {ret} {name}({params_cs}) {body}"
-        return f"public static partial class {cls} {{\n{indent(method)}\n}}"
+        result = f"public static partial class {cls} {{\n{indent(method)}\n}}"
+        # clear method context after generating its body
+        self.curr_method = None
+        self.curr_params = []
+        return result
 
     def impl_head(self, name_parts, *rest):
         cls, name = name_parts
@@ -302,7 +308,17 @@ class ToCSharp(Transformer):
                 params = item
             else:
                 rettype = item
-        return (cls, name, ", ".join(params or []), str(rettype or ""))
+        # store current method context so `inherited` can suggest a base call
+        param_list = params or []
+        param_names = []
+        for p in param_list:
+            p = p.strip()
+            if not p:
+                continue
+            param_names.append(p.split()[-1])
+        self.curr_method = name
+        self.curr_params = param_names
+        return (cls, name, ", ".join(param_list), str(rettype or ""))
 
     # ── statements ──────────────────────────────────────────
     def assign(self, var, expr):
@@ -374,6 +390,10 @@ class ToCSharp(Transformer):
         return call + ";"
 
     def inherited(self):
+        if self.curr_method:
+            args = ", ".join(self.curr_params)
+            call = f"base.{self.curr_method}({args})" if args else f"base.{self.curr_method}()"
+            return f"{call};"
         return "// TODO: inherited call"
 
     def new_expr(self, name):

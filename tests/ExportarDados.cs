@@ -6,7 +6,7 @@ namespace SGUWeb {
     }
     public static partial class ExportarDados {
         public static void Page_Load(object sender, EventArgs e) {
-            // TODO: inherited call
+            base.Page_Load(sender, e);
         }
     }
     public static partial class ExportarDados {
