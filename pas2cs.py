@@ -22,7 +22,10 @@ class_def:   CNAME "=" "public" "static"? "partial"? "class" ("(" type_name ")")
 class_signature: member_decl*                                     -> class_sign
 member_decl: access_modifier                                      -> section
            | access_modifier? "class"? method_kind method_sig ";" "override"? ";"? -> method_decl
-method_kind: "method" | "procedure" | "function"
+           | access_modifier? name_list ":" type_name ";"         -> field_decl
+           | access_modifier? "property" property_sig ";"          -> property_decl
+           | access_modifier? "const" const_decl+                  -> const_block
+method_kind: "method" | "procedure" | "function" | "constructor" | "destructor"
 access_modifier: "public" | "protected" | "private"
 
 method_sig:   method_name param_block? return_block?              -> m_sig
@@ -38,6 +41,9 @@ ARRAY_RANGE: "[" /[^\]]*/ "]"
 array_type:  "array" ARRAY_RANGE? "of" type_name
 
 generic_type: dotted_name LT type_name ("," type_name)* GT
+
+property_sig: CNAME ":" type_name ("read" CNAME)? ("write" CNAME)?
+const_decl: CNAME (":" type_name)? OP_REL expr ";"
 
 class_impl:  "class" method_kind method_impl
             | method_kind method_impl
@@ -278,6 +284,32 @@ class ToCSharp(Transformer):
     def var_decl(self, names, typ):
         t = map_type_ext(str(typ))
         return f"{t} {', '.join(names)};"
+
+    def field_decl(self, *parts):
+        names, typ = parts[-2:]
+        t = map_type_ext(str(typ))
+        info = f"// TODO: field {', '.join(names)}: {t}"
+        self.todo.append(info)
+        return info
+
+    def property_sig(self, name, typ, *rest):
+        return (str(name), map_type_ext(str(typ)))
+
+    def property_decl(self, *parts):
+        sig = parts[-1]
+        name, typ = sig
+        info = f"// TODO: property {name}: {typ}"
+        self.todo.append(info)
+        return info
+
+    def const_decl(self, name, *parts):
+        info = f"// TODO: const {name}"
+        self.todo.append(info)
+        return info
+
+    def const_block(self, *parts):
+        decls = parts[1:] if parts and parts[0] == "" else parts
+        return "\n".join(decls)
 
     # ── implementation part ─────────────────────────────────
     def m_impl(self, head, *parts):
