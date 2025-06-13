@@ -25,10 +25,11 @@ member_decl: access_modifier                                      -> section
            | access_modifier? name_list ":" type_name ";"         -> field_decl
            | access_modifier? "property" property_sig ";"          -> property_decl
            | access_modifier? "const" const_decl+                  -> const_block
-method_kind: "method" | "procedure" | "function" | "constructor" | "destructor"
+method_kind: METHOD | PROCEDURE | FUNCTION | CONSTRUCTOR | DESTRUCTOR
 access_modifier: "public" | "protected" | "private"
 
 method_sig:   method_name param_block? return_block?              -> m_sig
+             | param_block? return_block?                        -> m_sig_no_name
 method_name: CNAME "." CNAME               -> dotted_method
            | CNAME                         -> simple_method
 param_block: "(" param_list? ")"           -> params
@@ -105,6 +106,12 @@ OP_REL:      "=" | "<>" | "<=" | ">="
 
 NOT:         "not"i
 
+METHOD:      "method"i
+PROCEDURE:   "procedure"i
+FUNCTION:    "function"i
+CONSTRUCTOR: "constructor"i
+DESTRUCTOR:  "destructor"i
+
 TRUE:        "true"i
 FALSE:       "false"i
 NIL:         "nil"i
@@ -163,6 +170,7 @@ class ToCSharp(Transformer):
         self.ns   = "Unnamed"
         self.curr_method = None
         self.curr_params = []
+        self.curr_kind = None
 
     # ── root rule -------------------------------------------------
     def start(self, ns, *parts):
@@ -238,6 +246,25 @@ class ToCSharp(Transformer):
         ret = map_type_ext(str(rettype)) if rettype else "void"
         return f"public static {ret} {name}({params_cs});"
 
+    def m_sig_no_name(self, *rest):
+        params = None
+        rettype = None
+        for item in rest:
+            if isinstance(item, list):
+                params = item
+            else:
+                rettype = item
+        kind = (self.curr_kind or "").lower()
+        if kind == "constructor":
+            name = "Create"
+        elif kind == "destructor":
+            name = "Destroy"
+        else:
+            name = "Unnamed"
+        params_cs = ", ".join(params or [])
+        ret = map_type_ext(str(rettype)) if rettype else "void"
+        return f"public static {ret} {name}({params_cs});"
+
     def dotted_method(self, cls, name):
         return (cls, name)
 
@@ -273,6 +300,7 @@ class ToCSharp(Transformer):
         return ""
 
     def method_kind(self, token=None):
+        self.curr_kind = str(token) if token else None
         return ""
 
     def access_modifier(self, token=None):
