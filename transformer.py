@@ -15,6 +15,7 @@ class ToCSharp(Transformer):
         self.curr_params = []
         self.curr_kind = None
         self.curr_static = False
+        self.curr_locals = set()
         self.class_defs = OrderedDict()
         self.class_impls = defaultdict(list)
         self.class_order = []
@@ -242,6 +243,8 @@ class ToCSharp(Transformer):
         decl = f"{t} {', '.join(names)}"
         if expr is not None:
             decl += f" = {expr}"
+        for n in names:
+            self.curr_locals.add(str(n))
         return decl + ";"
 
     def field_decl(self, *parts):
@@ -313,6 +316,7 @@ class ToCSharp(Transformer):
         self.curr_method = None
         self.curr_params = []
         self.curr_static = False
+        self.curr_locals = set()
         return ""
 
     def impl_head(self, name_parts, *rest):
@@ -354,6 +358,7 @@ class ToCSharp(Transformer):
             param_names.append(p.split()[-1])
         self.curr_method = name
         self.curr_params = param_names
+        self.curr_locals = set(param_names)
         return (cls, name, ", ".join(param_list), str(rettype or ""))
 
     # ── statements ──────────────────────────────────────────
@@ -381,7 +386,10 @@ class ToCSharp(Transformer):
         else:
             cond = f"{var} <= {stop}"
             inc = f"{var}++"
-        return f"for (var {var} = {start}; {cond}; {inc}) {body}"
+        prefix = "" if str(var) in self.curr_locals else "var "
+        if prefix:
+            self.curr_locals.add(str(var))
+        return f"for ({prefix}{var} = {start}; {cond}; {inc}) {body}"
 
     def while_stmt(self, cond, body):
         return f"while ({cond}) {body}"
