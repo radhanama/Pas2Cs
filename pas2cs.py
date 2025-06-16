@@ -77,7 +77,11 @@ if __name__ == "__main__":
     try:
         manual = interactive_translate if interactive else None
         parse_manual = interactive_parse_error if interactive else None
-        cs_out, todos = transpile(src_txt, manual_translate=manual, manual_parse_error=parse_manual)
+        cs_out, todos = transpile(
+            src_txt,
+            manual_translate=manual,
+            manual_parse_error=parse_manual,
+        )
     except SyntaxError as e:
         print(str(e), file=sys.stderr)
         print(
@@ -87,5 +91,5 @@ if __name__ == "__main__":
         )
         sys.exit(1)
     print(cs_out)
-    if todos:
-        print("\n".join(todos), file=sys.stderr)
+    # if todos:
+    #     print("\n".join(todos), file=sys.stderr)
