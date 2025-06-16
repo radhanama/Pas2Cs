@@ -12,7 +12,7 @@ class_def:   CNAME "=" "public"i "static"? "partial"? "abstract"? "class"i ("(" 
 
 class_signature: member_decl*                                     -> class_sign
 member_decl: method_decl_rule
-           | access_modifier? "class"? name_list ":" type_name ";"         -> field_decl
+           | access_modifier? "class"? "var"i? name_list ":" type_name ";"         -> field_decl
            | access_modifier? "class"? "property"i property_sig ";"          -> property_decl
            | access_modifier? "class"? "const"i const_decl+                  -> const_block
            | access_modifier                                      -> section
@@ -61,8 +61,9 @@ block:       "begin" stmt* "end" ";"?
            | case_stmt
            | inherited_stmt
            | call_stmt
+           | except_on_stmt
            | block
-           |                         -> empty
+            |                         -> empty
 
 assign_stmt: var_ref ":=" expr ";"?                              -> assign
 return_stmt: RESULT ":=" expr ";"?                             -> result_ret
@@ -76,7 +77,8 @@ case_stmt:   "case" expr "of" case_branch+ "end" ";"?
 case_branch: case_label ("," case_label)* ":" stmt
 case_label: NUMBER | SQ_STRING | STRING | CNAME
 
-call_stmt:   var_ref ("(" arg_list? ")")? ("." name_term ("(" arg_list? ")")?)* ";"?     -> call_stmt
+call_stmt:   (var_ref | generic_type) ("(" arg_list? ")")? ("." name_term ("(" arg_list? ")")?)* ";"?     -> call_stmt
+           | new_expr "." name_term ("(" arg_list? ")")? ("." name_term ("(" arg_list? ")")?)* ";"?     -> call_stmt
 
 inherited_stmt: "inherited" ";"?                          -> inherited
 
@@ -97,15 +99,19 @@ inherited_stmt: "inherited" ";"?                          -> inherited
            | var_ref
            | call_expr
            | set_lit
-           | "new" type_name "(" ")"   -> new_expr
-           | "new" type_name             -> new_expr
+           | new_expr
 
 set_lit: "[" (expr ("," expr)*)? "]"
 
-?name_base:  dotted_name | generic_type
+new_expr: "new" type_name ("(" arg_list? ")")?
+
+?name_base:  dotted_name
 ?name_term:  dotted_name
 
-call_expr:   var_ref "(" arg_list? ")" ("." name_term ("(" arg_list? ")")?)*     -> call
+except_on_stmt: "on" CNAME ":" type_name "do" stmt
+
+call_expr:   (var_ref | generic_type) "(" arg_list? ")" ("." name_term ("(" arg_list? ")")?)*     -> call
+           | new_expr "." name_term ("(" arg_list? ")")? ("." name_term ("(" arg_list? ")")?)*     -> call
 arg_list:    expr ("," expr)*
 
 var_ref:     name_base (ARRAY_RANGE | "." name_term)*   -> var

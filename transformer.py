@@ -400,7 +400,10 @@ class ToCSharp(Transformer):
             else:
                 call += f"({', '.join(first_args)})"
         else:
-            call += f"({', '.join(first_args)})"
+            if not first_args and parts and '<' in call:
+                pass
+            else:
+                call += f"({', '.join(first_args)})"
         i = 0
         while i < len(parts):
             name = parts[i]
