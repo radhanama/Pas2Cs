@@ -10,7 +10,18 @@ from grammar import GRAMMAR
 from transformer import ToCSharp
 from utils import indent, fix_keyword
 
-def transpile(source: str) -> tuple[str, list[str]]:
+
+def interactive_translate(rule: str, children, line: int) -> str | None:
+    """Prompt the user for a manual translation of an unsupported construct."""
+    snippet = " ".join(str(c) for c in children)
+    print(f"Cannot translate '{rule}' at line {line}: {snippet}")
+    try:
+        inp = input("Provide translation (leave blank to keep TODO): ")
+    except EOFError:
+        inp = ""
+    return inp.strip() or None
+
+def transpile(source: str, manual_translate=None) -> tuple[str, list[str]]:
     source = source.lstrip('\ufeff')
     parser = Lark(
         GRAMMAR,
@@ -29,18 +40,25 @@ def transpile(source: str) -> tuple[str, list[str]]:
             msg = f"Parse error at line {e.line}, column {e.column}:{exp}\n{ctx}"
             raise SyntaxError(msg) from None
         raise
-    gen = ToCSharp()
+    gen = ToCSharp(manual_translate=manual_translate)
     body = gen.transform(tree)
     header = f"namespace {gen.ns} {{\n{indent(body.rstrip())}\n}}"
     return header, gen.todo
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        sys.exit("usage: pas2cs.py <input.pas>  (redirect output to .cs)")
+        sys.exit("usage: pas2cs.py [--interactive] <input.pas>  (redirect output to .cs)")
+
+    interactive = False
+    if "--interactive" in sys.argv:
+        interactive = True
+        sys.argv.remove("--interactive")
+
     src_file = sys.argv[1]
     src_txt = Path(src_file).read_text(encoding="utf-8")
     try:
-        cs_out, todos = transpile(src_txt)
+        manual = interactive_translate if interactive else None
+        cs_out, todos = transpile(src_txt, manual_translate=manual)
     except SyntaxError as e:
         print(str(e), file=sys.stderr)
         print(
