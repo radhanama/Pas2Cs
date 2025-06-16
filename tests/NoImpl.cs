@@ -1,5 +1,5 @@
 namespace Demo {
     public partial class NoImpl {
-        public void Foo();
+        public void Foo() { /* TODO: implement */ }
     }
 }
