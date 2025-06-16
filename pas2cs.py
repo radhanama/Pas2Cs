@@ -74,22 +74,22 @@ if __name__ == "__main__":
 
     src_file = sys.argv[1]
     src_txt = Path(src_file).read_text(encoding="utf-8")
-    try:
-        manual = interactive_translate if interactive else None
-        parse_manual = interactive_parse_error if interactive else None
-        cs_out, todos = transpile(
-            src_txt,
-            manual_translate=manual,
-            manual_parse_error=parse_manual,
-        )
-    except SyntaxError as e:
-        print(str(e), file=sys.stderr)
-        print(
-            f"Manual intervention required near the location above in {src_file}."
-            " Please edit the source to resolve the issue and rerun.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
+    # try:
+    manual = interactive_translate if interactive else None
+    parse_manual = interactive_parse_error if interactive else None
+    cs_out, todos = transpile(
+        src_txt,
+        manual_translate=manual,
+        manual_parse_error=parse_manual,
+    )
+    # except SyntaxError as e:
+    #     print(str(e), file=sys.stderr)
+    #     print(
+    #         f"Manual intervention required near the location above in {src_file}."
+    #         " Please edit the source to resolve the issue and rerun.",
+    #         file=sys.stderr,
+    #     )
+    #     sys.exit(1)
     print(cs_out)
     # if todos:
     #     print("\n".join(todos), file=sys.stderr)
