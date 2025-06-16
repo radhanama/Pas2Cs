@@ -34,7 +34,7 @@ name_list:   CNAME ("," CNAME)*                                 -> names
 ARRAY_RANGE: "[" /[^\]]*/ "]"
 array_type:  "array"i ARRAY_RANGE? "of"i type_name
 
-generic_type: dotted_name LT type_name ("," type_name)* GT
+generic_type: dotted_name GENERIC_ARGS
 
 property_sig: CNAME property_index? ":" type_name ("read" CNAME)? ("write" CNAME?)?
 property_index: "[" param_list? "]"
@@ -106,7 +106,7 @@ set_lit: "[" (expr ("," expr)*)? "]"
 
 new_expr: "new" type_name ("(" arg_list? ")")?
 
-generic_call_base: dotted_name LT type_name ("," type_name)* GT
+generic_call_base: dotted_name GENERIC_ARGS
 
 ?name_base:  dotted_name
 ?name_term:  dotted_name
@@ -125,6 +125,7 @@ var_decl:    name_list ":" type_name (":=" expr)? ";"        -> var_decl
 
 LT:          "<"
 GT:          ">"
+GENERIC_ARGS: /<\s*[A-Za-z0-9][^>]*>/
 OP_SUM:      "+" | "-" | "or"
 OP_MUL:      "*" | "/" | "and" | "mod"i
 OP_REL:      "=" | "<>" | "<=" | ">="
