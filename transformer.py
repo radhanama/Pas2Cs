@@ -35,7 +35,11 @@ class ToCSharp(Transformer):
                 info = self._parse_sig(line)
                 if info and info in self.impl_methods.get(cname, set()):
                     continue
-                body_lines.append(line.rstrip())
+                if info:
+                    stub = line.rstrip().rstrip(';') + ' { /* TODO: implement */ }'
+                    body_lines.append(stub)
+                else:
+                    body_lines.append(line.rstrip())
             body_lines.extend(self.class_impls.get(cname, []))
             body = "\n".join(body_lines).rstrip()
             body = indent(body) if body else ""
