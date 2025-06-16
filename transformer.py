@@ -4,13 +4,17 @@ from utils import indent, map_type_ext
 
 @v_args(inline=True)
 class ToCSharp(Transformer):
-    def __init__(self):
+    def __init__(self, manual_translate=None):
         super().__init__()
         self.todo = []   # collect unsupported notices
         self.ns   = "Unnamed"
         self.curr_method = None
         self.curr_params = []
         self.curr_kind = None
+        # optional callback invoked when a construct cannot be automatically
+        # translated. It should accept (rule_name, children, line) and return a
+        # string translation or None.
+        self.manual_translate = manual_translate
 
     # ── root rule -------------------------------------------------
     def start(self, ns, *parts):
@@ -301,8 +305,18 @@ class ToCSharp(Transformer):
         else_part = f" else {else_block}" if else_block else ""
         return f"if ({cond}) {then_block}{else_part}"
 
-    def for_stmt(self, var, start, stop, body):
-        return f"for (var {var} = {start}; {var} <= {stop}; {var}++) {body}"
+    def for_stmt(self, var, start, direction, stop, body):
+        if isinstance(direction, Token):
+            dir_tok = direction.type
+        else:
+            dir_tok = str(direction)
+        if dir_tok == 'DOWNTO':
+            cond = f"{var} >= {stop}"
+            inc = f"{var}--"
+        else:
+            cond = f"{var} <= {stop}"
+            inc = f"{var}++"
+        return f"for (var {var} = {start}; {cond}; {inc}) {body}"
 
     def while_stmt(self, cond, body):
         return f"while ({cond}) {body}"
@@ -447,4 +461,8 @@ class ToCSharp(Transformer):
         line = getattr(meta, "line", "?")
         info = f"// TODO: unsupported construct «{data}» at line {line}"
         self.todo.append(info)
+        if self.manual_translate:
+            translation = self.manual_translate(data, children, line)
+            if translation is not None:
+                return translation
         return info
