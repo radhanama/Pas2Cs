@@ -1,9 +1,7 @@
 namespace Demo {
-    public static partial class EscapedStr {
-        public static string GetSql(string ano, string mes);
-    }
-    public static partial class EscapedStr {
-        public static string GetSql(string ano, string mes) {
+    public partial class EscapedStr {
+        public string GetSql(string ano, string mes);
+        public string GetSql(string ano, string mes) {
             return 'WHERE ANO = ''' + ano + ''' AND MES = ''' + mes + '''';
         }
     }

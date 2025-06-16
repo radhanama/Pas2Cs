@@ -16,7 +16,10 @@ member_decl: method_decl_rule
            | access_modifier? "class"? "property"i property_sig ";"          -> property_decl
            | access_modifier? "class"? "const"i const_decl+                  -> const_block
            | access_modifier                                      -> section
-method_decl_rule: access_modifier? "class"? method_kind method_sig ";" method_attr* ";"? -> method_decl
+
+method_decl_rule: access_modifier? class_modifier? method_kind method_sig ";" method_attr* ";"? -> method_decl
+
+class_modifier: "class"
 method_attr: "override" | "static" | "abstract" | "virtual"
 method_kind: METHOD | PROCEDURE | FUNCTION | CONSTRUCTOR | DESTRUCTOR
 access_modifier: "public"i | "protected"i | "private"i
@@ -45,8 +48,7 @@ pre_class_decl: const_block
               | var_section
               | method_decl_rule
 
-class_impl:  "class" method_kind method_impl
-            | method_kind method_impl
+class_impl:  class_modifier? method_kind method_impl
 method_impl: impl_head ";" var_section? block                     -> m_impl
 impl_head:   method_name param_block? return_block?
 

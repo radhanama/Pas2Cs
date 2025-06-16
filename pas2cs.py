@@ -8,7 +8,7 @@ from pathlib import Path
 from lark import Lark
 from grammar import GRAMMAR
 from transformer import ToCSharp
-from utils import indent, fix_keyword
+from utils import fix_keyword
 
 
 def interactive_translate(rule: str, children, line: int) -> str | None:
@@ -46,8 +46,7 @@ def transpile(source: str, manual_translate=None, manual_parse_error=None) -> tu
         raise
     gen = ToCSharp(manual_translate=manual_translate)
     body = gen.transform(tree)
-    header = f"namespace {gen.ns} {{\n{indent(body.rstrip())}\n}}"
-    return header, gen.todo
+    return body, gen.todo
 
 def interactive_parse_error(err, source: str) -> str | None:
     """Prompt the user when parsing fails and optionally return a manual translation."""

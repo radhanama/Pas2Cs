@@ -1,6 +1,6 @@
 namespace Demo {
-    public static partial class InterfaceOnly {
-        public static void Create();
-        public static void Foo();
+    public partial class InterfaceOnly {
+        public void Create();
+        public void Foo();
     }
 }

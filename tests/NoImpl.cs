@@ -1,5 +1,5 @@
 namespace Demo {
-    public static partial class NoImpl {
-        public static void Foo();
+    public partial class NoImpl {
+        public void Foo();
     }
 }

@@ -1,17 +1,12 @@
 namespace Demo {
-    public static partial class Foo {
-        public static void Hidden();
-        public static void Visible();
-    }
-    public static partial class Foo {
-        public static void Hidden() {
+    public partial class Foo {
+        public void Hidden();
+        public void Visible();
+        public void Hidden() {
             System.Console.WriteLine('hidden');
         }
-    }
-    public static partial class Foo {
-        public static void Visible() {
+        public void Visible() {
             System.Console.WriteLine('visible');
         }
     }
 }
-

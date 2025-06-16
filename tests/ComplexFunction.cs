@@ -1,9 +1,7 @@
 namespace Demo {
-    public static partial class MyClass {
-        public static DataSet myfunction(string idAutor, string idLicit, string situacao, string dtIniEmissao, string dtFimEmissao, string idCC, string idMetaFase);
-    }
-    public static partial class MyClass {
-        public static DataSet myfunction(string idAutor, string idLicit, string situacao, string dtIniEmissao, string dtFimEmissao, string idCC, string idMetaFase) {
+    public partial class MyClass {
+        public DataSet myfunction(string idAutor, string idLicit, string situacao, string dtIniEmissao, string dtFimEmissao, string idCC, string idMetaFase);
+        public DataSet myfunction(string idAutor, string idLicit, string situacao, string dtIniEmissao, string dtFimEmissao, string idCC, string idMetaFase) {
             TStringList strSql;
             DateTime dtIni, dtFim;
             strSql = new TStringList();

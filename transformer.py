@@ -1,4 +1,5 @@
 import textwrap
+from collections import defaultdict, OrderedDict
 from lark import Transformer, v_args, Token
 from utils import indent, map_type_ext
 
@@ -11,6 +12,10 @@ class ToCSharp(Transformer):
         self.curr_method = None
         self.curr_params = []
         self.curr_kind = None
+        self.curr_static = False
+        self.class_defs = OrderedDict()
+        self.class_impls = defaultdict(list)
+        self.class_order = []
         # optional callback invoked when a construct cannot be automatically
         # translated. It should accept (rule_name, children, line) and return a
         # string translation or None.
@@ -18,20 +23,32 @@ class ToCSharp(Transformer):
 
     # ── root rule -------------------------------------------------
     def start(self, ns, *parts):
-        parts = [p for p in parts if p]
-        class_section, *impls = parts
-        impl_code = "\n".join(impls)
-        return f"{class_section}\n{impl_code}" if impl_code else class_section
+        classes = []
+        for cname in self.class_order:
+            base, sign = self.class_defs.get(cname, ("", ""))
+            body_lines = []
+            if sign.strip():
+                body_lines.append(sign.rstrip())
+            body_lines.extend(self.class_impls.get(cname, []))
+            body = "\n".join(body_lines).rstrip()
+            body = indent(body) if body else ""
+            classes.append(f"public partial class {cname}{base} {{\n{body}\n}}")
+        ns_body = "\n\n".join(classes)
+        return f"namespace {self.ns} {{\n{indent(ns_body)}\n}}"
 
     def class_impl(self, *parts):
         # method implementations may be preceded by modifiers we ignore
         impl = parts[-1]
-        return impl
+        return ""
 
     def interface_section(self, *args):
         return ""
 
     def uses(self, *args):
+        return ""
+
+    def class_modifier(self, token=None):
+        self.curr_static = True
         return ""
 
     # ── module / class ───────────────────────────────────────
@@ -60,12 +77,15 @@ class ToCSharp(Transformer):
         prev = getattr(self, "curr_class", None)
         self.curr_class = str(cname)
         base_cs = f" : {map_type_ext(str(base))}" if base else ""
-        body = f"public static partial class {cname}{base_cs} {{\n{indent(str(sign).rstrip())}\n}}"
+        sign_str = str(sign).rstrip()
+        self.class_defs[str(cname)] = (base_cs, sign_str)
+        if str(cname) not in self.class_order:
+            self.class_order.append(str(cname))
         self.curr_class = prev
-        return body
+        return ""
 
     def class_section(self, *classes):
-        return "\n\n".join(classes)
+        return ""
 
     def class_sign(self, *members):
         return "\n".join(members)
@@ -87,7 +107,9 @@ class ToCSharp(Transformer):
 
         params_cs = ", ".join(params or [])
         ret = map_type_ext(str(rettype)) if rettype else "void"
-        return f"public static {ret} {name}({params_cs});"
+        modifier = "static " if self.curr_static else ""
+        sig = f"public {modifier}{ret} {name}({params_cs});"
+        return sig
 
     def m_sig_no_name(self, *rest):
         params = None
@@ -106,7 +128,9 @@ class ToCSharp(Transformer):
             name = "Unnamed"
         params_cs = ", ".join(params or [])
         ret = map_type_ext(str(rettype)) if rettype else "void"
-        return f"public static {ret} {name}({params_cs});"
+        modifier = "static " if self.curr_static else ""
+        sig = f"public {modifier}{ret} {name}({params_cs});"
+        return sig
 
     def dotted_method(self, first, *rest):
         parts = [str(first)]
@@ -153,8 +177,12 @@ class ToCSharp(Transformer):
     def method_decl(self, *parts):
         for p in parts:
             if isinstance(p, str) and p.strip().startswith("public"):
-                return p
-        return ""
+                sig = p
+                break
+        else:
+            sig = ""
+        self.curr_static = False
+        return sig
 
     def member_decl(self, item):
         return item
@@ -242,12 +270,14 @@ class ToCSharp(Transformer):
         if vars_code:
             inner = textwrap.dedent(body[2:-2]).strip()
             body = "{\n" + indent(vars_code + ("\n" + inner if inner else "")) + "\n}"
-        method = f"public static {ret} {name}({params_cs}) {body}"
-        result = f"public static partial class {cls} {{\n{indent(method)}\n}}"
+        modifier = "static " if self.curr_static else ""
+        method = f"public {modifier}{ret} {name}({params_cs}) {body}"
+        self.class_impls[cls].append(method)
         # clear method context after generating its body
         self.curr_method = None
         self.curr_params = []
-        return result
+        self.curr_static = False
+        return ""
 
     def impl_head(self, name_parts, *rest):
         if isinstance(name_parts, (list, tuple)):

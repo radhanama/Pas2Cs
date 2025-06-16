@@ -1,9 +1,7 @@
 namespace Demo {
-    public static partial class Commented {
-        public static void SayHello();
-    }
-    public static partial class Commented {
-        public static void SayHello() {
+    public partial class Commented {
+        public void SayHello();
+        public void SayHello() {
             System.Console.WriteLine('Hello');
         }
     }
