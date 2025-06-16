@@ -4,13 +4,14 @@ from utils import indent, map_type_ext
 
 @v_args(inline=True)
 class ToCSharp(Transformer):
-    def __init__(self):
+    def __init__(self, interactive: bool = False):
         super().__init__()
         self.todo = []   # collect unsupported notices
         self.ns   = "Unnamed"
         self.curr_method = None
         self.curr_params = []
         self.curr_kind = None
+        self.interactive = interactive
 
     # ── root rule -------------------------------------------------
     def start(self, ns, *parts):
@@ -435,6 +436,13 @@ class ToCSharp(Transformer):
     # ── catch‑all for unimplemented rules ───────────────────
     def __default__(self, data, children, meta):
         line = getattr(meta, "line", "?")
+        if self.interactive:
+            prompt = f"Manual translation required for construct '{data}' at line {line}: "
+            try:
+                user_input = input(prompt)
+                return user_input
+            except EOFError:
+                pass
         info = f"// TODO: unsupported construct «{data}» at line {line}"
         self.todo.append(info)
         return info

@@ -10,7 +10,7 @@ from grammar import GRAMMAR
 from transformer import ToCSharp
 from utils import indent, fix_keyword
 
-def transpile(source: str) -> tuple[str, list[str]]:
+def transpile(source: str, interactive: bool = False) -> tuple[str, list[str]]:
     source = source.lstrip('\ufeff')
     parser = Lark(
         GRAMMAR,
@@ -29,18 +29,22 @@ def transpile(source: str) -> tuple[str, list[str]]:
             msg = f"Parse error at line {e.line}, column {e.column}:{exp}\n{ctx}"
             raise SyntaxError(msg) from None
         raise
-    gen = ToCSharp()
+    gen = ToCSharp(interactive=interactive)
     body = gen.transform(tree)
     header = f"namespace {gen.ns} {{\n{indent(body.rstrip())}\n}}"
     return header, gen.todo
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        sys.exit("usage: pas2cs.py <input.pas>  (redirect output to .cs)")
+        sys.exit("usage: pas2cs.py <input.pas> [--interactive] (redirect output to .cs)")
+    interactive = False
+    if "--interactive" in sys.argv:
+        interactive = True
+        sys.argv.remove("--interactive")
     src_file = sys.argv[1]
     src_txt = Path(src_file).read_text(encoding="utf-8")
     try:
-        cs_out, todos = transpile(src_txt)
+        cs_out, todos = transpile(src_txt, interactive=interactive)
     except SyntaxError as e:
         print(str(e), file=sys.stderr)
         print(
