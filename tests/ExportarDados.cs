@@ -1,8 +1,5 @@
 namespace SGUWeb {
     public partial class ExportarDados : TPageBasico2 {
-        public void Button2_Click(object sender, System.EventArgs e);
-        public void Button1_Click(object sender, System.EventArgs e);
-        public void Page_Load(object sender, EventArgs e);
         public void Page_Load(object sender, EventArgs e) {
             base.Page_Load(sender, e);
         }

@@ -1,6 +1,5 @@
 namespace Demo {
     public partial class MyClass {
-        public DataSet myfunction(string idAutor, string idLicit, string situacao, string dtIniEmissao, string dtFimEmissao, string idCC, string idMetaFase);
         public DataSet myfunction(string idAutor, string idLicit, string situacao, string dtIniEmissao, string dtFimEmissao, string idCC, string idMetaFase) {
             TStringList strSql;
             DateTime dtIni, dtFim;

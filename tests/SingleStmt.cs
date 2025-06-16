@@ -1,7 +1,5 @@
 namespace Demo {
     public partial class SingleStmt {
-        public static void TestIf(int x);
-        public static void TestFor();
         public static void TestIf(int x) {
             if (x == 5) System.Console.WriteLine('Hi');
         }

@@ -6,8 +6,6 @@ namespace Demo {
         public string Name { get; set; }
         // TODO: const DefaultCount -> define a constant
         public const int DefaultCount = 10;
-        public void Create();
-        public void Destroy();
         public void Create() {
             base.Create();
         }

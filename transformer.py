@@ -16,6 +16,7 @@ class ToCSharp(Transformer):
         self.class_defs = OrderedDict()
         self.class_impls = defaultdict(list)
         self.class_order = []
+        self.impl_methods = defaultdict(set)
         # optional callback invoked when a construct cannot be automatically
         # translated. It should accept (rule_name, children, line) and return a
         # string translation or None.
@@ -25,16 +26,40 @@ class ToCSharp(Transformer):
     def start(self, ns, *parts):
         classes = []
         for cname in self.class_order:
-            base, sign = self.class_defs.get(cname, ("", ""))
+            base, sign_list = self.class_defs.get(cname, ("", []))
             body_lines = []
-            if sign.strip():
-                body_lines.append(sign.rstrip())
+            for line in sign_list:
+                info = self._parse_sig(line)
+                if info and info in self.impl_methods.get(cname, set()):
+                    continue
+                body_lines.append(line.rstrip())
             body_lines.extend(self.class_impls.get(cname, []))
             body = "\n".join(body_lines).rstrip()
             body = indent(body) if body else ""
             classes.append(f"public partial class {cname}{base} {{\n{body}\n}}")
         ns_body = "\n\n".join(classes)
         return f"namespace {self.ns} {{\n{indent(ns_body)}\n}}"
+
+    def _parse_sig(self, line):
+        line = line.strip()
+        if not line.startswith("public"):
+            return None
+        line = line[len("public"):].strip()
+        static_flag = False
+        if line.startswith("static"):
+            static_flag = True
+            line = line[len("static"):].strip()
+        if not line.endswith(";"):
+            return None
+        line = line[:-1].strip()
+        if "(" not in line:
+            return None
+        head, params = line.split("(", 1)
+        params = params.rstrip(")")
+        if " " not in head:
+            return None
+        ret, name = head.split(None, 1)
+        return (name.strip(), params.strip(), ret.strip(), static_flag)
 
     def class_impl(self, *parts):
         # method implementations may be preceded by modifiers we ignore
@@ -77,8 +102,8 @@ class ToCSharp(Transformer):
         prev = getattr(self, "curr_class", None)
         self.curr_class = str(cname)
         base_cs = f" : {map_type_ext(str(base))}" if base else ""
-        sign_str = str(sign).rstrip()
-        self.class_defs[str(cname)] = (base_cs, sign_str)
+        sign_list = sign if isinstance(sign, list) else []
+        self.class_defs[str(cname)] = (base_cs, sign_list)
         if str(cname) not in self.class_order:
             self.class_order.append(str(cname))
         self.curr_class = prev
@@ -88,7 +113,14 @@ class ToCSharp(Transformer):
         return ""
 
     def class_sign(self, *members):
-        return "\n".join(members)
+        lines = []
+        for m in members:
+            if m:
+                if isinstance(m, list):
+                    lines.extend(m)
+                else:
+                    lines.append(m)
+        return lines
 
     # ── method declarations (interface part) ────────────────
     def m_sig(self, name_parts, *rest):
@@ -273,6 +305,8 @@ class ToCSharp(Transformer):
         modifier = "static " if self.curr_static else ""
         method = f"public {modifier}{ret} {name}({params_cs}) {body}"
         self.class_impls[cls].append(method)
+        key = (name, params_cs, ret, self.curr_static)
+        self.impl_methods[cls].add(key)
         # clear method context after generating its body
         self.curr_method = None
         self.curr_params = []
