@@ -206,6 +206,34 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, ['// TODO: case statement'])
 
+    def test_class_var(self):
+        src = Path('tests/ClassVar.pas').read_text()
+        expected = Path('tests/ClassVar.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, ['// TODO: field Log: int -> declare a field'])
+
+    def test_new_args(self):
+        src = Path('tests/NewArgs.pas').read_text()
+        expected = Path('tests/NewArgs.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_mod_expr(self):
+        src = Path('tests/ModExpr.pas').read_text()
+        expected = Path('tests/ModExpr.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_less_than_call(self):
+        src = Path('tests/LessThanCall.pas').read_text()
+        expected = Path('tests/LessThanCall.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_error_reporting(self):
         src = Path('tests/BadSyntax.pas').read_text()
         with self.assertRaises(SyntaxError) as cm:

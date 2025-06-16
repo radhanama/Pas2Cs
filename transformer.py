@@ -42,11 +42,10 @@ class ToCSharp(Transformer):
         base = parts[-1]
         return f"{base}[]"
 
-    def generic_type(self, base, *parts):
-        type_nodes = [p for p in parts if not isinstance(p, Token)]
-        mapped = [map_type_ext(str(t)) for t in type_nodes]
-        ts = ", ".join(mapped)
-        return f"{base}<{ts}>"
+    def generic_type(self, base, args):
+        inner = args[1:-1]
+        parts = [map_type_ext(p.strip()) for p in inner.split(',')]
+        return f"{base}<{', '.join(parts)}>"
 
     def class_def(self, cname, *parts):
         if len(parts) == 2:
@@ -429,11 +428,11 @@ class ToCSharp(Transformer):
         arglist = "" if args is None else ", ".join(args)
         return f"new {name}({arglist})"
 
-    def generic_call_base(self, base, *types):
-        from lark import Token
+    def generic_call_base(self, base, args):
         from utils import map_type
-        typs = [map_type(t) for t in types if not isinstance(t, Token)]
-        return f"{base}<{', '.join(typs)}>"
+        inner = args[1:-1]
+        types = [map_type(t.strip()) for t in inner.split(',')]
+        return f"{base}<{', '.join(types)}>"
 
     def set_lit(self, *elems):
         vals = ", ".join(elems)
