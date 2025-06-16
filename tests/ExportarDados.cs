@@ -7,14 +7,14 @@ namespace SGUWeb {
             TFuncionario f;
             f = new TFuncionario();
             f.ConsistenciaAdicionaisFolhaLTCAT();
-            f.gerarCSV(TSguUtils.PathRaizAbsoluto + '\\arquivos\\Adicionais.csv');
+            f.gerarCSV(TSguUtils.PathRaizAbsoluto + "\\arquivos\\Adicionais.csv");
             hlAdicionais.Visible = true;
         }
         public void Button2_Click(object sender, System.EventArgs e) {
             TSetorAlocacao s;
             s = new TSetorAlocacao();
             s.BuscarAlocacoes();
-            s.gerarCSV(TSguUtils.PathRaizAbsoluto + '\\arquivos\\Colaboradores.csv');
+            s.gerarCSV(TSguUtils.PathRaizAbsoluto + "\\arquivos\\Colaboradores.csv");
             hlColaboradores.Visible = true;
         }
     }

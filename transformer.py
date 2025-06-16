@@ -1,4 +1,6 @@
 import textwrap
+import json
+import ast
 from collections import defaultdict, OrderedDict
 from lark import Transformer, v_args, Token
 from utils import indent, map_type_ext
@@ -443,7 +445,14 @@ class ToCSharp(Transformer):
         return n
 
     def string(self, s):
-        return s
+        s = str(s)
+        if s.startswith("'"):
+            inner = s[1:-1].replace("''", "'")
+            inner = inner.replace('"', '\\"')
+            return f'"{inner}"'
+        else:
+            val = ast.literal_eval(s)
+            return json.dumps(val)
 
     def true(self, _):
         return "true"
@@ -458,7 +467,10 @@ class ToCSharp(Transformer):
         out = [str(base)]
         for p in parts:
             if isinstance(p, Token):
-                out.append(p.value)
+                text = p.value
+                if p.type == 'ARRAY_RANGE':
+                    text = text.replace("'", '"')
+                out.append(text)
             else:
                 out.append('.' + str(p))
         return ''.join(out)

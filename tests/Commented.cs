@@ -1,7 +1,7 @@
 namespace Demo {
     public partial class Commented {
         public void SayHello() {
-            System.Console.WriteLine('Hello');
+            System.Console.WriteLine("Hello");
         }
     }
 }
