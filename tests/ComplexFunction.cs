@@ -1,3 +1,5 @@
+using System.Data;
+
 namespace Demo {
     public partial class MyClass {
         public DataSet myfunction(string idAutor, string idLicit, string situacao, string dtIniEmissao, string dtFimEmissao, string idCC, string idMetaFase) {

@@ -1,8 +1,8 @@
 ````markdown
 # pas2cs – Oxygene / Object-Pascal → C# Transpiler (v0.3)
 
-Tiny, single-file prototype that converts the *simple* parts of an Oxygene
-(`.pas`) codebase to compilable C# (`.cs`).  
+Small transpiler that converts the *simple* parts of an Oxygene
+(`.pas`) codebase to compilable C# (`.cs`).
 It lets you **migrate a legacy Pascal project one file at a time** while
 keeping both languages building in the same .NET solution.
 
