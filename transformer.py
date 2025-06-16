@@ -305,8 +305,18 @@ class ToCSharp(Transformer):
         else_part = f" else {else_block}" if else_block else ""
         return f"if ({cond}) {then_block}{else_part}"
 
-    def for_stmt(self, var, start, stop, body):
-        return f"for (var {var} = {start}; {var} <= {stop}; {var}++) {body}"
+    def for_stmt(self, var, start, direction, stop, body):
+        if isinstance(direction, Token):
+            dir_tok = direction.type
+        else:
+            dir_tok = str(direction)
+        if dir_tok == 'DOWNTO':
+            cond = f"{var} >= {stop}"
+            inc = f"{var}--"
+        else:
+            cond = f"{var} <= {stop}"
+            inc = f"{var}++"
+        return f"for (var {var} = {start}; {cond}; {inc}) {body}"
 
     def while_stmt(self, cond, body):
         return f"while ({cond}) {body}"

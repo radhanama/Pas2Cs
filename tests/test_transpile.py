@@ -52,6 +52,13 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_for_downto(self):
+        src = Path('tests/ForDownTo.pas').read_text()
+        expected = Path('tests/ForDownTo.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_escaped_str(self):
         src = Path('tests/EscapedStr.pas').read_text()
         expected = Path('tests/EscapedStr.cs').read_text().strip()

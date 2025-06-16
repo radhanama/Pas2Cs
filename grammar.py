@@ -68,7 +68,7 @@ assign_stmt: var_ref ":=" expr ";"?                              -> assign
 return_stmt: RESULT ":=" expr ";"?                             -> result_ret
             | EXIT expr? ";"?                                  -> exit_ret
 if_stmt:     "if" expr "then" stmt ("else" stmt)?                 -> if_stmt
-for_stmt:    "for"i CNAME ":=" expr "to"i expr ("do"i)? stmt          -> for_stmt
+for_stmt:    "for"i CNAME ":=" expr (TO | DOWNTO) expr ("do"i)? stmt          -> for_stmt
 while_stmt:  "while"i expr "do"i stmt        -> while_stmt
 try_stmt:    "try" stmt* ("except" stmt*)? ("finally" stmt*)? "end" ";"?
 
@@ -130,6 +130,7 @@ VAR:         "var"i
 OUT:         "out"i
 FOR:         "for"i
 TO:          "to"i
+DOWNTO:      "downto"i
 IN:          "in"i
 WHILE:       "while"i
 DO:          "do"i
