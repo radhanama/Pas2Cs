@@ -350,7 +350,7 @@ class ToCSharp(Transformer):
 
     # ── expressions ─────────────────────────────────────────
     def binop(self, left, op, right):
-        op_map = {"and": "&&", "or": "||", "<>": "!=", "=": "=="}
+        op_map = {"and": "&&", "or": "||", "<>": "!=", "=": "==", "mod": "%"}
         return f"{left} {op_map.get(op, op)} {right}"
 
     def not_expr(self, _tok, expr):
@@ -425,8 +425,15 @@ class ToCSharp(Transformer):
             return f"{call};"
         return "// TODO: inherited call"
 
-    def new_expr(self, name):
-        return f"new {name}()"
+    def new_expr(self, name, args=None):
+        arglist = "" if args is None else ", ".join(args)
+        return f"new {name}({arglist})"
+
+    def generic_call_base(self, base, *types):
+        from lark import Token
+        from utils import map_type
+        typs = [map_type(t) for t in types if not isinstance(t, Token)]
+        return f"{base}<{', '.join(typs)}>"
 
     def set_lit(self, *elems):
         vals = ", ".join(elems)

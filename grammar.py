@@ -62,7 +62,7 @@ block:       "begin" stmt* "end" ";"?
            | inherited_stmt
            | call_stmt
            | except_on_stmt
-           | block
+            | block
             |                         -> empty
 
 assign_stmt: var_ref ":=" expr ";"?                              -> assign
@@ -77,7 +77,8 @@ case_stmt:   "case" expr "of" case_branch+ "end" ";"?
 case_branch: case_label ("," case_label)* ":" stmt
 case_label: NUMBER | SQ_STRING | STRING | CNAME
 
-call_stmt:   (var_ref | generic_type) ("(" arg_list? ")")? ("." name_term ("(" arg_list? ")")?)* ";"?     -> call_stmt
+call_stmt:   var_ref ("(" arg_list? ")")? ("." name_term ("(" arg_list? ")")?)* ";"?     -> call_stmt
+           | generic_call_base ("(" arg_list? ")")? ("." name_term ("(" arg_list? ")")?)* ";"? -> call_stmt
            | new_expr "." name_term ("(" arg_list? ")")? ("." name_term ("(" arg_list? ")")?)* ";"?     -> call_stmt
 
 inherited_stmt: "inherited" ";"?                          -> inherited
@@ -105,12 +106,15 @@ set_lit: "[" (expr ("," expr)*)? "]"
 
 new_expr: "new" type_name ("(" arg_list? ")")?
 
+generic_call_base: dotted_name LT type_name ("," type_name)* GT
+
 ?name_base:  dotted_name
 ?name_term:  dotted_name
 
 except_on_stmt: "on" CNAME ":" type_name "do" stmt
 
-call_expr:   (var_ref | generic_type) "(" arg_list? ")" ("." name_term ("(" arg_list? ")")?)*     -> call
+call_expr:   var_ref "(" arg_list? ")" ("." name_term ("(" arg_list? ")")?)*     -> call
+           | generic_call_base ("(" arg_list? ")")? ("." name_term ("(" arg_list? ")")?)*     -> call
            | new_expr "." name_term ("(" arg_list? ")")? ("." name_term ("(" arg_list? ")")?)*     -> call
 arg_list:    expr ("," expr)*
 
@@ -122,7 +126,7 @@ var_decl:    name_list ":" type_name (":=" expr)? ";"        -> var_decl
 LT:          "<"
 GT:          ">"
 OP_SUM:      "+" | "-" | "or"
-OP_MUL:      "*" | "/" | "and"
+OP_MUL:      "*" | "/" | "and" | "mod"i
 OP_REL:      "=" | "<>" | "<=" | ">="
 
 NOT:         "not"i
