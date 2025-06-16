@@ -24,6 +24,7 @@ class ToCSharp(Transformer):
         # translated. It should accept (rule_name, children, line) and return a
         # string translation or None.
         self.manual_translate = manual_translate
+        self.usings = OrderedDict()
 
     # ── root rule -------------------------------------------------
     def start(self, ns, *parts):
@@ -45,7 +46,10 @@ class ToCSharp(Transformer):
             body = indent(body) if body else ""
             classes.append(f"public partial class {cname}{base} {{\n{body}\n}}")
         ns_body = "\n\n".join(classes)
-        return f"namespace {self.ns} {{\n{indent(ns_body)}\n}}"
+        using_lines = ""
+        if self.usings:
+            using_lines = "\n".join(f"using {u};" for u in self.usings.keys()) + "\n\n"
+        return f"{using_lines}namespace {self.ns} {{\n{indent(ns_body)}\n}}"
 
     def _parse_sig(self, line):
         line = line.strip()
@@ -77,6 +81,10 @@ class ToCSharp(Transformer):
         return ""
 
     def uses(self, *args):
+        for item in args:
+            name = str(item)
+            if name not in self.usings:
+                self.usings[name] = None
         return ""
 
     def class_modifier(self, token=None):
