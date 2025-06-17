@@ -199,6 +199,27 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_post_call_index(self):
+        src = Path('tests/PostCallIndex.pas').read_text()
+        expected = Path('tests/PostCallIndex.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_string_cast(self):
+        src = Path('tests/StringCast.pas').read_text()
+        expected = Path('tests/StringCast.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_round_double(self):
+        src = Path('tests/RoundDouble.pas').read_text()
+        expected = Path('tests/RoundDouble.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_method_attr(self):
         src = Path('tests/MethodAttr.pas').read_text()
         expected = Path('tests/MethodAttr.cs').read_text().strip()
@@ -314,6 +335,13 @@ class TranspileTests(unittest.TestCase):
     def test_yield_stmt(self):
         src = Path('tests/YieldStmt.pas').read_text()
         expected = Path('tests/YieldStmt.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_try_except_on(self):
+        src = Path('tests/TryExceptOn.pas').read_text()
+        expected = Path('tests/TryExceptOn.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])

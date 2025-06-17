@@ -508,6 +508,17 @@ class ToCSharp(Transformer):
         self.todo.append(info)
         return info
 
+    def except_part(self, *stmts):
+        return list(stmts)
+
+    def finally_part(self, *stmts):
+        return list(stmts)
+
+    def except_on_stmt(self, _on, name, typ, _do, stmt):
+        t = map_type_ext(str(typ))
+        body = stmt
+        return ("catch", t, str(name), body)
+
     def yield_stmt(self, _tok, expr, _semi=None):
         return f"yield return {expr};"
 
@@ -549,24 +560,36 @@ class ToCSharp(Transformer):
         return f"while ({cond}) {body}"
 
     def try_stmt(self, *parts):
-        parts = list(parts)
         body = []
-        while parts and not isinstance(parts[0], list):
-            body.append(parts.pop(0))
-        except_body = []
-        finally_body = []
-        if parts:
-            except_body = parts.pop(0)
-        if parts:
-            finally_body = parts.pop(0)
-        body_cs = "\n".join(indent(s, 0) for s in body if s.strip())
-        exc_cs = "\n".join(indent(s, 0) for s in except_body if s.strip())
-        fin_cs = "\n".join(indent(s, 0) for s in finally_body if s.strip())
+        catches = []
+        plain_except = []
+        mode = 'body'
+        for item in parts:
+            if mode == 'body':
+                if isinstance(item, tuple) and item and item[0] == 'catch':
+                    mode = 'except'
+                    catches.append(item)
+                else:
+                    body.append(item)
+            else:
+                if isinstance(item, tuple) and item and item[0] == 'catch':
+                    catches.append(item)
+                else:
+                    plain_except.append(item)
+
+        body_cs = "\n".join(indent(s, 0) for s in body if isinstance(s, str) and s.strip())
         res = f"try {{\n{indent(body_cs)}\n}}"
-        if except_body:
+
+        if catches:
+            for cat in catches:
+                _, typ, name, stmt = cat
+                body = stmt
+                if not stmt.strip().startswith('{'):
+                    body = '{\n' + indent(stmt) + '\n}'
+                res += f" catch ({typ} {name}) {body}"
+        elif plain_except:
+            exc_cs = "\n".join(indent(s, 0) for s in plain_except if isinstance(s, str) and s.strip())
             res += f" catch (Exception) {{\n{indent(exc_cs)}\n}}"
-        if finally_body:
-            res += f" finally {{\n{indent(fin_cs)}\n}}"
         return res
 
     def case_stmt(self, expr, *branches):
@@ -637,17 +660,41 @@ class ToCSharp(Transformer):
                 out.append('.' + str(p))
         return ''.join(out)
 
+    def prop_call(self, name, args=None):
+        if args is None:
+            return ('prop', str(name), None)
+        else:
+            return ('prop', str(name), list(args))
+
+    def index_postfix(self, tok):
+        text = tok.value.replace("'", '"')
+        return ('index', text)
+
+    def call_args(self, args=None):
+        return [] if args is None else list(args)
+
     def call(self, fn, *parts):
         parts = list(parts)
         first_args = []
         if parts and isinstance(parts[0], list):
             first_args = parts.pop(0)
         call = str(fn)
-        if not parts and len(first_args) == 1 and '.' not in call:
-            simple_casts = {'Integer','String','Boolean','Double','DateTime','Object'}
-            if call.split('.')[-1] in simple_casts:
-                typ = map_type_ext(call)
-                call = f"({typ}){first_args[0]}"
+        if len(first_args) == 1 and '.' not in call:
+            name = call.split('.')[-1]
+            simple_casts = {'integer', 'string', 'boolean', 'double', 'datetime', 'object'}
+            lower = name.lower()
+            if lower in simple_casts:
+                typ = map_type_ext(name)
+                expr = first_args[0]
+                need_paren = any(ch in expr for ch in ' +-*/%<>=')
+                if need_paren:
+                    expr = f"({expr})"
+                cast_expr = f"({typ}){expr}"
+                call = f"({cast_expr})" if parts else cast_expr
+            elif lower == 'round':
+                inner = first_args[0]
+                round_expr = f"Math.Round({inner})"
+                call = f"({round_expr})" if parts else round_expr
             else:
                 call += f"({', '.join(first_args)})"
         else:
@@ -657,13 +704,25 @@ class ToCSharp(Transformer):
                 call += f"({', '.join(first_args)})"
         i = 0
         while i < len(parts):
-            name = parts[i]
+            part = parts[i]
             i += 1
-            arglist = []
-            if i < len(parts) and isinstance(parts[i], list):
-                arglist = parts[i]
-                i += 1
-            call += f".{name}({', '.join(arglist)})"
+            if isinstance(part, tuple):
+                kind = part[0]
+                if kind == 'prop':
+                    name, args = part[1], part[2]
+                    if args is None:
+                        call += f".{name}"
+                    else:
+                        call += f".{name}({', '.join(args)})"
+                elif kind == 'index':
+                    call += part[1]
+            else:
+                name = part
+                arglist = []
+                if i < len(parts) and isinstance(parts[i], list):
+                    arglist = parts[i]
+                    i += 1
+                call += f".{name}({', '.join(arglist)})"
         return call
 
     def call_stmt(self, fn, *parts):

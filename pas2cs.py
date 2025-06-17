@@ -72,7 +72,10 @@ if __name__ == "__main__":
         sys.argv.remove("--interactive")
 
     src_file = sys.argv[1]
-    src_txt = Path(src_file).read_text(encoding="utf-8")
+    try:
+        src_txt = Path(src_file).read_text(encoding="utf-8")
+    except UnicodeDecodeError:
+        src_txt = Path(src_file).read_text(encoding="cp1252")
     # try:
     manual = interactive_translate if interactive else None
     parse_manual = interactive_parse_error if interactive else None
