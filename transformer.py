@@ -660,6 +660,19 @@ class ToCSharp(Transformer):
                 out.append('.' + str(p))
         return ''.join(out)
 
+    def prop_call(self, name, args=None):
+        if args is None:
+            return ('prop', str(name), None)
+        else:
+            return ('prop', str(name), list(args))
+
+    def index_postfix(self, tok):
+        text = tok.value.replace("'", '"')
+        return ('index', text)
+
+    def call_args(self, args=None):
+        return [] if args is None else list(args)
+
     def call(self, fn, *parts):
         parts = list(parts)
         first_args = []
@@ -680,13 +693,25 @@ class ToCSharp(Transformer):
                 call += f"({', '.join(first_args)})"
         i = 0
         while i < len(parts):
-            name = parts[i]
+            part = parts[i]
             i += 1
-            arglist = []
-            if i < len(parts) and isinstance(parts[i], list):
-                arglist = parts[i]
-                i += 1
-            call += f".{name}({', '.join(arglist)})"
+            if isinstance(part, tuple):
+                kind = part[0]
+                if kind == 'prop':
+                    name, args = part[1], part[2]
+                    if args is None:
+                        call += f".{name}"
+                    else:
+                        call += f".{name}({', '.join(args)})"
+                elif kind == 'index':
+                    call += part[1]
+            else:
+                name = part
+                arglist = []
+                if i < len(parts) and isinstance(parts[i], list):
+                    arglist = parts[i]
+                    i += 1
+                call += f".{name}({', '.join(arglist)})"
         return call
 
     def call_stmt(self, fn, *parts):

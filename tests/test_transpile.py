@@ -199,6 +199,13 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_post_call_index(self):
+        src = Path('tests/PostCallIndex.pas').read_text()
+        expected = Path('tests/PostCallIndex.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_method_attr(self):
         src = Path('tests/MethodAttr.pas').read_text()
         expected = Path('tests/MethodAttr.cs').read_text().strip()

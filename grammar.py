@@ -126,9 +126,9 @@ case_stmt:   "case" expr "of" case_branch+ "end" ";"?
 case_branch: case_label ("," case_label)* ":" stmt
 case_label: NUMBER | SQ_STRING | STRING | CNAME
 
-call_stmt:   var_ref ("(" arg_list? ")")? ("." name_term ("(" arg_list? ")")?)* ";"?     -> call_stmt
-           | generic_call_base ("(" arg_list? ")")? ("." name_term ("(" arg_list? ")")?)* ";"? -> call_stmt
-           | new_expr "." name_term ("(" arg_list? ")")? ("." name_term ("(" arg_list? ")")?)* ";"?     -> call_stmt
+call_stmt:   var_ref ("(" arg_list? ")")? call_postfix* ";"?     -> call_stmt
+           | generic_call_base ("(" arg_list? ")")? call_postfix* ";"? -> call_stmt
+           | new_expr "." name_term ("(" arg_list? ")")? call_postfix* ";"?     -> call_stmt
 
 inherited_stmt: "inherited" ";"?                          -> inherited
 
@@ -162,11 +162,16 @@ generic_call_base: dotted_name GENERIC_ARGS
 ?name_base:  dotted_name
 ?name_term:  dotted_name
 
+?call_postfix: prop_call | index_postfix
+call_args: "(" arg_list? ")"          -> call_args
+prop_call: "." name_term call_args?    -> prop_call
+index_postfix: ARRAY_RANGE                       -> index_postfix
+
 except_on_stmt: ON CNAME ":" type_name DO stmt
 
-call_expr:   var_ref "(" arg_list? ")" ("." name_term ("(" arg_list? ")")?)*     -> call
-           | generic_call_base ("(" arg_list? ")")? ("." name_term ("(" arg_list? ")")?)*     -> call
-           | new_expr "." name_term ("(" arg_list? ")")? ("." name_term ("(" arg_list? ")")?)*     -> call
+call_expr:   var_ref "(" arg_list? ")" call_postfix*     -> call
+           | generic_call_base ("(" arg_list? ")")? call_postfix*     -> call
+           | new_expr "." name_term ("(" arg_list? ")")? call_postfix*     -> call
 arg_list:    expr ("," expr)*
 
 var_ref:     name_base (ARRAY_RANGE | "." name_term)*   -> var
