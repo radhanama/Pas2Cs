@@ -255,6 +255,27 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_raise_stmt(self):
+        src = Path('tests/Raise.pas').read_text()
+        expected = Path('tests/Raise.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_repeat_until(self):
+        src = Path('tests/RepeatUntil.pas').read_text()
+        expected = Path('tests/RepeatUntil.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_break_continue(self):
+        src = Path('tests/BreakContinue.pas').read_text()
+        expected = Path('tests/BreakContinue.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_error_reporting(self):
         src = Path('tests/BadSyntax.pas').read_text()
         with self.assertRaises(SyntaxError) as cm:

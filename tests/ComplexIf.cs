@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Demo {
     public partial class ComplexIf {
         public static void Check(object v, Dictionary<string, int> dict, int[] arr) {

@@ -383,6 +383,22 @@ class ToCSharp(Transformer):
     def exit_ret(self, _tok, expr=None):
         return f"return{(' ' + expr) if expr else ''};"
 
+    def raise_stmt(self, _tok, expr=None):
+        return f"throw{(' ' + expr) if expr else ''};"
+
+    def repeat_stmt(self, *parts):
+        cond = parts[-1]
+        body = parts[:-1]
+        body_cs = "\n".join(indent(s, 0) for s in body if s.strip())
+        inner = "{\n" + indent(body_cs) + "\n}"
+        return f"do {inner} while (!({cond}));"
+
+    def break_stmt(self, _tok):
+        return "break;"
+
+    def continue_stmt(self, _tok):
+        return "continue;"
+
     def if_stmt(self, cond, then_block, else_block=None):
         else_part = f" else {else_block}" if else_block else ""
         return f"if ({cond}) {then_block}{else_part}"

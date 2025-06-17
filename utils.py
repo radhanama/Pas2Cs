@@ -48,4 +48,8 @@ def fix_keyword(tok):
         tok.type = "END"
     elif v == "begin":
         tok.type = "BEGIN"
+    elif v == "break":
+        tok.type = "BREAK"
+    elif v == "continue":
+        tok.type = "CONTINUE"
     return tok
