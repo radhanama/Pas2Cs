@@ -175,6 +175,11 @@ class ToCSharp(Transformer):
         if parts and isinstance(parts[0], str) and parts[0].startswith('<'):
             generics = parts[0]
             parts = parts[1:]
+
+        # ignore unknown modifiers like "sealed" after the class keyword
+        while parts and isinstance(parts[0], Token) and parts[0].type == 'CNAME':
+            parts = parts[1:]
+
         if len(parts) == 2:
             base, sign = parts
         else:
