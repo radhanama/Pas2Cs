@@ -162,7 +162,7 @@ generic_call_base: dotted_name GENERIC_ARGS
 ?name_base:  dotted_name
 ?name_term:  dotted_name
 
-except_on_stmt: "on" CNAME ":" type_name "do" stmt
+except_on_stmt: ON CNAME ":" type_name DO stmt
 
 call_expr:   var_ref "(" arg_list? ")" ("." name_term ("(" arg_list? ")")?)*     -> call
            | generic_call_base ("(" arg_list? ")")? ("." name_term ("(" arg_list? ")")?)*     -> call
