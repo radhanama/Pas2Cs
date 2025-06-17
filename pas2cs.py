@@ -8,7 +8,7 @@ from pathlib import Path
 from lark import Lark
 from grammar import GRAMMAR
 from transformer import ToCSharp
-from utils import fix_keyword
+from utils import fix_keyword, set_source
 
 
 def interactive_translate(rule: str, children, line: int) -> str | None:
@@ -23,6 +23,7 @@ def interactive_translate(rule: str, children, line: int) -> str | None:
 
 def transpile(source: str, manual_translate=None, manual_parse_error=None) -> tuple[str, list[str]]:
     source = source.lstrip('\ufeff')
+    set_source(source)
     parser = Lark(
         GRAMMAR,
         parser="lalr",

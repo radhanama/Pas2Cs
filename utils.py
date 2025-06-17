@@ -18,12 +18,40 @@ def map_type_ext(typ: str) -> str:
         return map_type(typ[:-2]) + '[]'
     return map_type(typ)
 
+_SRC_TEXT = ""
+_LAST_POS = 0
+
+def set_source(text: str) -> None:
+    """Store source text so fix_keyword can check surrounding characters."""
+    global _SRC_TEXT, _LAST_POS
+    _SRC_TEXT = text
+    _LAST_POS = 0
+
+def _after_dot(start: int) -> bool:
+    if start <= 0:
+        return False
+    return _SRC_TEXT[start - 1] == '.'
+
+def _followed_by_member(end: int) -> bool:
+    if end >= len(_SRC_TEXT):
+        return False
+    ch = _SRC_TEXT[end]
+    return ch == '.' or ch == '<'
+
 def fix_keyword(tok):
+    global _LAST_POS
     if tok.value.startswith('&'):
         tok.value = tok.value[1:]
         tok.type = 'CNAME'
+        _LAST_POS = tok.end_pos
         return tok
+
     v = tok.value.lower()
+    if _after_dot(tok.start_pos) or _followed_by_member(tok.end_pos):
+        tok.type = 'CNAME'
+        _LAST_POS = tok.end_pos
+        return tok
+
     if v == "and":
         tok.type = "OP_MUL"
     elif v == "or":
@@ -94,4 +122,6 @@ def fix_keyword(tok):
         tok.type = "IS"
     elif v == "as":
         tok.type = "AS"
+
+    _LAST_POS = tok.end_pos
     return tok
