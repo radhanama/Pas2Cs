@@ -94,6 +94,7 @@ block:       "begin" stmt* "end" ";"?
            | repeat_stmt
            | break_stmt
            | continue_stmt
+           | var_stmt
            | loop_stmt
            | using_stmt
            | locking_stmt
@@ -111,6 +112,7 @@ raise_stmt: RAISE expr? ";"?                                 -> raise_stmt
 repeat_stmt: "repeat"i stmt* "until"i expr ";"?               -> repeat_stmt
 break_stmt: BREAK ";"?                                     -> break_stmt
 continue_stmt: CONTINUE ";"?                                -> continue_stmt
+var_stmt:    "var"i var_decl+                               -> var_stmt
 using_stmt: USING CNAME (":" type_name)? ":=" expr DO stmt                  -> using_var
            | USING expr DO stmt                           -> using_expr
            | USING AUTORELEASEPOOL DO stmt                -> using_pool
@@ -140,6 +142,8 @@ inherited_stmt: "inherited" ";"?                          -> inherited
            | AT var_ref                 -> addr_of
            | expr OP_SUM   expr          -> binop
            | expr OP_MUL   expr          -> binop
+           | expr OP_SUM ELSE expr      -> short_or
+           | expr OP_MUL THEN expr      -> short_and
            | expr (OP_REL|LT|GT) expr    -> binop
            | expr IN set_lit             -> in_expr
            | expr IS type_name           -> is_inst
@@ -219,6 +223,8 @@ FINALLY:     "finally"i
 ON:          "on"i
 CASE:        "case"i
 OF:          "of"i
+THEN:        "then"i
+ELSE:        "else"i
 
 TRUE:        "true"i
 FALSE:       "false"i

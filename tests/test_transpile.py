@@ -434,6 +434,20 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_var_stmt(self):
+        src = Path('tests/VarStmt.pas').read_text()
+        expected = Path('tests/VarStmt.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_short_circuit(self):
+        src = Path('tests/ShortCircuit.pas').read_text()
+        expected = Path('tests/ShortCircuit.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_typeof_postfix(self):
         src = Path('tests/TypeOfPostfix.pas').read_text()
         expected = Path('tests/TypeOfPostfix.cs').read_text().strip()
