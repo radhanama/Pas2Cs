@@ -43,9 +43,18 @@ return_block: ":" type_name                -> rettype
 param_list:  param (";" param)*
 param:       ("var"|"out")? name_list ":" type_name (":=" expr)? -> param
 name_list:   CNAME ("," CNAME)*                                 -> names
-?type_name:  array_type | generic_type | dotted_name
+?type_name:  pointer_type
+           | set_type
+           | range_type
+           | array_type
+           | generic_type
+           | dotted_name
 ARRAY_RANGE: "[" /[^\]]*/ "]"
 array_type:  "array"i ARRAY_RANGE? "of"i type_name
+
+pointer_type: CARET type_name
+set_type: "set"i "of"i type_name
+range_type: NUMBER DOTDOT NUMBER
 
 generic_type: dotted_name GENERIC_ARGS
 
@@ -119,6 +128,7 @@ inherited_stmt: "inherited" ";"?                          -> inherited
 ?expr:       NOT expr                    -> not_expr
            | "-" expr                   -> neg
            | "+" expr                   -> pos
+           | AT var_ref                 -> addr_of
            | expr OP_SUM   expr          -> binop
            | expr OP_MUL   expr          -> binop
            | expr (OP_REL|LT|GT) expr    -> binop
@@ -134,6 +144,7 @@ inherited_stmt: "inherited" ";"?                          -> inherited
            | call_expr
            | set_lit
            | new_expr
+           | expr CARET                  -> deref
 
 set_lit: "[" (expr ("," expr)*)? "]"
 
@@ -206,6 +217,9 @@ RECORD:      "record"i
 INTERFACE:   "interface"i
 ENUM:        "enum"i
 FLAGS:       "flags"i
+AT:          "@"
+CARET:       "^"
+DOTDOT:      ".."
 
 %import common.CNAME
 %import common.NUMBER

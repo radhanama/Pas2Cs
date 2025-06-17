@@ -114,6 +114,16 @@ class ToCSharp(Transformer):
         parts = [map_type_ext(p.strip()) for p in inner.split(',')]
         return f"{base}<{', '.join(parts)}>"
 
+    def pointer_type(self, _caret, typ):
+        return map_type_ext(str(typ)) + "*"
+
+    def set_type(self, typ):
+        t = map_type_ext(str(typ))
+        return f"System.Collections.Generic.HashSet<{t}>"
+
+    def range_type(self, start, _dd, end):
+        return "int"
+
     def _add_type(self, cname, kind, base, sign_list):
         self.class_defs[str(cname)] = (kind, base, sign_list)
         if str(cname) not in self.class_order:
@@ -641,6 +651,12 @@ class ToCSharp(Transformer):
     def new_expr(self, name, args=None):
         arglist = "" if args is None else ", ".join(args)
         return f"new {name}({arglist})"
+
+    def addr_of(self, _at, var):
+        return f"&{var}"
+
+    def deref(self, expr, _caret):
+        return f"*{expr}"
 
     def generic_call_base(self, base, args):
         from utils import map_type
