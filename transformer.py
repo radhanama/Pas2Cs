@@ -18,6 +18,7 @@ class ToCSharp(Transformer):
         self.curr_locals = set()
         self.class_defs = OrderedDict()
         self.class_impls = defaultdict(list)
+        self.alias_defs = []
         self.class_order = []
         self.impl_methods = defaultdict(set)
         # optional callback invoked when a construct cannot be automatically
@@ -60,8 +61,20 @@ class ToCSharp(Transformer):
         ns_body = "\n\n".join(classes)
         using_lines = ""
         if self.usings:
-            using_lines = "\n".join(f"using {u};" for u in self.usings.keys()) + "\n\n"
-        return f"{using_lines}namespace {self.ns} {{\n{indent(ns_body)}\n}}"
+            using_lines = "\n".join(f"using {u};" for u in self.usings.keys())
+        alias_lines = "\n".join(self.alias_defs)
+
+        header_parts = []
+        if using_lines:
+            header_parts.append(using_lines)
+        if alias_lines:
+            if using_lines:
+                header_parts.append("")
+            header_parts.append(alias_lines)
+        header = "\n".join(header_parts)
+        if header:
+            header += "\n\n"
+        return f"{header}namespace {self.ns} {{\n{indent(ns_body)}\n}}"
 
     def _parse_sig(self, line):
         line = line.strip()
@@ -109,7 +122,8 @@ class ToCSharp(Transformer):
         return ""
 
     def dotted(self, *parts):
-        return ".".join(parts)
+        pieces = [p.value if isinstance(p, Token) else str(p) for p in parts]
+        return ".".join(pieces)
 
     def array_type(self, *parts):
         base = parts[-1]
@@ -204,6 +218,16 @@ class ToCSharp(Transformer):
         self._add_type(cname, "enum", "", enum_items)
         return ""
 
+    def alias_def(self, *parts):
+        if len(parts) == 3:
+            _acc, cname, typ = parts
+        else:
+            cname, typ = parts
+        val = typ.value if isinstance(typ, Token) else str(typ)
+        t = map_type_ext(val)
+        self.alias_defs.append(f"using {cname} = {t};")
+        return ""
+
     def type_def(self, *parts):
         item = parts[-1]
         return item
@@ -265,18 +289,22 @@ class ToCSharp(Transformer):
 
     def dotted_method(self, first, *rest):
         parts = [str(first)]
+        generics = ""
         for tok in rest:
             if isinstance(tok, Token):
-                if tok.value != '.':
+                if tok.type == 'GENERIC_ARGS':
+                    generics = tok.value
+                elif tok.value != '.':
                     parts.append(str(tok))
             else:
                 parts.append(str(tok))
         cls = ".".join(parts[:-1])
-        name = parts[-1]
+        name = parts[-1] + generics
         return (cls, name)
 
-    def simple_method(self, name):
-        return name
+    def simple_method(self, name, *rest):
+        generics = rest[0].value if rest else ""
+        return str(name) + generics
 
     def params(self, items=None):
         return items or []
@@ -344,10 +372,19 @@ class ToCSharp(Transformer):
         return decl + ";"
 
     def field_decl(self, *parts):
-        names, typ = parts[-2:]
+        is_static = self.curr_static
+        self.curr_static = False
+        items = [p for p in parts if p not in ("", "var")]
+        if len(items) == 3:
+            names, typ, expr = items
+        else:
+            names, typ = items
+            expr = None
         t = map_type_ext(str(typ))
         info = f"// TODO: field {', '.join(names)}: {t} -> declare a field"
-        impl = f"public {t} {', '.join(names)};"
+        init = f" = {expr}" if expr is not None else ""
+        static_kw = "static " if is_static else ""
+        impl = f"public {static_kw}{t} {', '.join(names)}{init};"
         self.todo.append(info)
         return info + "\n" + impl
 
@@ -491,8 +528,14 @@ class ToCSharp(Transformer):
     def continue_stmt(self, _tok):
         return "continue;"
 
-    def using_var(self, _tok, name, expr, _do, body):
-        return f"using (var {name} = {expr}) {body}"
+    def using_var(self, _tok, name, *rest):
+        if len(rest) == 4:
+            typ, expr, _do, body = rest
+        else:
+            expr, _do, body = rest
+            typ = None
+        t = "var" if typ is None else map_type_ext(str(typ))
+        return f"using ({t} {name} = {expr}) {body}"
 
     def using_expr(self, _tok, expr, _do, body):
         return f"using ({expr}) {body}"
@@ -526,7 +569,15 @@ class ToCSharp(Transformer):
         else_part = f" else {else_block}" if else_block else ""
         return f"if ({cond}) {then_block}{else_part}"
 
-    def for_stmt(self, var, start, direction, stop, *rest):
+    def for_stmt(self, var, *parts):
+        parts = list(parts)
+        typ = None
+        if len(parts) > 3 and isinstance(parts[1], Token) and parts[1].type in {'TO','DOWNTO'}:
+            start, direction, stop = parts[0], parts[1], parts[2]
+            rest = parts[3:]
+        else:
+            typ, start, direction, stop = parts[0], parts[1], parts[2], parts[3]
+            rest = parts[4:]
         step = None
         if rest and isinstance(rest[0], Token) and rest[0].type == 'STEP':
             step = rest[1]
@@ -545,13 +596,21 @@ class ToCSharp(Transformer):
             cond = f"{var} <= {stop}"
             step_code = step or "1"
             inc = f"{var} += {step_code}" if step else f"{var}++"
-        prefix = "" if str(var) in self.curr_locals else "var "
-        if prefix:
+        if str(var) in self.curr_locals:
+            prefix = ""
+        else:
+            prefix = map_type_ext(str(typ)) + " " if typ else "var "
             self.curr_locals.add(str(var))
         return f"for ({prefix}{var} = {start}; {cond}; {inc}) {body}"
 
-    def for_each_stmt(self, var, _in, seq, body):
-        return f"foreach (var {var} in {seq}) {body}"
+    def for_each_stmt(self, var, *rest):
+        if rest and getattr(rest[0], 'type', None) != 'IN' and rest[0] != 'in':
+            typ, _in, seq, body = rest
+        else:
+            _in, seq, body = rest
+            typ = None
+        t = "var" if typ is None else map_type_ext(str(typ))
+        return f"foreach ({t} {var} in {seq}) {body}"
 
     def loop_stmt(self, _tok, body):
         return f"while (true) {body}"
@@ -698,8 +757,13 @@ class ToCSharp(Transformer):
             else:
                 call += f"({', '.join(first_args)})"
         else:
-            if not first_args and parts and '<' in call:
-                pass
+            if not first_args:
+                if parts and '<' in call:
+                    pass
+                elif call.startswith('typeof(') or call.startswith('new '):
+                    pass
+                else:
+                    call += "()"
             else:
                 call += f"({', '.join(first_args)})"
         i = 0
@@ -735,15 +799,44 @@ class ToCSharp(Transformer):
             return f"{call};"
         return "// TODO: inherited call"
 
-    def new_expr(self, name, args=None):
+    def new_obj(self, name, args=None):
         arglist = "" if args is None else ", ".join(args)
         return f"new {name}({arglist})"
+
+    def new_obj_noargs(self, name):
+        return f"new {name}()"
+
+    def new_array(self, name, range_tok):
+        inner = range_tok.value[1:-1]
+        return f"new {map_type_ext(str(name))}[{inner}]"
 
     def addr_of(self, _at, var):
         return f"&{var}"
 
     def deref(self, expr, _caret):
         return f"*{expr}"
+
+    def typeof_expr(self, _tok, typ, _rp=None):
+        return f"typeof({map_type_ext(str(typ))})"
+
+    def is_inst(self, expr, _tok, typ):
+        return f"{expr} is {map_type_ext(str(typ))}"
+
+    def as_cast(self, expr, _tok, typ):
+        return f"{expr} as {map_type_ext(str(typ))}"
+
+    def char_code(self, tok):
+        nums = [int(n) for n in tok.value[1:].split('#') if n]
+        chars = []
+        for val in nums:
+            if val == 10:
+                chars.append('\\n')
+            elif val == 13:
+                chars.append('\\r')
+            else:
+                chars.append(f"\\x{val:02X}")
+        inner = ''.join(chars)
+        return f'"{inner}"'
 
     def generic_call_base(self, base, args):
         from utils import map_type
