@@ -18,6 +18,7 @@ class ToCSharp(Transformer):
         self.curr_locals = set()
         self.class_defs = OrderedDict()
         self.class_impls = defaultdict(list)
+        self.alias_defs = []
         self.class_order = []
         self.impl_methods = defaultdict(set)
         # optional callback invoked when a construct cannot be automatically
@@ -60,8 +61,20 @@ class ToCSharp(Transformer):
         ns_body = "\n\n".join(classes)
         using_lines = ""
         if self.usings:
-            using_lines = "\n".join(f"using {u};" for u in self.usings.keys()) + "\n\n"
-        return f"{using_lines}namespace {self.ns} {{\n{indent(ns_body)}\n}}"
+            using_lines = "\n".join(f"using {u};" for u in self.usings.keys())
+        alias_lines = "\n".join(self.alias_defs)
+
+        header_parts = []
+        if using_lines:
+            header_parts.append(using_lines)
+        if alias_lines:
+            if using_lines:
+                header_parts.append("")
+            header_parts.append(alias_lines)
+        header = "\n".join(header_parts)
+        if header:
+            header += "\n\n"
+        return f"{header}namespace {self.ns} {{\n{indent(ns_body)}\n}}"
 
     def _parse_sig(self, line):
         line = line.strip()
@@ -109,7 +122,8 @@ class ToCSharp(Transformer):
         return ""
 
     def dotted(self, *parts):
-        return ".".join(parts)
+        pieces = [p.value if isinstance(p, Token) else str(p) for p in parts]
+        return ".".join(pieces)
 
     def array_type(self, *parts):
         base = parts[-1]
@@ -205,8 +219,9 @@ class ToCSharp(Transformer):
         return ""
 
     def alias_def(self, cname, typ):
-        info = f"// TODO: alias {cname} -> {typ}"
-        self.todo.append(info)
+        val = typ.value if isinstance(typ, Token) else str(typ)
+        t = map_type_ext(val)
+        self.alias_defs.append(f"using {cname} = {t};")
         return ""
 
     def type_def(self, *parts):
@@ -349,7 +364,9 @@ class ToCSharp(Transformer):
         return decl + ";"
 
     def field_decl(self, *parts):
-        items = [p for p in parts if p not in ("", "class", "var")]
+        is_static = self.curr_static
+        self.curr_static = False
+        items = [p for p in parts if p not in ("", "var")]
         if len(items) == 3:
             names, typ, expr = items
         else:
@@ -358,7 +375,8 @@ class ToCSharp(Transformer):
         t = map_type_ext(str(typ))
         info = f"// TODO: field {', '.join(names)}: {t} -> declare a field"
         init = f" = {expr}" if expr is not None else ""
-        impl = f"public {t} {', '.join(names)}{init};"
+        static_kw = "static " if is_static else ""
+        impl = f"public {static_kw}{t} {', '.join(names)}{init};"
         self.todo.append(info)
         return info + "\n" + impl
 

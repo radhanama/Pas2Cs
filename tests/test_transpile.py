@@ -418,7 +418,7 @@ class TranspileTests(unittest.TestCase):
         expected = Path('tests/AliasDef.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, ["// TODO: alias MimeMappingType -> &Type"])
+        self.assertEqual(todos, [])
 
     def test_char_code(self):
         src = Path('tests/CharCode.pas').read_text()
