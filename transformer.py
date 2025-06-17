@@ -515,6 +515,9 @@ class ToCSharp(Transformer):
     def assign(self, var, expr):
         return f"{var} = {expr};"
 
+    def op_assign(self, var, op, expr):
+        return f"{var} {op} {expr};"
+
     def result_ret(self, _tok, expr):
         return f"return {expr};"
 
