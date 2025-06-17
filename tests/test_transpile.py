@@ -462,6 +462,27 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_generic_method(self):
+        src = Path('tests/GenericMethod.pas').read_text()
+        expected = Path('tests/GenericMethod.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_as_cast(self):
+        src = Path('tests/AsCast.pas').read_text()
+        expected = Path('tests/AsCast.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_reserved_prop(self):
+        src = Path('tests/ReservedProp.pas').read_text()
+        expected = Path('tests/ReservedProp.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_error_reporting(self):
         src = Path('tests/BadSyntax.pas').read_text()
         with self.assertRaises(SyntaxError) as cm:

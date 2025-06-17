@@ -42,12 +42,12 @@ access_modifier: "public"i | "protected"i | "private"i
 
 method_sig:   method_name param_block? return_block?              -> m_sig
              | param_block? return_block?                        -> m_sig_no_name
-method_name: CNAME ("." CNAME)+           -> dotted_method
-           | CNAME                         -> simple_method
+method_name: CNAME ("." CNAME)+ GENERIC_ARGS?        -> dotted_method
+           | CNAME GENERIC_ARGS?                      -> simple_method
 param_block: "(" param_list? ")"           -> params
 return_block: ":" type_name                -> rettype
 param_list:  param (";" param)*
-param:       ("var"|"out"|"const")? name_list ":" type_name (":=" expr)? -> param
+param:       (VAR|OUT|CONST)? name_list ":" type_name (":=" expr)? -> param
 name_list:   CNAME ("," CNAME)*                                 -> names
 ?type_name:  pointer_type
            | set_type
@@ -143,6 +143,7 @@ inherited_stmt: "inherited" ";"?                          -> inherited
            | expr (OP_REL|LT|GT) expr    -> binop
            | expr IN set_lit             -> in_expr
            | expr IS type_name           -> is_inst
+           | expr AS type_name           -> as_cast
            | "(" expr ")"
            | NUMBER                       -> number
            | STRING                       -> string
@@ -236,6 +237,7 @@ USING:       "using"i
 LOCKING:     "locking"i
 YIELD:       "yield"i
 IS:          "is"i
+AS:          "as"i
 AUTORELEASEPOOL: "autoreleasepool"i
 RECORD:      "record"i
 INTERFACE:   "interface"i

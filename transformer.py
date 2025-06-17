@@ -289,18 +289,22 @@ class ToCSharp(Transformer):
 
     def dotted_method(self, first, *rest):
         parts = [str(first)]
+        generics = ""
         for tok in rest:
             if isinstance(tok, Token):
-                if tok.value != '.':
+                if tok.type == 'GENERIC_ARGS':
+                    generics = tok.value
+                elif tok.value != '.':
                     parts.append(str(tok))
             else:
                 parts.append(str(tok))
         cls = ".".join(parts[:-1])
-        name = parts[-1]
+        name = parts[-1] + generics
         return (cls, name)
 
-    def simple_method(self, name):
-        return name
+    def simple_method(self, name, *rest):
+        generics = rest[0].value if rest else ""
+        return str(name) + generics
 
     def params(self, items=None):
         return items or []
@@ -817,6 +821,9 @@ class ToCSharp(Transformer):
 
     def is_inst(self, expr, _tok, typ):
         return f"{expr} is {map_type_ext(str(typ))}"
+
+    def as_cast(self, expr, _tok, typ):
+        return f"{expr} as {map_type_ext(str(typ))}"
 
     def char_code(self, tok):
         nums = [int(n) for n in tok.value[1:].split('#') if n]

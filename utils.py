@@ -21,6 +21,8 @@ def map_type_ext(typ: str) -> str:
 def fix_keyword(tok):
     if tok.value.startswith('&'):
         tok.value = tok.value[1:]
+        tok.type = 'CNAME'
+        return tok
     v = tok.value.lower()
     if v == "and":
         tok.type = "OP_MUL"
@@ -90,4 +92,6 @@ def fix_keyword(tok):
         tok.type = "TYPEOF"
     elif v == "is":
         tok.type = "IS"
+    elif v == "as":
+        tok.type = "AS"
     return tok
