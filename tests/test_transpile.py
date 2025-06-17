@@ -350,6 +350,13 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_event_operator(self):
+        src = Path('tests/EventOperator.pas').read_text()
+        expected = Path('tests/EventOperator.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, ["// TODO: event OnSomething: EventHandler -> implement"])
+
     def test_error_reporting(self):
         src = Path('tests/BadSyntax.pas').read_text()
         with self.assertRaises(SyntaxError) as cm:

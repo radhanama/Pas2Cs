@@ -5,13 +5,16 @@ GRAMMAR = r"""
 interface_section: "interface" uses_clause? pre_class_decl*
 uses_clause:   "uses" dotted_name ("," dotted_name)* ";"         -> uses
 
+attribute: "[" dotted_name ("(" arg_list? ")")? "]"
+attributes: attribute+
+
 namespace:   "namespace" dotted_name ";"                          -> namespace
 dotted_name: CNAME ("." CNAME)*                                    -> dotted
 class_section: "type" type_def+                                   -> class_section
-type_def:    class_def
-           | record_def
-           | interface_def
-           | enum_def
+type_def:    attributes? class_def
+           | attributes? record_def
+           | attributes? interface_def
+           | attributes? enum_def
 
 class_def:   CNAME "=" "public"i "static"? "partial"? "abstract"? "class"i ("(" type_name ")")? class_signature "end"i ";" -> class_def
 record_def:  CNAME "=" "public"i "record"i ("(" type_name ")")? class_signature "end"i ";" -> record_def
@@ -21,17 +24,18 @@ enum_items:  enum_item ("," enum_item)*                       -> enum_items
 enum_item:   CNAME ("=" NUMBER)?                              -> enum_item
 
 class_signature: member_decl*                                     -> class_sign
-member_decl: method_decl_rule
-           | access_modifier? "class"? "var"i? name_list ":" type_name ";"         -> field_decl
-           | access_modifier? "class"? "property"i property_sig ";"          -> property_decl
-           | access_modifier? "class"? "const"i const_decl+                  -> const_block
+member_decl: attributes? method_decl_rule
+           | attributes? access_modifier? "class"? "var"i? name_list ":" type_name ";"         -> field_decl
+           | attributes? access_modifier? "class"? "property"i property_sig ";"          -> property_decl
+           | attributes? access_modifier? "event"i CNAME ":" type_name ";"   -> event_decl
+           | attributes? access_modifier? "class"? "const"i const_decl+                  -> const_block
            | access_modifier                                      -> section
 
 method_decl_rule: access_modifier? class_modifier? method_kind method_sig ";" method_attr* ";"? -> method_decl
 
 class_modifier: "class"
 method_attr: "override" | "static" | "abstract" | "virtual"
-method_kind: METHOD | PROCEDURE | FUNCTION | CONSTRUCTOR | DESTRUCTOR
+method_kind: METHOD | PROCEDURE | FUNCTION | CONSTRUCTOR | DESTRUCTOR | OPERATOR
 access_modifier: "public"i | "protected"i | "private"i
 
 method_sig:   method_name param_block? return_block?              -> m_sig
@@ -46,6 +50,7 @@ name_list:   CNAME ("," CNAME)*                                 -> names
 ?type_name:  pointer_type
            | set_type
            | range_type
+           | tuple_type
            | array_type
            | generic_type
            | dotted_name
@@ -55,6 +60,8 @@ array_type:  "array"i ARRAY_RANGE? "of"i type_name
 pointer_type: CARET type_name
 set_type: "set"i "of"i type_name
 range_type: NUMBER DOTDOT NUMBER
+
+tuple_type: "tuple"i "of" "(" type_name ("," type_name)* ")"
 
 generic_type: dotted_name GENERIC_ARGS
 
@@ -217,6 +224,9 @@ RECORD:      "record"i
 INTERFACE:   "interface"i
 ENUM:        "enum"i
 FLAGS:       "flags"i
+EVENT:       "event"i
+OPERATOR:    "operator"i
+TUPLE:       "tuple"i
 AT:          "@"
 CARET:       "^"
 DOTDOT:      ".."
