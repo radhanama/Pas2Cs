@@ -316,6 +316,13 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_multi_base(self):
+        src = Path('tests/MultiBase.pas').read_text()
+        expected = Path('tests/MultiBase.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_event_operator(self):
         src = Path('tests/EventOperator.pas').read_text()
         expected = Path('tests/EventOperator.cs').read_text().strip()
