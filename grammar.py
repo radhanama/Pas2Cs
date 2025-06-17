@@ -62,6 +62,7 @@ block:       "begin" stmt* "end" ";"?
            | try_stmt
            | case_stmt
            | inherited_stmt
+           | raise_stmt
            | call_stmt
            | except_on_stmt
             | block
@@ -70,6 +71,7 @@ block:       "begin" stmt* "end" ";"?
 assign_stmt: var_ref ":=" expr ";"?                              -> assign
 return_stmt: RESULT ":=" expr ";"?                             -> result_ret
             | EXIT expr? ";"?                                  -> exit_ret
+raise_stmt: RAISE expr? ";"?                                 -> raise_stmt
 if_stmt:     "if" expr "then" stmt ("else" stmt)?                 -> if_stmt
 for_stmt:    "for"i CNAME ":=" expr (TO | DOWNTO) expr ("do"i)? stmt          -> for_stmt
 while_stmt:  "while"i expr "do"i stmt        -> while_stmt
@@ -160,6 +162,7 @@ NIL:         "nil"i
 SQ_STRING:   /'(?:[^'\n]|'')*'/
 RESULT:      "result"i
 EXIT:        "exit"i
+RAISE:       "raise"i
 
 %import common.CNAME
 %import common.NUMBER
