@@ -162,7 +162,6 @@ generic_call_base: dotted_name GENERIC_ARGS
 ?name_base:  dotted_name
 ?name_term:  dotted_name
 
-except_on_stmt: ON CNAME ":" type_name DO stmt
 ?call_postfix: prop_call | index_postfix
 call_args: "(" arg_list? ")"          -> call_args
 prop_call: "." name_term call_args?    -> prop_call
