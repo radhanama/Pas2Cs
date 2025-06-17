@@ -26,6 +26,12 @@ class ToCSharp(Transformer):
         self.manual_translate = manual_translate
         self.usings = OrderedDict()
 
+    def attributes(self, *items):
+        return ""
+
+    def attribute(self, *parts):
+        return ""
+
     # ── root rule -------------------------------------------------
     def start(self, ns, *parts):
         classes = []
@@ -124,6 +130,19 @@ class ToCSharp(Transformer):
     def range_type(self, start, _dd, end):
         return "int"
 
+    def tuple_type(self, _tok, _of, _lp, first, *rest):
+        types = [map_type_ext(str(first))]
+        i = 0
+        while i < len(rest):
+            t = rest[i]
+            if isinstance(t, Token) and t.type == ',':
+                i += 1
+                continue
+            types.append(map_type_ext(str(t)))
+            i += 1
+        inner = ', '.join(types)
+        return f"System.ValueTuple<{inner}>"
+
     def _add_type(self, cname, kind, base, sign_list):
         self.class_defs[str(cname)] = (kind, base, sign_list)
         if str(cname) not in self.class_order:
@@ -185,7 +204,8 @@ class ToCSharp(Transformer):
         self._add_type(cname, "enum", "", enum_items)
         return ""
 
-    def type_def(self, item):
+    def type_def(self, *parts):
+        item = parts[-1]
         return item
 
     def class_section(self, *classes):
@@ -346,6 +366,14 @@ class ToCSharp(Transformer):
         name, typ = sig
         info = f"// TODO: property {name}: {typ} -> implement as auto-property"
         impl = f"public {typ} {name} {{ get; set; }}"
+        self.todo.append(info)
+        return info + "\n" + impl
+
+    def event_decl(self, *parts):
+        name = parts[-2]
+        typ = map_type_ext(str(parts[-1]))
+        info = f"// TODO: event {name}: {typ} -> implement"
+        impl = f"public event {typ} {name};"
         self.todo.append(info)
         return info + "\n" + impl
 

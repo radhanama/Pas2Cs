@@ -76,4 +76,10 @@ def fix_keyword(tok):
         tok.type = "ENUM"
     elif v == "flags":
         tok.type = "FLAGS"
+    elif v == "event":
+        tok.type = "EVENT"
+    elif v == "operator":
+        tok.type = "OPERATOR"
+    elif v == "tuple":
+        tok.type = "TUPLE"
     return tok
