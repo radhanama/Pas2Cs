@@ -427,6 +427,41 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_char_code_seq(self):
+        src = Path('tests/CharCodeSeq.pas').read_text()
+        expected = Path('tests/CharCodeSeq.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_typeof_postfix(self):
+        src = Path('tests/TypeOfPostfix.pas').read_text()
+        expected = Path('tests/TypeOfPostfix.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_typed_for_loop(self):
+        src = Path('tests/TypedForLoop.pas').read_text()
+        expected = Path('tests/TypedForLoop.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_const_param(self):
+        src = Path('tests/ConstParam.pas').read_text()
+        expected = Path('tests/ConstParam.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_is_operator(self):
+        src = Path('tests/IsOp.pas').read_text()
+        expected = Path('tests/IsOp.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_error_reporting(self):
         src = Path('tests/BadSyntax.pas').read_text()
         with self.assertRaises(SyntaxError) as cm:

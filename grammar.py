@@ -47,7 +47,7 @@ method_name: CNAME ("." CNAME)+           -> dotted_method
 param_block: "(" param_list? ")"           -> params
 return_block: ":" type_name                -> rettype
 param_list:  param (";" param)*
-param:       ("var"|"out")? name_list ":" type_name (":=" expr)? -> param
+param:       ("var"|"out"|"const")? name_list ":" type_name (":=" expr)? -> param
 name_list:   CNAME ("," CNAME)*                                 -> names
 ?type_name:  pointer_type
            | set_type
@@ -118,7 +118,7 @@ locking_stmt: LOCKING expr DO stmt                        -> locking_stmt
 with_stmt: WITH expr DO stmt                              -> with_stmt
 yield_stmt: YIELD expr ";"?                               -> yield_stmt
 if_stmt:     "if" expr "then" stmt ("else" stmt)?                 -> if_stmt
-for_stmt:    "for"i CNAME ":=" expr (TO | DOWNTO) expr (STEP expr)? ("do"i)? stmt  -> for_stmt
+for_stmt:    "for"i CNAME (":" type_name)? ":=" expr (TO | DOWNTO) expr (STEP expr)? ("do"i)? stmt  -> for_stmt
            | "for"i "each"i? CNAME (":" type_name)? IN expr ("do"i)? stmt        -> for_each_stmt
 loop_stmt:   LOOP stmt                                                -> loop_stmt
 while_stmt:  "while"i expr "do"i stmt        -> while_stmt
@@ -142,6 +142,7 @@ inherited_stmt: "inherited" ";"?                          -> inherited
            | expr OP_MUL   expr          -> binop
            | expr (OP_REL|LT|GT) expr    -> binop
            | expr IN set_lit             -> in_expr
+           | expr IS type_name           -> is_inst
            | "(" expr ")"
            | NUMBER                       -> number
            | STRING                       -> string
@@ -149,7 +150,7 @@ inherited_stmt: "inherited" ";"?                          -> inherited
            | TRUE                         -> true
            | FALSE                        -> false
            | NIL                          -> null
-           | TYPEOF "(" type_name ")"      -> typeof_expr
+           | typeof_expr
            | var_ref
            | call_expr
            | set_lit
@@ -162,6 +163,8 @@ set_lit: "[" (expr ("," expr)*)? "]"
 new_expr: "new" type_name "(" arg_list? ")"           -> new_obj
         | "new" type_name ARRAY_RANGE                 -> new_array
         | "new" type_name                             -> new_obj_noargs
+
+typeof_expr: TYPEOF "(" type_name ")"      -> typeof_expr
 
 generic_call_base: dotted_name GENERIC_ARGS
 
@@ -178,6 +181,7 @@ except_on_stmt: ON CNAME ":" type_name DO stmt
 call_expr:   var_ref "(" arg_list? ")" call_postfix*     -> call
            | generic_call_base ("(" arg_list? ")")? call_postfix*     -> call
            | new_expr "." name_term ("(" arg_list? ")")? call_postfix*     -> call
+           | typeof_expr call_postfix+                   -> call
 arg_list:    expr ("," expr)*
 
 var_ref:     name_base (ARRAY_RANGE | "." name_term)*   -> var
@@ -201,6 +205,7 @@ CONSTRUCTOR: "constructor"i
 DESTRUCTOR:  "destructor"i
 VAR:         "var"i
 OUT:         "out"i
+CONST:       "const"i
 FOR:         "for"i
 TO:          "to"i
 DOWNTO:      "downto"i
@@ -230,6 +235,7 @@ WITH:        "with"i
 USING:       "using"i
 LOCKING:     "locking"i
 YIELD:       "yield"i
+IS:          "is"i
 AUTORELEASEPOOL: "autoreleasepool"i
 RECORD:      "record"i
 INTERFACE:   "interface"i
@@ -243,7 +249,7 @@ AT:          "@"
 CARET:       "^"
 DOTDOT:      ".."
 
-CHAR_CODE:   "#" NUMBER
+CHAR_CODE:   "#" NUMBER ("#" NUMBER)*
 
 %import common.CNAME -> BASE_CNAME
 %import common.NUMBER

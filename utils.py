@@ -38,6 +38,8 @@ def fix_keyword(tok):
         tok.type = "FOR"
     elif v == "to":
         tok.type = "TO"
+    elif v == "const":
+        tok.type = "CONST"
     elif v == "try":
         tok.type = "TRY"
     elif v == "except":
@@ -86,4 +88,6 @@ def fix_keyword(tok):
         tok.type = "TUPLE"
     elif v == "typeof":
         tok.type = "TYPEOF"
+    elif v == "is":
+        tok.type = "IS"
     return tok

@@ -565,7 +565,15 @@ class ToCSharp(Transformer):
         else_part = f" else {else_block}" if else_block else ""
         return f"if ({cond}) {then_block}{else_part}"
 
-    def for_stmt(self, var, start, direction, stop, *rest):
+    def for_stmt(self, var, *parts):
+        parts = list(parts)
+        typ = None
+        if len(parts) > 3 and isinstance(parts[1], Token) and parts[1].type in {'TO','DOWNTO'}:
+            start, direction, stop = parts[0], parts[1], parts[2]
+            rest = parts[3:]
+        else:
+            typ, start, direction, stop = parts[0], parts[1], parts[2], parts[3]
+            rest = parts[4:]
         step = None
         if rest and isinstance(rest[0], Token) and rest[0].type == 'STEP':
             step = rest[1]
@@ -584,8 +592,10 @@ class ToCSharp(Transformer):
             cond = f"{var} <= {stop}"
             step_code = step or "1"
             inc = f"{var} += {step_code}" if step else f"{var}++"
-        prefix = "" if str(var) in self.curr_locals else "var "
-        if prefix:
+        if str(var) in self.curr_locals:
+            prefix = ""
+        else:
+            prefix = map_type_ext(str(typ)) + " " if typ else "var "
             self.curr_locals.add(str(var))
         return f"for ({prefix}{var} = {start}; {cond}; {inc}) {body}"
 
@@ -743,8 +753,13 @@ class ToCSharp(Transformer):
             else:
                 call += f"({', '.join(first_args)})"
         else:
-            if not first_args and parts and '<' in call:
-                pass
+            if not first_args:
+                if parts and '<' in call:
+                    pass
+                elif call.startswith('typeof(') or call.startswith('new '):
+                    pass
+                else:
+                    call += "()"
             else:
                 call += f"({', '.join(first_args)})"
         i = 0
@@ -800,14 +815,21 @@ class ToCSharp(Transformer):
     def typeof_expr(self, _tok, typ, _rp=None):
         return f"typeof({map_type_ext(str(typ))})"
 
+    def is_inst(self, expr, _tok, typ):
+        return f"{expr} is {map_type_ext(str(typ))}"
+
     def char_code(self, tok):
-        num = tok.value[1:]
-        val = int(num)
-        if val == 10:
-            return '"\\n"'
-        if val == 13:
-            return '"\\r"'
-        return f'"\\x{val:02X}"'
+        nums = [int(n) for n in tok.value[1:].split('#') if n]
+        chars = []
+        for val in nums:
+            if val == 10:
+                chars.append('\\n')
+            elif val == 13:
+                chars.append('\\r')
+            else:
+                chars.append(f"\\x{val:02X}")
+        inner = ''.join(chars)
+        return f'"{inner}"'
 
     def generic_call_base(self, base, args):
         from utils import map_type
