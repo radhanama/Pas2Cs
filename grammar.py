@@ -17,11 +17,11 @@ type_def:    attributes? class_def
            | attributes? enum_def
            | alias_def
 
-class_def:   CNAME "=" ("public"i)? "static"? "partial"? "abstract"? "class"i ("(" type_name ")")? class_signature "end"i ";" -> class_def
-record_def:  CNAME "=" ("public"i)? "record"i ("(" type_name ")")? class_signature "end"i ";" -> record_def
-interface_def: CNAME "=" ("public"i)? "interface"i ("(" type_name ("," type_name)* ")")? class_signature "end"i ";" -> interface_def
+class_def:   CNAME generic_params? "=" ("public"i)? "static"? "partial"? "abstract"? "class"i ("(" type_name ")")? class_signature "end"i ";" -> class_def
+record_def:  CNAME generic_params? "=" ("public"i)? "record"i ("(" type_name ")")? class_signature "end"i ";" -> record_def
+interface_def: CNAME generic_params? "=" ("public"i)? "interface"i ("(" type_name ("," type_name)* ")")? class_signature "end"i ";" -> interface_def
 enum_def:    CNAME "=" ("public"i)? ("enum"i | "flags"i)? "(" enum_items ")" ("of" type_name)? ";" -> enum_def
-alias_def:   access_modifier? CNAME "=" type_name ";"        -> alias_def
+alias_def:   access_modifier? CNAME generic_params? "=" type_name ";"        -> alias_def
 enum_items:  enum_item ("," enum_item)*                       -> enum_items
 enum_item:   CNAME ("=" NUMBER)?                              -> enum_item
 
@@ -66,6 +66,7 @@ range_type: NUMBER DOTDOT NUMBER
 tuple_type: "tuple"i "of" "(" type_name ("," type_name)* ")"
 
 generic_type: dotted_name GENERIC_ARGS
+generic_params: "<" CNAME ("," CNAME)* ">"
 
 property_sig: CNAME property_index? ":" type_name ("read" CNAME)? ("write" CNAME?)?
 property_index: "[" param_list? "]"
@@ -83,6 +84,7 @@ impl_head:   method_name param_block? return_block?
 block:       "begin" stmt* "end" ";"?
 
 ?stmt:       assign_stmt
+           | op_assign_stmt
            | return_stmt
            | if_stmt
            | for_stmt
@@ -106,6 +108,8 @@ block:       "begin" stmt* "end" ";"?
             |                         -> empty
 
 assign_stmt: var_ref ":=" expr ";"?                              -> assign
+op_assign_stmt: var_ref ADD_ASSIGN expr ";"?                -> op_assign
+               | var_ref SUB_ASSIGN expr ";"?                -> op_assign
 return_stmt: RESULT ":=" expr ";"?                             -> result_ret
             | EXIT expr? ";"?                                  -> exit_ret
 raise_stmt: RAISE expr? ";"?                                 -> raise_stmt
@@ -204,6 +208,8 @@ GENERIC_ARGS: /<(?:(?:[^<>]|<[^<>]*>)+)>/
 OP_SUM:      "+" | "-" | "or"
 OP_MUL:      "*" | "/" | "and" | "mod"i
 OP_REL:      "=" | "<>" | "<=" | ">="
+ADD_ASSIGN.2:  "+="
+SUB_ASSIGN.2:  "-="
 
 NOT:         "not"i
 

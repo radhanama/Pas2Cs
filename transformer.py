@@ -157,40 +157,62 @@ class ToCSharp(Transformer):
         inner = ', '.join(types)
         return f"System.ValueTuple<{inner}>"
 
+    def generic_params(self, _lt, first, *rest):
+        names = [str(first)]
+        for item in rest:
+            if isinstance(item, Token) and item.type == ',':
+                continue
+            names.append(str(item))
+        return '<' + ', '.join(names) + '>'
+
     def _add_type(self, cname, kind, base, sign_list):
         self.class_defs[str(cname)] = (kind, base, sign_list)
         if str(cname) not in self.class_order:
             self.class_order.append(str(cname))
 
     def class_def(self, cname, *parts):
+        generics = ''
+        if parts and isinstance(parts[0], str) and parts[0].startswith('<'):
+            generics = parts[0]
+            parts = parts[1:]
         if len(parts) == 2:
             base, sign = parts
         else:
             sign = parts[0]
             base = None
         prev = getattr(self, "curr_class", None)
-        self.curr_class = str(cname)
+        self.curr_class = str(cname) + generics
         base_cs = f" : {map_type_ext(str(base))}" if base else ""
         sign_list = sign if isinstance(sign, list) else []
-        self._add_type(cname, "class", base_cs, sign_list)
+        name_full = str(cname) + generics
+        self._add_type(name_full, "class", base_cs, sign_list)
         self.curr_class = prev
         return ""
 
     def record_def(self, cname, *parts):
+        generics = ''
+        if parts and isinstance(parts[0], str) and parts[0].startswith('<'):
+            generics = parts[0]
+            parts = parts[1:]
         if len(parts) == 2:
             base, sign = parts
         else:
             sign = parts[0]
             base = None
         prev = getattr(self, "curr_class", None)
-        self.curr_class = str(cname)
+        self.curr_class = str(cname) + generics
         base_cs = f" : {map_type_ext(str(base))}" if base else ""
         sign_list = sign if isinstance(sign, list) else []
-        self._add_type(cname, "record", base_cs, sign_list)
+        name_full = str(cname) + generics
+        self._add_type(name_full, "record", base_cs, sign_list)
         self.curr_class = prev
         return ""
 
     def interface_def(self, cname, *parts):
+        generics = ''
+        if parts and isinstance(parts[0], str) and parts[0].startswith('<'):
+            generics = parts[0]
+            parts = parts[1:]
         if parts and isinstance(parts[0], list):
             bases = parts[0]
             sign = parts[1]
@@ -202,14 +224,15 @@ class ToCSharp(Transformer):
             sign = parts[0]
             bases = []
         prev = getattr(self, "curr_class", None)
-        self.curr_class = str(cname)
+        self.curr_class = str(cname) + generics
         base_cs = ""
         if bases:
             first = map_type_ext(str(bases[0]))
             rest = ", ".join(map_type_ext(str(b)) for b in bases[1:])
             base_cs = " : " + ", ".join([first] + ([rest] if rest else []))
         sign_list = sign if isinstance(sign, list) else []
-        self._add_type(cname, "interface", base_cs, sign_list)
+        name_full = str(cname) + generics
+        self._add_type(name_full, "interface", base_cs, sign_list)
         self.curr_class = prev
         return ""
 
@@ -219,13 +242,20 @@ class ToCSharp(Transformer):
         return ""
 
     def alias_def(self, *parts):
-        if len(parts) == 3:
-            _acc, cname, typ = parts
+        if len(parts) == 4:
+            _acc, cname, generics, typ = parts
+        elif len(parts) == 3:
+            if isinstance(parts[1], str) and parts[1].startswith('<'):
+                cname, generics, typ = parts
+            else:
+                _acc, cname, typ = parts
+                generics = ''
         else:
             cname, typ = parts
+            generics = ''
         val = typ.value if isinstance(typ, Token) else str(typ)
         t = map_type_ext(val)
-        self.alias_defs.append(f"using {cname} = {t};")
+        self.alias_defs.append(f"using {cname}{generics} = {t};")
         return ""
 
     def type_def(self, *parts):
@@ -514,6 +544,9 @@ class ToCSharp(Transformer):
     # ── statements ──────────────────────────────────────────
     def assign(self, var, expr):
         return f"{var} = {expr};"
+
+    def op_assign(self, var, op, expr):
+        return f"{var} {op} {expr};"
 
     def result_ret(self, _tok, expr):
         return f"return {expr};"
