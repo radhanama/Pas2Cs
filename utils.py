@@ -68,4 +68,12 @@ def fix_keyword(tok):
         tok.type = "YIELD"
     elif v == "autoreleasepool":
         tok.type = "AUTORELEASEPOOL"
+    elif v == "record":
+        tok.type = "RECORD"
+    elif v == "interface":
+        tok.type = "INTERFACE"
+    elif v == "enum":
+        tok.type = "ENUM"
+    elif v == "flags":
+        tok.type = "FLAGS"
     return tok

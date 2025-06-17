@@ -7,8 +7,18 @@ uses_clause:   "uses" dotted_name ("," dotted_name)* ";"         -> uses
 
 namespace:   "namespace" dotted_name ";"                          -> namespace
 dotted_name: CNAME ("." CNAME)*                                    -> dotted
-class_section: "type" class_def+                                  -> class_section
+class_section: "type" type_def+                                   -> class_section
+type_def:    class_def
+           | record_def
+           | interface_def
+           | enum_def
+
 class_def:   CNAME "=" "public"i "static"? "partial"? "abstract"? "class"i ("(" type_name ")")? class_signature "end"i ";" -> class_def
+record_def:  CNAME "=" "public"i "record"i ("(" type_name ")")? class_signature "end"i ";" -> record_def
+interface_def: CNAME "=" "public"i "interface"i ("(" type_name ("," type_name)* ")")? class_signature "end"i ";" -> interface_def
+enum_def:    CNAME "=" "public"i ("enum"i | "flags"i) "(" enum_items ")" ("of" type_name)? ";" -> enum_def
+enum_items:  enum_item ("," enum_item)*                       -> enum_items
+enum_item:   CNAME ("=" NUMBER)?                              -> enum_item
 
 class_signature: member_decl*                                     -> class_sign
 member_decl: method_decl_rule
@@ -192,6 +202,10 @@ USING:       "using"i
 LOCKING:     "locking"i
 YIELD:       "yield"i
 AUTORELEASEPOOL: "autoreleasepool"i
+RECORD:      "record"i
+INTERFACE:   "interface"i
+ENUM:        "enum"i
+FLAGS:       "flags"i
 
 %import common.CNAME
 %import common.NUMBER

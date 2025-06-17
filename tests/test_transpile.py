@@ -325,6 +325,17 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, ['// TODO: with statement'])
 
+    def test_enum_record(self):
+        src = Path('tests/EnumRecord.pas').read_text()
+        expected = Path('tests/EnumRecord.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [
+            "// TODO: field R: int -> declare a field",
+            "// TODO: field G: int -> declare a field",
+            "// TODO: field B: int -> declare a field",
+        ])
+
     def test_error_reporting(self):
         src = Path('tests/BadSyntax.pas').read_text()
         with self.assertRaises(SyntaxError) as cm:

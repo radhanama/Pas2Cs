@@ -30,7 +30,7 @@ class ToCSharp(Transformer):
     def start(self, ns, *parts):
         classes = []
         for cname in self.class_order:
-            base, sign_list = self.class_defs.get(cname, ("", []))
+            kind, base, sign_list = self.class_defs.get(cname, ("class", "", []))
             body_lines = []
             for line in sign_list:
                 info = self._parse_sig(line)
@@ -44,7 +44,13 @@ class ToCSharp(Transformer):
             body_lines.extend(self.class_impls.get(cname, []))
             body = "\n".join(body_lines).rstrip()
             body = indent(body) if body else ""
-            classes.append(f"public partial class {cname}{base} {{\n{body}\n}}")
+            if kind == "enum":
+                enum_body = ",\n".join(sign_list)
+                classes.append(f"public enum {cname} {{\n{indent(enum_body)}\n}}")
+            else:
+                kw = "interface" if kind == "interface" else ("struct" if kind == "record" else "class")
+                partial = "partial " if kind in ("class", "record") else ""
+                classes.append(f"public {partial}{kw} {cname}{base} {{\n{body}\n}}")
         ns_body = "\n\n".join(classes)
         using_lines = ""
         if self.usings:
@@ -108,6 +114,11 @@ class ToCSharp(Transformer):
         parts = [map_type_ext(p.strip()) for p in inner.split(',')]
         return f"{base}<{', '.join(parts)}>"
 
+    def _add_type(self, cname, kind, base, sign_list):
+        self.class_defs[str(cname)] = (kind, base, sign_list)
+        if str(cname) not in self.class_order:
+            self.class_order.append(str(cname))
+
     def class_def(self, cname, *parts):
         if len(parts) == 2:
             base, sign = parts
@@ -118,11 +129,54 @@ class ToCSharp(Transformer):
         self.curr_class = str(cname)
         base_cs = f" : {map_type_ext(str(base))}" if base else ""
         sign_list = sign if isinstance(sign, list) else []
-        self.class_defs[str(cname)] = (base_cs, sign_list)
-        if str(cname) not in self.class_order:
-            self.class_order.append(str(cname))
+        self._add_type(cname, "class", base_cs, sign_list)
         self.curr_class = prev
         return ""
+
+    def record_def(self, cname, *parts):
+        if len(parts) == 2:
+            base, sign = parts
+        else:
+            sign = parts[0]
+            base = None
+        prev = getattr(self, "curr_class", None)
+        self.curr_class = str(cname)
+        base_cs = f" : {map_type_ext(str(base))}" if base else ""
+        sign_list = sign if isinstance(sign, list) else []
+        self._add_type(cname, "record", base_cs, sign_list)
+        self.curr_class = prev
+        return ""
+
+    def interface_def(self, cname, *parts):
+        if parts and isinstance(parts[0], list):
+            bases = parts[0]
+            sign = parts[1]
+        elif len(parts) == 2:
+            base = parts[0]
+            sign = parts[1]
+            bases = [base]
+        else:
+            sign = parts[0]
+            bases = []
+        prev = getattr(self, "curr_class", None)
+        self.curr_class = str(cname)
+        base_cs = ""
+        if bases:
+            first = map_type_ext(str(bases[0]))
+            rest = ", ".join(map_type_ext(str(b)) for b in bases[1:])
+            base_cs = " : " + ", ".join([first] + ([rest] if rest else []))
+        sign_list = sign if isinstance(sign, list) else []
+        self._add_type(cname, "interface", base_cs, sign_list)
+        self.curr_class = prev
+        return ""
+
+    def enum_def(self, cname, items, *rest):
+        enum_items = items if isinstance(items, list) else []
+        self._add_type(cname, "enum", "", enum_items)
+        return ""
+
+    def type_def(self, item):
+        return item
 
     def class_section(self, *classes):
         return ""
@@ -597,6 +651,18 @@ class ToCSharp(Transformer):
     def set_lit(self, *elems):
         vals = ", ".join(elems)
         return f"new[]{{{vals}}}"
+
+    def enum_item(self, name, *rest):
+        if rest:
+            return f"{name} = {rest[-1]}"
+        return str(name)
+
+    def enum_items(self, first, *rest):
+        items = [first]
+        for itm in rest:
+            if isinstance(itm, str):
+                items.append(itm)
+        return items
 
     def in_expr(self, val, _tok, set_):
         return f"System.Array.Exists({set_}, x => x == {val})"
