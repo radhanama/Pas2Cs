@@ -36,7 +36,7 @@ member_decl: attributes? method_decl_rule
 method_decl_rule: access_modifier? class_modifier? method_kind method_sig ";" (method_attr ";"?)* -> method_decl
 
 class_modifier: "class"
-method_attr: "override" | "static" | "abstract" | "virtual"
+method_attr: "override" | "static" | "abstract" | "virtual" | "overload"i
 method_kind: METHOD | PROCEDURE | FUNCTION | CONSTRUCTOR | DESTRUCTOR | OPERATOR
 access_modifier: "public"i | "protected"i | "private"i
 

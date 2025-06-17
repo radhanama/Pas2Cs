@@ -23,6 +23,9 @@ def fix_keyword(tok):
         tok.value = tok.value[1:]
         tok.type = 'CNAME'
         return tok
+    if tok.value != tok.value.lower():
+        tok.type = 'CNAME'
+        return tok
     v = tok.value.lower()
     if v == "and":
         tok.type = "OP_MUL"
@@ -88,6 +91,8 @@ def fix_keyword(tok):
         tok.type = "OPERATOR"
     elif v == "tuple":
         tok.type = "TUPLE"
+    elif v == "overload":
+        tok.type = "OVERLOAD"
     elif v == "typeof":
         tok.type = "TYPEOF"
     elif v == "is":

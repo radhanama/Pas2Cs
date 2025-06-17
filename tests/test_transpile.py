@@ -483,6 +483,20 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_reserved_prop2(self):
+        src = Path('tests/ReservedProp2.pas').read_text()
+        expected = Path('tests/ReservedProp2.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_overload_attr(self):
+        src = Path('tests/OverloadAttr.pas').read_text()
+        expected = Path('tests/OverloadAttr.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_error_reporting(self):
         src = Path('tests/BadSyntax.pas').read_text()
         with self.assertRaises(SyntaxError) as cm:
