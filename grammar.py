@@ -1,6 +1,6 @@
 # ────────────────────────── Grammar ──────────────────────────
 GRAMMAR = r"""
-?start:      namespace interface_section? class_section ("implementation" class_impl*)? ("end" ".")?
+?start:      namespace interface_section? class_section ("implementation" uses_clause? class_impl*)? ("end" ".")?
 
 interface_section: "interface" uses_clause? pre_class_decl*
 uses_clause:   "uses" dotted_name ("," dotted_name)* ";"         -> uses
@@ -15,23 +15,25 @@ type_def:    attributes? class_def
            | attributes? record_def
            | attributes? interface_def
            | attributes? enum_def
+           | alias_def
 
-class_def:   CNAME "=" "public"i "static"? "partial"? "abstract"? "class"i ("(" type_name ")")? class_signature "end"i ";" -> class_def
-record_def:  CNAME "=" "public"i "record"i ("(" type_name ")")? class_signature "end"i ";" -> record_def
-interface_def: CNAME "=" "public"i "interface"i ("(" type_name ("," type_name)* ")")? class_signature "end"i ";" -> interface_def
-enum_def:    CNAME "=" "public"i ("enum"i | "flags"i) "(" enum_items ")" ("of" type_name)? ";" -> enum_def
+class_def:   CNAME "=" ("public"i)? "static"? "partial"? "abstract"? "class"i ("(" type_name ")")? class_signature "end"i ";" -> class_def
+record_def:  CNAME "=" ("public"i)? "record"i ("(" type_name ")")? class_signature "end"i ";" -> record_def
+interface_def: CNAME "=" ("public"i)? "interface"i ("(" type_name ("," type_name)* ")")? class_signature "end"i ";" -> interface_def
+enum_def:    CNAME "=" ("public"i)? ("enum"i | "flags"i)? "(" enum_items ")" ("of" type_name)? ";" -> enum_def
+alias_def:   CNAME "=" type_name ";"                        -> alias_def
 enum_items:  enum_item ("," enum_item)*                       -> enum_items
 enum_item:   CNAME ("=" NUMBER)?                              -> enum_item
 
 class_signature: member_decl*                                     -> class_sign
 member_decl: attributes? method_decl_rule
-           | attributes? access_modifier? "class"? "var"i? name_list ":" type_name ";"         -> field_decl
+           | attributes? access_modifier? "class"? "var"i? name_list ":" type_name (":=" expr)? ";"         -> field_decl
            | attributes? access_modifier? "class"? "property"i property_sig ";"          -> property_decl
            | attributes? access_modifier? "event"i CNAME ":" type_name ";"   -> event_decl
            | attributes? access_modifier? "class"? "const"i const_decl+                  -> const_block
            | access_modifier                                      -> section
 
-method_decl_rule: access_modifier? class_modifier? method_kind method_sig ";" method_attr* ";"? -> method_decl
+method_decl_rule: access_modifier? class_modifier? method_kind method_sig ";" (method_attr ";"?)* -> method_decl
 
 class_modifier: "class"
 method_attr: "override" | "static" | "abstract" | "virtual"
@@ -109,7 +111,7 @@ raise_stmt: RAISE expr? ";"?                                 -> raise_stmt
 repeat_stmt: "repeat"i stmt* "until"i expr ";"?               -> repeat_stmt
 break_stmt: BREAK ";"?                                     -> break_stmt
 continue_stmt: CONTINUE ";"?                                -> continue_stmt
-using_stmt: USING CNAME ":=" expr DO stmt                  -> using_var
+using_stmt: USING CNAME (":" type_name)? ":=" expr DO stmt                  -> using_var
            | USING expr DO stmt                           -> using_expr
            | USING AUTORELEASEPOOL DO stmt                -> using_pool
 locking_stmt: LOCKING expr DO stmt                        -> locking_stmt
@@ -117,7 +119,7 @@ with_stmt: WITH expr DO stmt                              -> with_stmt
 yield_stmt: YIELD expr ";"?                               -> yield_stmt
 if_stmt:     "if" expr "then" stmt ("else" stmt)?                 -> if_stmt
 for_stmt:    "for"i CNAME ":=" expr (TO | DOWNTO) expr (STEP expr)? ("do"i)? stmt  -> for_stmt
-           | "for"i "each"i? CNAME IN expr ("do"i)? stmt        -> for_each_stmt
+           | "for"i "each"i? CNAME (":" type_name)? IN expr ("do"i)? stmt        -> for_each_stmt
 loop_stmt:   LOOP stmt                                                -> loop_stmt
 while_stmt:  "while"i expr "do"i stmt        -> while_stmt
 try_stmt:    "try" stmt* ("except" stmt*)? ("finally" stmt*)? "end" ";"?
@@ -147,15 +149,19 @@ inherited_stmt: "inherited" ";"?                          -> inherited
            | TRUE                         -> true
            | FALSE                        -> false
            | NIL                          -> null
+           | TYPEOF "(" type_name ")"      -> typeof_expr
            | var_ref
            | call_expr
            | set_lit
            | new_expr
+           | CHAR_CODE                    -> char_code
            | expr CARET                  -> deref
 
 set_lit: "[" (expr ("," expr)*)? "]"
 
-new_expr: "new" type_name ("(" arg_list? ")")?
+new_expr: "new" type_name "(" arg_list? ")"           -> new_obj
+        | "new" type_name ARRAY_RANGE                 -> new_array
+        | "new" type_name                             -> new_obj_noargs
 
 generic_call_base: dotted_name GENERIC_ARGS
 
@@ -181,7 +187,7 @@ var_decl:    name_list ":" type_name (":=" expr)? ";"        -> var_decl
 
 LT:          "<"
 GT:          ">"
-GENERIC_ARGS: /<\s*[A-Za-z0-9][^>]*>/
+GENERIC_ARGS: /<(?:(?:[^<>]|<[^<>]*>)+)>/
 OP_SUM:      "+" | "-" | "or"
 OP_MUL:      "*" | "/" | "and" | "mod"i
 OP_REL:      "=" | "<>" | "<=" | ">="
@@ -232,14 +238,19 @@ FLAGS:       "flags"i
 EVENT:       "event"i
 OPERATOR:    "operator"i
 TUPLE:       "tuple"i
+TYPEOF:      "typeof"i
 AT:          "@"
 CARET:       "^"
 DOTDOT:      ".."
 
-%import common.CNAME
+CHAR_CODE:   "#" NUMBER
+
+%import common.CNAME -> BASE_CNAME
 %import common.NUMBER
 %import common.ESCAPED_STRING -> STRING
 %import common.WS
+
+CNAME: /&?[A-Za-z_][A-Za-z_0-9]*/
 COMMENT_BRACE: /\{[^}]*\}/
 LINE_COMMENT: /\/\/[^\n]*/
 COMMENT_PAREN: /\(\*[^*]*\*\)/

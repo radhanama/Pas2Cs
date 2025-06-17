@@ -385,6 +385,48 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, ["// TODO: event OnSomething: EventHandler -> implement"])
 
+    def test_field_initializer(self):
+        src = Path('tests/FieldInit.pas').read_text()
+        expected = Path('tests/FieldInit.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, ["// TODO: field Count: int -> declare a field"])
+
+    def test_typed_for_each(self):
+        src = Path('tests/TypedForEach.pas').read_text()
+        expected = Path('tests/TypedForEach.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_typed_using(self):
+        src = Path('tests/TypedUsing.pas').read_text()
+        expected = Path('tests/TypedUsing.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_typeof_and_new_array(self):
+        src = Path('tests/TypeOfNew.pas').read_text()
+        expected = Path('tests/TypeOfNew.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_alias_def(self):
+        src = Path('tests/AliasDef.pas').read_text()
+        expected = Path('tests/AliasDef.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, ["// TODO: alias MimeMappingType -> &Type"])
+
+    def test_char_code(self):
+        src = Path('tests/CharCode.pas').read_text()
+        expected = Path('tests/CharCode.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_error_reporting(self):
         src = Path('tests/BadSyntax.pas').read_text()
         with self.assertRaises(SyntaxError) as cm:

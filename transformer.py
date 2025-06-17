@@ -204,6 +204,11 @@ class ToCSharp(Transformer):
         self._add_type(cname, "enum", "", enum_items)
         return ""
 
+    def alias_def(self, cname, typ):
+        info = f"// TODO: alias {cname} -> {typ}"
+        self.todo.append(info)
+        return ""
+
     def type_def(self, *parts):
         item = parts[-1]
         return item
@@ -344,10 +349,16 @@ class ToCSharp(Transformer):
         return decl + ";"
 
     def field_decl(self, *parts):
-        names, typ = parts[-2:]
+        items = [p for p in parts if p not in ("", "class", "var")]
+        if len(items) == 3:
+            names, typ, expr = items
+        else:
+            names, typ = items
+            expr = None
         t = map_type_ext(str(typ))
         info = f"// TODO: field {', '.join(names)}: {t} -> declare a field"
-        impl = f"public {t} {', '.join(names)};"
+        init = f" = {expr}" if expr is not None else ""
+        impl = f"public {t} {', '.join(names)}{init};"
         self.todo.append(info)
         return info + "\n" + impl
 
@@ -491,8 +502,14 @@ class ToCSharp(Transformer):
     def continue_stmt(self, _tok):
         return "continue;"
 
-    def using_var(self, _tok, name, expr, _do, body):
-        return f"using (var {name} = {expr}) {body}"
+    def using_var(self, _tok, name, *rest):
+        if len(rest) == 4:
+            typ, expr, _do, body = rest
+        else:
+            expr, _do, body = rest
+            typ = None
+        t = "var" if typ is None else map_type_ext(str(typ))
+        return f"using ({t} {name} = {expr}) {body}"
 
     def using_expr(self, _tok, expr, _do, body):
         return f"using ({expr}) {body}"
@@ -550,8 +567,14 @@ class ToCSharp(Transformer):
             self.curr_locals.add(str(var))
         return f"for ({prefix}{var} = {start}; {cond}; {inc}) {body}"
 
-    def for_each_stmt(self, var, _in, seq, body):
-        return f"foreach (var {var} in {seq}) {body}"
+    def for_each_stmt(self, var, *rest):
+        if rest and getattr(rest[0], 'type', None) != 'IN' and rest[0] != 'in':
+            typ, _in, seq, body = rest
+        else:
+            _in, seq, body = rest
+            typ = None
+        t = "var" if typ is None else map_type_ext(str(typ))
+        return f"foreach ({t} {var} in {seq}) {body}"
 
     def loop_stmt(self, _tok, body):
         return f"while (true) {body}"
@@ -735,15 +758,34 @@ class ToCSharp(Transformer):
             return f"{call};"
         return "// TODO: inherited call"
 
-    def new_expr(self, name, args=None):
+    def new_obj(self, name, args=None):
         arglist = "" if args is None else ", ".join(args)
         return f"new {name}({arglist})"
+
+    def new_obj_noargs(self, name):
+        return f"new {name}()"
+
+    def new_array(self, name, range_tok):
+        inner = range_tok.value[1:-1]
+        return f"new {map_type_ext(str(name))}[{inner}]"
 
     def addr_of(self, _at, var):
         return f"&{var}"
 
     def deref(self, expr, _caret):
         return f"*{expr}"
+
+    def typeof_expr(self, _tok, typ, _rp=None):
+        return f"typeof({map_type_ext(str(typ))})"
+
+    def char_code(self, tok):
+        num = tok.value[1:]
+        val = int(num)
+        if val == 10:
+            return '"\\n"'
+        if val == 13:
+            return '"\\r"'
+        return f'"\\x{val:02X}"'
 
     def generic_call_base(self, base, args):
         from utils import map_type
