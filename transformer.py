@@ -374,6 +374,12 @@ class ToCSharp(Transformer):
             self.curr_locals.add(str(n))
         return decl + ";"
 
+    def var_decl_infer(self, names, expr):
+        decl = f"var {', '.join(names)} = {expr}"
+        for n in names:
+            self.curr_locals.add(str(n))
+        return decl + ";"
+
     def field_decl(self, *parts):
         is_static = self.curr_static
         self.curr_static = False
@@ -755,6 +761,8 @@ class ToCSharp(Transformer):
         if parts and isinstance(parts[0], list):
             first_args = parts.pop(0)
         call = str(fn)
+        if ' as ' in call and (first_args or parts):
+            call = f"({call})"
         if len(first_args) == 1 and '.' not in call:
             name = call.split('.')[-1]
             simple_casts = {'integer', 'string', 'boolean', 'double', 'datetime', 'object'}
@@ -778,6 +786,8 @@ class ToCSharp(Transformer):
                 if parts and '<' in call:
                     pass
                 elif call.startswith('typeof(') or call.startswith('new '):
+                    pass
+                elif ' as ' in call:
                     pass
                 else:
                     call += "()"
@@ -809,12 +819,19 @@ class ToCSharp(Transformer):
     def call_stmt(self, fn, *parts):
         return self.call(fn, *parts) + ";"
 
-    def inherited(self):
-        if self.curr_method:
-            args = ", ".join(self.curr_params)
-            call = f"base.{self.curr_method}({args})" if args else f"base.{self.curr_method}()"
-            return f"{call};"
-        return "// TODO: inherited call"
+    def inherited(self, name=None, args=None):
+        if name is None:
+            if self.curr_method:
+                call_args = ", ".join(self.curr_params)
+                call = f"base.{self.curr_method}({call_args})" if call_args else f"base.{self.curr_method}()"
+                return call + ";"
+            return "// TODO: inherited call"
+        arglist = ", ".join(args or [])
+        return f"base.{name}({arglist});"
+
+    def inherited_call_expr(self, name, args=None):
+        arglist = "" if args is None else ", ".join(args)
+        return f"base.{name}({arglist})"
 
     def new_obj(self, name, args=None):
         arglist = "" if args is None else ", ".join(args)
@@ -879,6 +896,9 @@ class ToCSharp(Transformer):
 
     def in_expr(self, val, _tok, set_):
         return f"System.Array.Exists({set_}, x => x == {val})"
+
+    def not_in_expr(self, val, _not, _in_tok, set_):
+        return f"!System.Array.Exists({set_}, x => x == {val})"
 
     # ── catch‑all for unimplemented rules ───────────────────
     def __default__(self, data, children, meta):

@@ -112,7 +112,7 @@ raise_stmt: RAISE expr? ";"?                                 -> raise_stmt
 repeat_stmt: "repeat"i stmt* "until"i expr ";"?               -> repeat_stmt
 break_stmt: BREAK ";"?                                     -> break_stmt
 continue_stmt: CONTINUE ";"?                                -> continue_stmt
-var_stmt:    "var"i var_decl+                               -> var_stmt
+var_stmt:    "var"i (var_decl | var_decl_infer)+            -> var_stmt
 using_stmt: USING CNAME (":" type_name)? ":=" expr DO stmt                  -> using_var
            | USING expr DO stmt                           -> using_expr
            | USING AUTORELEASEPOOL DO stmt                -> using_pool
@@ -133,8 +133,8 @@ case_label: NUMBER | SQ_STRING | STRING | CNAME
 call_stmt:   var_ref ("(" arg_list? ")")? call_postfix* ";"?     -> call_stmt
            | generic_call_base ("(" arg_list? ")")? call_postfix* ";"? -> call_stmt
            | new_expr "." name_term ("(" arg_list? ")")? call_postfix* ";"?     -> call_stmt
-
-inherited_stmt: "inherited" ";"?                          -> inherited
+           | "(" expr ")" "." name_term ("(" arg_list? ")")? call_postfix* ";"? -> call_stmt
+inherited_stmt: "inherited"i (name_term "(" arg_list? ")" call_postfix*)? ";"? -> inherited
 
 ?expr:       NOT expr                    -> not_expr
            | "-" expr                   -> neg
@@ -146,6 +146,7 @@ inherited_stmt: "inherited" ";"?                          -> inherited
            | expr OP_MUL THEN expr      -> short_and
            | expr (OP_REL|LT|GT) expr    -> binop
            | expr IN set_lit             -> in_expr
+           | expr NOT IN set_lit         -> not_in_expr
            | expr IS type_name           -> is_inst
            | expr AS type_name           -> as_cast
            | "(" expr ")"
@@ -186,13 +187,16 @@ except_on_stmt: ON CNAME ":" type_name DO stmt
 call_expr:   var_ref "(" arg_list? ")" call_postfix*     -> call
            | generic_call_base ("(" arg_list? ")")? call_postfix*     -> call
            | new_expr "." name_term ("(" arg_list? ")")? call_postfix*     -> call
+           | "(" expr ")" "." name_term ("(" arg_list? ")")? call_postfix* -> call
+           | "inherited"i name_term "(" arg_list? ")" call_postfix*        -> inherited_call_expr
            | typeof_expr call_postfix+                   -> call
 arg_list:    expr ("," expr)*
 
 var_ref:     name_base (ARRAY_RANGE | "." name_term)*   -> var
 
-var_section: "var"i var_decl+
+var_section: "var"i (var_decl | var_decl_infer)+
 var_decl:    name_list ":" type_name (":=" expr)? ";"        -> var_decl
+var_decl_infer: name_list ":=" expr ";"                -> var_decl_infer
 
 LT:          "<"
 GT:          ">"
