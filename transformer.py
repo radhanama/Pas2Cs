@@ -660,17 +660,41 @@ class ToCSharp(Transformer):
                 out.append('.' + str(p))
         return ''.join(out)
 
+    def prop_call(self, name, args=None):
+        if args is None:
+            return ('prop', str(name), None)
+        else:
+            return ('prop', str(name), list(args))
+
+    def index_postfix(self, tok):
+        text = tok.value.replace("'", '"')
+        return ('index', text)
+
+    def call_args(self, args=None):
+        return [] if args is None else list(args)
+
     def call(self, fn, *parts):
         parts = list(parts)
         first_args = []
         if parts and isinstance(parts[0], list):
             first_args = parts.pop(0)
         call = str(fn)
-        if not parts and len(first_args) == 1 and '.' not in call:
-            simple_casts = {'Integer','String','Boolean','Double','DateTime','Object'}
-            if call.split('.')[-1] in simple_casts:
-                typ = map_type_ext(call)
-                call = f"({typ}){first_args[0]}"
+        if len(first_args) == 1 and '.' not in call:
+            name = call.split('.')[-1]
+            simple_casts = {'integer', 'string', 'boolean', 'double', 'datetime', 'object'}
+            lower = name.lower()
+            if lower in simple_casts:
+                typ = map_type_ext(name)
+                expr = first_args[0]
+                need_paren = any(ch in expr for ch in ' +-*/%<>=')
+                if need_paren:
+                    expr = f"({expr})"
+                cast_expr = f"({typ}){expr}"
+                call = f"({cast_expr})" if parts else cast_expr
+            elif lower == 'round':
+                inner = first_args[0]
+                round_expr = f"Math.Round({inner})"
+                call = f"({round_expr})" if parts else round_expr
             else:
                 call += f"({', '.join(first_args)})"
         else:
@@ -680,13 +704,25 @@ class ToCSharp(Transformer):
                 call += f"({', '.join(first_args)})"
         i = 0
         while i < len(parts):
-            name = parts[i]
+            part = parts[i]
             i += 1
-            arglist = []
-            if i < len(parts) and isinstance(parts[i], list):
-                arglist = parts[i]
-                i += 1
-            call += f".{name}({', '.join(arglist)})"
+            if isinstance(part, tuple):
+                kind = part[0]
+                if kind == 'prop':
+                    name, args = part[1], part[2]
+                    if args is None:
+                        call += f".{name}"
+                    else:
+                        call += f".{name}({', '.join(args)})"
+                elif kind == 'index':
+                    call += part[1]
+            else:
+                name = part
+                arglist = []
+                if i < len(parts) and isinstance(parts[i], list):
+                    arglist = parts[i]
+                    i += 1
+                call += f".{name}({', '.join(arglist)})"
         return call
 
     def call_stmt(self, fn, *parts):
