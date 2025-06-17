@@ -297,6 +297,34 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_using_stmt(self):
+        src = Path('tests/UsingStmt.pas').read_text()
+        expected = Path('tests/UsingStmt.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_locking_stmt(self):
+        src = Path('tests/LockingStmt.pas').read_text()
+        expected = Path('tests/LockingStmt.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_yield_stmt(self):
+        src = Path('tests/YieldStmt.pas').read_text()
+        expected = Path('tests/YieldStmt.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_with_stmt(self):
+        src = Path('tests/WithStmt.pas').read_text()
+        expected = Path('tests/WithStmt.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, ['// TODO: with statement'])
+
     def test_error_reporting(self):
         src = Path('tests/BadSyntax.pas').read_text()
         with self.assertRaises(SyntaxError) as cm:

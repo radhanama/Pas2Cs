@@ -399,6 +399,26 @@ class ToCSharp(Transformer):
     def continue_stmt(self, _tok):
         return "continue;"
 
+    def using_var(self, _tok, name, expr, _do, body):
+        return f"using (var {name} = {expr}) {body}"
+
+    def using_expr(self, _tok, expr, _do, body):
+        return f"using ({expr}) {body}"
+
+    def using_pool(self, _tok, _pool, _do, body):
+        return f"using (var __pool = new autoreleasepool()) {body}"
+
+    def locking_stmt(self, _tok, expr, _do, body):
+        return f"lock ({expr}) {body}"
+
+    def with_stmt(self, _tok, expr, _do, body):
+        info = "// TODO: with statement"
+        self.todo.append(info)
+        return info
+
+    def yield_stmt(self, _tok, expr, _semi=None):
+        return f"yield return {expr};"
+
     def if_stmt(self, cond, then_block, else_block=None):
         else_part = f" else {else_block}" if else_block else ""
         return f"if ({cond}) {then_block}{else_part}"

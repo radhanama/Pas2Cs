@@ -58,4 +58,14 @@ def fix_keyword(tok):
         tok.type = "STEP"
     elif v == "loop":
         tok.type = "LOOP"
+    elif v == "with":
+        tok.type = "WITH"
+    elif v == "using":
+        tok.type = "USING"
+    elif v == "locking":
+        tok.type = "LOCKING"
+    elif v == "yield":
+        tok.type = "YIELD"
+    elif v == "autoreleasepool":
+        tok.type = "AUTORELEASEPOOL"
     return tok

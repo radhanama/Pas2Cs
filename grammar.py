@@ -67,6 +67,10 @@ block:       "begin" stmt* "end" ";"?
            | break_stmt
            | continue_stmt
            | loop_stmt
+           | using_stmt
+           | locking_stmt
+           | with_stmt
+           | yield_stmt
            | call_stmt
            | except_on_stmt
             | block
@@ -79,6 +83,12 @@ raise_stmt: RAISE expr? ";"?                                 -> raise_stmt
 repeat_stmt: "repeat"i stmt* "until"i expr ";"?               -> repeat_stmt
 break_stmt: BREAK ";"?                                     -> break_stmt
 continue_stmt: CONTINUE ";"?                                -> continue_stmt
+using_stmt: USING CNAME ":=" expr DO stmt                  -> using_var
+           | USING expr DO stmt                           -> using_expr
+           | USING AUTORELEASEPOOL DO stmt                -> using_pool
+locking_stmt: LOCKING expr DO stmt                        -> locking_stmt
+with_stmt: WITH expr DO stmt                              -> with_stmt
+yield_stmt: YIELD expr ";"?                               -> yield_stmt
 if_stmt:     "if" expr "then" stmt ("else" stmt)?                 -> if_stmt
 for_stmt:    "for"i CNAME ":=" expr (TO | DOWNTO) expr (STEP expr)? ("do"i)? stmt  -> for_stmt
            | "for"i "each"i? CNAME IN expr ("do"i)? stmt        -> for_each_stmt
@@ -177,6 +187,11 @@ CONTINUE:    "continue"i
 EACH:        "each"i
 STEP:        "step"i
 LOOP:        "loop"i
+WITH:        "with"i
+USING:       "using"i
+LOCKING:     "locking"i
+YIELD:       "yield"i
+AUTORELEASEPOOL: "autoreleasepool"i
 
 %import common.CNAME
 %import common.NUMBER
