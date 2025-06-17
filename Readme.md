@@ -96,6 +96,9 @@ and compiles everything.
 Each new rule shrinks the `// TODO:` count and lets you delete more
 legacy `.pas` files.
 
+More in-depth development guidance can be found in
+[docs/Development.md](docs/Development.md).
+
 ---
 
 ## 🤝  Contributing
