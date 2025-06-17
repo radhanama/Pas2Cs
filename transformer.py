@@ -508,6 +508,17 @@ class ToCSharp(Transformer):
         self.todo.append(info)
         return info
 
+    def except_part(self, *stmts):
+        return list(stmts)
+
+    def finally_part(self, *stmts):
+        return list(stmts)
+
+    def except_on_stmt(self, _on, name, typ, _do, stmt):
+        t = map_type_ext(str(typ))
+        body = stmt
+        return ("catch", t, str(name), body)
+
     def yield_stmt(self, _tok, expr, _semi=None):
         return f"yield return {expr};"
 
@@ -549,24 +560,36 @@ class ToCSharp(Transformer):
         return f"while ({cond}) {body}"
 
     def try_stmt(self, *parts):
-        parts = list(parts)
         body = []
-        while parts and not isinstance(parts[0], list):
-            body.append(parts.pop(0))
-        except_body = []
-        finally_body = []
-        if parts:
-            except_body = parts.pop(0)
-        if parts:
-            finally_body = parts.pop(0)
-        body_cs = "\n".join(indent(s, 0) for s in body if s.strip())
-        exc_cs = "\n".join(indent(s, 0) for s in except_body if s.strip())
-        fin_cs = "\n".join(indent(s, 0) for s in finally_body if s.strip())
+        catches = []
+        plain_except = []
+        mode = 'body'
+        for item in parts:
+            if mode == 'body':
+                if isinstance(item, tuple) and item and item[0] == 'catch':
+                    mode = 'except'
+                    catches.append(item)
+                else:
+                    body.append(item)
+            else:
+                if isinstance(item, tuple) and item and item[0] == 'catch':
+                    catches.append(item)
+                else:
+                    plain_except.append(item)
+
+        body_cs = "\n".join(indent(s, 0) for s in body if isinstance(s, str) and s.strip())
         res = f"try {{\n{indent(body_cs)}\n}}"
-        if except_body:
+
+        if catches:
+            for cat in catches:
+                _, typ, name, stmt = cat
+                body = stmt
+                if not stmt.strip().startswith('{'):
+                    body = '{\n' + indent(stmt) + '\n}'
+                res += f" catch ({typ} {name}) {body}"
+        elif plain_except:
+            exc_cs = "\n".join(indent(s, 0) for s in plain_except if isinstance(s, str) and s.strip())
             res += f" catch (Exception) {{\n{indent(exc_cs)}\n}}"
-        if finally_body:
-            res += f" finally {{\n{indent(fin_cs)}\n}}"
         return res
 
     def case_stmt(self, expr, *branches):
