@@ -826,11 +826,18 @@ class ToCSharp(Transformer):
                 call = f"base.{self.curr_method}({call_args})" if call_args else f"base.{self.curr_method}()"
                 return call + ";"
             return "// TODO: inherited call"
+        if str(name).lower() == "constructor":
+            base_name = self.curr_method or "constructor"
+            arglist = ", ".join(args or [])
+            return f"base.{base_name}({arglist});"
         arglist = ", ".join(args or [])
         return f"base.{name}({arglist});"
 
     def inherited_call_expr(self, name, args=None):
         arglist = "" if args is None else ", ".join(args)
+        if str(name).lower() == "constructor":
+            base_name = self.curr_method or "constructor"
+            return f"base.{base_name}({arglist})"
         return f"base.{name}({arglist})"
 
     def new_obj(self, name, args=None):
