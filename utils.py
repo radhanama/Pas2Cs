@@ -19,6 +19,8 @@ def map_type_ext(typ: str) -> str:
     return map_type(typ)
 
 def fix_keyword(tok):
+    if tok.value.startswith('&'):
+        tok.value = tok.value[1:]
     v = tok.value.lower()
     if v == "and":
         tok.type = "OP_MUL"
@@ -36,6 +38,8 @@ def fix_keyword(tok):
         tok.type = "FOR"
     elif v == "to":
         tok.type = "TO"
+    elif v == "const":
+        tok.type = "CONST"
     elif v == "try":
         tok.type = "TRY"
     elif v == "except":
@@ -82,4 +86,8 @@ def fix_keyword(tok):
         tok.type = "OPERATOR"
     elif v == "tuple":
         tok.type = "TUPLE"
+    elif v == "typeof":
+        tok.type = "TYPEOF"
+    elif v == "is":
+        tok.type = "IS"
     return tok
