@@ -218,7 +218,11 @@ class ToCSharp(Transformer):
         self._add_type(cname, "enum", "", enum_items)
         return ""
 
-    def alias_def(self, cname, typ):
+    def alias_def(self, *parts):
+        if len(parts) == 3:
+            _acc, cname, typ = parts
+        else:
+            cname, typ = parts
         val = typ.value if isinstance(typ, Token) else str(typ)
         t = map_type_ext(val)
         self.alias_defs.append(f"using {cname} = {t};")

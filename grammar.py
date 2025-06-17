@@ -21,7 +21,7 @@ class_def:   CNAME "=" ("public"i)? "static"? "partial"? "abstract"? "class"i ("
 record_def:  CNAME "=" ("public"i)? "record"i ("(" type_name ")")? class_signature "end"i ";" -> record_def
 interface_def: CNAME "=" ("public"i)? "interface"i ("(" type_name ("," type_name)* ")")? class_signature "end"i ";" -> interface_def
 enum_def:    CNAME "=" ("public"i)? ("enum"i | "flags"i)? "(" enum_items ")" ("of" type_name)? ";" -> enum_def
-alias_def:   CNAME "=" type_name ";"                        -> alias_def
+alias_def:   access_modifier? CNAME "=" type_name ";"        -> alias_def
 enum_items:  enum_item ("," enum_item)*                       -> enum_items
 enum_item:   CNAME ("=" NUMBER)?                              -> enum_item
 
