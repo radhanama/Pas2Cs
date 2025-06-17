@@ -362,6 +362,9 @@ class ToCSharp(Transformer):
     def var_section(self, *decls):
         return "\n".join(decls)
 
+    def var_stmt(self, *decls):
+        return "\n".join(decls)
+
     def var_decl(self, names, typ, expr=None):
         t = map_type_ext(str(typ))
         decl = f"{t} {', '.join(names)}"
@@ -673,8 +676,22 @@ class ToCSharp(Transformer):
 
     # ── expressions ─────────────────────────────────────────
     def binop(self, left, op, right):
-        op_map = {"and": "&&", "or": "||", "<>": "!=", "=": "==", "mod": "%"}
+        op_map = {
+            "and": "&&",
+            "or": "||",
+            "and then": "&&",
+            "or else": "||",
+            "<>": "!=",
+            "=": "==",
+            "mod": "%",
+        }
         return f"{left} {op_map.get(op, op)} {right}"
+
+    def short_or(self, left, _or, _else, right):
+        return self.binop(left, "or else", right)
+
+    def short_and(self, left, _and, _then, right):
+        return self.binop(left, "and then", right)
 
     def not_expr(self, _tok, expr):
         return f"!{expr}"
