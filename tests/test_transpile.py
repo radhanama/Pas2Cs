@@ -52,9 +52,9 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
-    def test_for_downto(self):
-        src = Path('tests/ForDownTo.pas').read_text()
-        expected = Path('tests/ForDownTo.cs').read_text().strip()
+    def test_loops(self):
+        src = Path('tests/Loops.pas').read_text()
+        expected = Path('tests/Loops.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
@@ -80,16 +80,9 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
-    def test_generic_example(self):
-        src = Path('tests/GenericExample.pas').read_text()
-        expected = Path('tests/GenericExample.cs').read_text().strip()
-        result, todos = transpile(src)
-        self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, [])
-
-    def test_generic_static(self):
-        src = Path('tests/GenericStatic.pas').read_text()
-        expected = Path('tests/GenericStatic.cs').read_text().strip()
+    def test_generics(self):
+        src = Path('tests/Generics.pas').read_text()
+        expected = Path('tests/Generics.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
@@ -97,13 +90,6 @@ class TranspileTests(unittest.TestCase):
     def test_sections(self):
         src = Path('tests/Sections.pas').read_text()
         expected = Path('tests/Sections.cs').read_text().strip()
-        result, todos = transpile(src)
-        self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, [])
-
-    def test_generic_base(self):
-        src = Path('tests/GenericBase.pas').read_text()
-        expected = Path('tests/GenericBase.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
@@ -185,13 +171,6 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
-    def test_while_var_init(self):
-        src = Path('tests/WhileVarInit.pas').read_text()
-        expected = Path('tests/WhileVarInit.cs').read_text().strip()
-        result, todos = transpile(src)
-        self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, [])
-
     def test_chained_call(self):
         src = Path('tests/ChainedCall.pas').read_text()
         expected = Path('tests/ChainedCall.cs').read_text().strip()
@@ -262,16 +241,9 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
-    def test_long_if(self):
-        src = Path('tests/LongIf.pas').read_text()
-        expected = Path('tests/LongIf.cs').read_text().strip()
-        result, todos = transpile(src)
-        self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, [])
-
-    def test_complex_if(self):
-        src = Path('tests/ComplexIf.pas').read_text()
-        expected = Path('tests/ComplexIf.cs').read_text().strip()
+    def test_control_flow(self):
+        src = Path('tests/ControlFlow.pas').read_text()
+        expected = Path('tests/ControlFlow.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
@@ -283,40 +255,6 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
-    def test_repeat_until(self):
-        src = Path('tests/RepeatUntil.pas').read_text()
-        expected = Path('tests/RepeatUntil.cs').read_text().strip()
-        result, todos = transpile(src)
-        self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, [])
-
-    def test_break_continue(self):
-        src = Path('tests/BreakContinue.pas').read_text()
-        expected = Path('tests/BreakContinue.cs').read_text().strip()
-        result, todos = transpile(src)
-        self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, [])
-
-    def test_for_each(self):
-        src = Path('tests/ForEach.pas').read_text()
-        expected = Path('tests/ForEach.cs').read_text().strip()
-        result, todos = transpile(src)
-        self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, [])
-
-    def test_step_loop(self):
-        src = Path('tests/StepLoop.pas').read_text()
-        expected = Path('tests/StepLoop.cs').read_text().strip()
-        result, todos = transpile(src)
-        self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, [])
-
-    def test_loop_stmt(self):
-        src = Path('tests/LoopStmt.pas').read_text()
-        expected = Path('tests/LoopStmt.cs').read_text().strip()
-        result, todos = transpile(src)
-        self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, [])
 
     def test_using_stmt(self):
         src = Path('tests/UsingStmt.pas').read_text()
@@ -392,13 +330,6 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, ["// TODO: field Count: int -> declare a field"])
 
-    def test_typed_for_each(self):
-        src = Path('tests/TypedForEach.pas').read_text()
-        expected = Path('tests/TypedForEach.cs').read_text().strip()
-        result, todos = transpile(src)
-        self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, [])
-
     def test_typed_using(self):
         src = Path('tests/TypedUsing.pas').read_text()
         expected = Path('tests/TypedUsing.cs').read_text().strip()
@@ -441,23 +372,10 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
-    def test_short_circuit(self):
-        src = Path('tests/ShortCircuit.pas').read_text()
-        expected = Path('tests/ShortCircuit.cs').read_text().strip()
-        result, todos = transpile(src)
-        self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, [])
 
     def test_typeof_postfix(self):
         src = Path('tests/TypeOfPostfix.pas').read_text()
         expected = Path('tests/TypeOfPostfix.cs').read_text().strip()
-        result, todos = transpile(src)
-        self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, [])
-
-    def test_typed_for_loop(self):
-        src = Path('tests/TypedForLoop.pas').read_text()
-        expected = Path('tests/TypedForLoop.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
@@ -472,13 +390,6 @@ class TranspileTests(unittest.TestCase):
     def test_is_operator(self):
         src = Path('tests/IsOp.pas').read_text()
         expected = Path('tests/IsOp.cs').read_text().strip()
-        result, todos = transpile(src)
-        self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, [])
-
-    def test_generic_method(self):
-        src = Path('tests/GenericMethod.pas').read_text()
-        expected = Path('tests/GenericMethod.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])

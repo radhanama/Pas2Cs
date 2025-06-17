@@ -83,6 +83,7 @@ impl_head:   method_name param_block? return_block?
 block:       "begin" stmt* "end" ";"?
 
 ?stmt:       assign_stmt
+           | op_assign_stmt
            | return_stmt
            | if_stmt
            | for_stmt
@@ -106,6 +107,8 @@ block:       "begin" stmt* "end" ";"?
             |                         -> empty
 
 assign_stmt: var_ref ":=" expr ";"?                              -> assign
+op_assign_stmt: var_ref ADD_ASSIGN expr ";"?                -> op_assign
+               | var_ref SUB_ASSIGN expr ";"?                -> op_assign
 return_stmt: RESULT ":=" expr ";"?                             -> result_ret
             | EXIT expr? ";"?                                  -> exit_ret
 raise_stmt: RAISE expr? ";"?                                 -> raise_stmt
@@ -204,6 +207,8 @@ GENERIC_ARGS: /<(?:(?:[^<>]|<[^<>]*>)+)>/
 OP_SUM:      "+" | "-" | "or"
 OP_MUL:      "*" | "/" | "and" | "mod"i
 OP_REL:      "=" | "<>" | "<=" | ">="
+ADD_ASSIGN.2:  "+="
+SUB_ASSIGN.2:  "-="
 
 NOT:         "not"i
 

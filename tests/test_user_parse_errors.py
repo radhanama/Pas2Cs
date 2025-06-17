@@ -28,3 +28,6 @@ class NewFeatureTests(unittest.TestCase):
 
     def test_property_assign(self):
         self.check_pair('PropertyAssign', allow_todos=True)
+
+    def test_op_assign(self):
+        self.check_pair('OpAssign')
