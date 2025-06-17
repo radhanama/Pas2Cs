@@ -52,4 +52,10 @@ def fix_keyword(tok):
         tok.type = "BREAK"
     elif v == "continue":
         tok.type = "CONTINUE"
+    elif v == "each":
+        tok.type = "EACH"
+    elif v == "step":
+        tok.type = "STEP"
+    elif v == "loop":
+        tok.type = "LOOP"
     return tok

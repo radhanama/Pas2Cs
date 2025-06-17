@@ -66,6 +66,7 @@ block:       "begin" stmt* "end" ";"?
            | repeat_stmt
            | break_stmt
            | continue_stmt
+           | loop_stmt
            | call_stmt
            | except_on_stmt
             | block
@@ -79,7 +80,9 @@ repeat_stmt: "repeat"i stmt* "until"i expr ";"?               -> repeat_stmt
 break_stmt: BREAK ";"?                                     -> break_stmt
 continue_stmt: CONTINUE ";"?                                -> continue_stmt
 if_stmt:     "if" expr "then" stmt ("else" stmt)?                 -> if_stmt
-for_stmt:    "for"i CNAME ":=" expr (TO | DOWNTO) expr ("do"i)? stmt          -> for_stmt
+for_stmt:    "for"i CNAME ":=" expr (TO | DOWNTO) expr (STEP expr)? ("do"i)? stmt  -> for_stmt
+           | "for"i "each"i? CNAME IN expr ("do"i)? stmt        -> for_each_stmt
+loop_stmt:   LOOP stmt                                                -> loop_stmt
 while_stmt:  "while"i expr "do"i stmt        -> while_stmt
 try_stmt:    "try" stmt* ("except" stmt*)? ("finally" stmt*)? "end" ";"?
 
@@ -171,6 +174,9 @@ EXIT:        "exit"i
 RAISE:       "raise"i
 BREAK:       "break"i
 CONTINUE:    "continue"i
+EACH:        "each"i
+STEP:        "step"i
+LOOP:        "loop"i
 
 %import common.CNAME
 %import common.NUMBER

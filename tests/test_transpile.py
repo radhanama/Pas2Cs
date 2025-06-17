@@ -276,6 +276,27 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_for_each(self):
+        src = Path('tests/ForEach.pas').read_text()
+        expected = Path('tests/ForEach.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_step_loop(self):
+        src = Path('tests/StepLoop.pas').read_text()
+        expected = Path('tests/StepLoop.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_loop_stmt(self):
+        src = Path('tests/LoopStmt.pas').read_text()
+        expected = Path('tests/LoopStmt.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_error_reporting(self):
         src = Path('tests/BadSyntax.pas').read_text()
         with self.assertRaises(SyntaxError) as cm:
