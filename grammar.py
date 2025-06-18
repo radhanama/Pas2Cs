@@ -187,7 +187,6 @@ new_expr: "new" type_spec "(" arg_list? ")"         -> new_obj
         | "new" type_spec                           -> new_obj_noargs
 
 array_of_expr: "array"i "of"i type_name "(" arg_list? ")" -> array_of_expr
-
 typeof_expr: TYPEOF "(" type_spec ")"                   -> typeof_expr
 
 generic_call_base: dotted_name GENERIC_ARGS
@@ -211,7 +210,6 @@ arg:         CNAME ":=" expr                         -> named_arg
            | expr
 
 new_stmt:    new_expr ";"?
-
 var_ref:     name_base (ARRAY_RANGE | "." name_term)* -> var
 
 var_section: "var"i (var_decl | var_decl_infer)+
