@@ -32,6 +32,12 @@ class NewFeatureTests(unittest.TestCase):
     def test_out_arg(self):
         self.check_pair('OutArg')
 
+    def test_var_call_arg(self):
+        self.check_pair('VarCallArg', allow_todos=True)
+
+    def test_if_or(self):
+        self.check_pair('IfOr', allow_todos=True)
+
     def test_teste_pas_parses(self):
         """Parsing should succeed for the large external example."""
         src = Path('teste.pas').read_text()
