@@ -210,6 +210,7 @@ call_expr:   var_ref "(" arg_list? ")" call_postfix* -> call
            | typeof_expr call_postfix+                     -> call
 arg_list:    arg ("," arg)*
 arg:         CNAME ":=" expr                         -> named_arg
+           | (OUT | VAR) expr                        -> out_arg
            | expr
 
 new_stmt:    new_expr ";"?

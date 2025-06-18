@@ -377,6 +377,10 @@ class ToCSharp(Transformer):
     def named_arg(self, name, expr):
         return expr
 
+    def out_arg(self, tok, expr):
+        prefix = 'out' if str(tok).lower() == 'out' else 'ref'
+        return f"{prefix} {expr}"
+
     def method_decl(self, *parts):
         for p in parts:
             if isinstance(p, str) and p.strip().startswith("public"):
