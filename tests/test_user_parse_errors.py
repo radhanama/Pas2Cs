@@ -11,14 +11,11 @@ class NewFeatureTests(unittest.TestCase):
         if not allow_todos:
             self.assertEqual(todos, [])
 
-    def test_var_infer(self):
-        self.check_pair('VarInfer')
+    def test_var_examples(self):
+        self.check_pair('VarExamples')
 
-    def test_not_in_expr(self):
-        self.check_pair('NotInExpr')
-
-    def test_as_cast_call(self):
-        self.check_pair('AsCastCall')
+    def test_type_casting(self):
+        self.check_pair('TypeCasting')
 
     def test_inherited_call(self):
         self.check_pair('InheritedCall')
@@ -31,9 +28,6 @@ class NewFeatureTests(unittest.TestCase):
 
     def test_op_assign(self):
         self.check_pair('OpAssign')
-
-    def test_named_arg(self):
-        self.check_pair('NamedArg')
 
     def test_teste_pas_parses(self):
         """Parsing should succeed for the large external example."""

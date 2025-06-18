@@ -4,4 +4,10 @@ namespace Demo {
             return "\r" + "\n";
         }
     }
+    
+    public partial class CharSeq {
+        public static string GetCRLF() {
+            return "\r\n";
+        }
+    }
 }
