@@ -131,3 +131,22 @@ def fix_keyword(tok):
 
     _LAST_POS = tok.end_pos
     return tok
+
+# C# reserved keywords that cannot be used as identifiers
+CS_KEYWORDS = {
+    "abstract", "as", "base", "bool", "break", "byte", "case", "catch",
+    "char", "checked", "class", "const", "continue", "decimal", "default",
+    "delegate", "do", "double", "else", "enum", "event", "explicit",
+    "extern", "false", "finally", "fixed", "float", "for", "foreach", "goto",
+    "if", "implicit", "in", "int", "interface", "internal", "is", "lock",
+    "long", "namespace", "new", "null", "object", "operator", "out",
+    "override", "params", "private", "protected", "public", "readonly",
+    "ref", "return", "sbyte", "sealed", "short", "sizeof", "stackalloc",
+    "static", "string", "struct", "switch", "this", "throw", "true", "try",
+    "typeof", "uint", "ulong", "unchecked", "unsafe", "ushort", "using",
+    "virtual", "void", "volatile", "while"
+}
+
+def escape_cs_keyword(name: str) -> str:
+    """Prefix `name` with '@' if it is a reserved C# keyword."""
+    return f"@{name}" if name in CS_KEYWORDS else name

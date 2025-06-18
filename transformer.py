@@ -3,7 +3,7 @@ import json
 import ast
 from collections import defaultdict, OrderedDict
 from lark import Transformer, v_args, Token
-from utils import indent, map_type_ext
+from utils import indent, map_type_ext, escape_cs_keyword
 
 @v_args(inline=True)
 class ToCSharp(Transformer):
@@ -26,6 +26,9 @@ class ToCSharp(Transformer):
         # string translation or None.
         self.manual_translate = manual_translate
         self.usings = OrderedDict()
+
+    def _safe_name(self, name):
+        return escape_cs_keyword(str(name))
 
     def attributes(self, *items):
         return ""
@@ -348,7 +351,7 @@ class ToCSharp(Transformer):
         return typ
 
     def names(self, *parts):
-        return list(parts)
+        return [self._safe_name(p) for p in parts]
 
     def param(self, *parts):
         # allow optional 'var'/'out' modifier and default value
@@ -357,7 +360,7 @@ class ToCSharp(Transformer):
             parts.pop(0)
         names, ptype = parts[0], parts[1]
         t = map_type_ext(str(ptype))
-        return [f"{t} {n}" for n in names]
+        return [f"{t} {self._safe_name(n)}" for n in names]
 
     def param_list(self, *ps):
         out = []
@@ -408,16 +411,18 @@ class ToCSharp(Transformer):
 
     def var_decl(self, names, typ, expr=None):
         t = map_type_ext(str(typ))
-        decl = f"{t} {', '.join(names)}"
+        safe_names = [self._safe_name(n) for n in names]
+        decl = f"{t} {', '.join(safe_names)}"
         if expr is not None:
             decl += f" = {expr}"
-        for n in names:
+        for n in safe_names:
             self.curr_locals.add(str(n))
         return decl + ";"
 
     def var_decl_infer(self, names, expr):
-        decl = f"var {', '.join(names)} = {expr}"
-        for n in names:
+        safe_names = [self._safe_name(n) for n in names]
+        decl = f"var {', '.join(safe_names)} = {expr}"
+        for n in safe_names:
             self.curr_locals.add(str(n))
         return decl + ";"
 
@@ -454,7 +459,7 @@ class ToCSharp(Transformer):
             if tval == 'read':
                 has_read = True
                 if i + 1 < len(parts) and isinstance(parts[i+1], Token):
-                    field_name = parts[i+1]
+                    field_name = self._safe_name(parts[i+1])
                     read_val = f"get => {field_name};"
                     i += 2
                 else:
@@ -463,7 +468,7 @@ class ToCSharp(Transformer):
             elif tval == 'write':
                 has_write = True
                 if i + 1 < len(parts) and isinstance(parts[i+1], Token):
-                    field_name = parts[i+1]
+                    field_name = self._safe_name(parts[i+1])
                     write_val = f"set => {field_name} = value;"
                     i += 2
                 else:
@@ -475,7 +480,7 @@ class ToCSharp(Transformer):
             read_val = ""
         if not has_write:
             write_val = ""
-        return (str(name), map_type_ext(str(typ)), read_val, write_val)
+        return (self._safe_name(name), map_type_ext(str(typ)), read_val, write_val)
 
     def property_index(self, *args):
         return []
@@ -488,7 +493,7 @@ class ToCSharp(Transformer):
         return impl
 
     def event_decl(self, *parts):
-        name = parts[-2]
+        name = self._safe_name(parts[-2])
         typ = map_type_ext(str(parts[-1]))
         info = f"// TODO: event {name}: {typ} -> implement"
         impl = f"public event {typ} {name};"
@@ -507,8 +512,9 @@ class ToCSharp(Transformer):
                 parts.pop(0)
         expr = parts[0] if parts else None
         t = map_type_ext(str(typ)) if typ else 'var'
-        info = f"// TODO: const {name} -> define a constant"
-        impl = f"public const {t} {name} = {expr};"
+        safe_name = self._safe_name(name)
+        info = f"// TODO: const {safe_name} -> define a constant"
+        impl = f"public const {t} {safe_name} = {expr};"
         self.todo.append(info)
         return info + "\n" + impl
 
@@ -670,20 +676,21 @@ class ToCSharp(Transformer):
             dir_tok = direction.type
         else:
             dir_tok = str(direction)
+        safe_var = self._safe_name(var)
         if dir_tok == 'DOWNTO':
-            cond = f"{var} >= {stop}"
+            cond = f"{safe_var} >= {stop}"
             step_code = step or "1"
-            inc = f"{var} -= {step_code}" if step else f"{var}--"
+            inc = f"{safe_var} -= {step_code}" if step else f"{safe_var}--"
         else:
-            cond = f"{var} <= {stop}"
+            cond = f"{safe_var} <= {stop}"
             step_code = step or "1"
-            inc = f"{var} += {step_code}" if step else f"{var}++"
-        if str(var) in self.curr_locals:
+            inc = f"{safe_var} += {step_code}" if step else f"{safe_var}++"
+        if safe_var in self.curr_locals:
             prefix = ""
         else:
             prefix = map_type_ext(str(typ)) + " " if typ else "var "
-            self.curr_locals.add(str(var))
-        return f"for ({prefix}{var} = {start}; {cond}; {inc}) {body}"
+            self.curr_locals.add(safe_var)
+        return f"for ({prefix}{safe_var} = {start}; {cond}; {inc}) {body}"
 
     def for_each_stmt(self, var, *rest):
         if rest and getattr(rest[0], 'type', None) != 'IN' and rest[0] != 'in':
@@ -692,7 +699,8 @@ class ToCSharp(Transformer):
             _in, seq, body = rest
             typ = None
         t = "var" if typ is None else map_type_ext(str(typ))
-        return f"foreach ({t} {var} in {seq}) {body}"
+        safe_var = self._safe_name(var)
+        return f"foreach ({t} {safe_var} in {seq}) {body}"
 
     def loop_stmt(self, _tok, body):
         return f"while (true) {body}"
@@ -829,15 +837,17 @@ class ToCSharp(Transformer):
         return "null"
 
     def var(self, base, *parts):
-        out = [str(base)]
+        out = [self._safe_name(base)]
         for p in parts:
             if isinstance(p, Token):
                 text = p.value
                 if p.type == 'ARRAY_RANGE':
                     text = text.replace("'", '"')
+                elif p.type == 'CNAME':
+                    text = self._safe_name(text)
                 out.append(text)
             else:
-                out.append('.' + str(p))
+                out.append('.' + self._safe_name(p))
         return ''.join(out)
 
     def prop_call(self, name, args=None):
@@ -863,10 +873,11 @@ class ToCSharp(Transformer):
             call = f"({call})"
         if len(first_args) == 1 and '.' not in call:
             name = call.split('.')[-1]
+            clean = name[1:] if name.startswith('@') else name
             simple_casts = {'integer', 'string', 'boolean', 'double', 'datetime', 'object'}
-            lower = name.lower()
+            lower = clean.lower()
             if lower in simple_casts:
-                typ = map_type_ext(name)
+                typ = map_type_ext(clean)
                 expr = first_args[0]
                 need_paren = any(ch in expr for ch in ' +-*/%<>=')
                 if need_paren:
@@ -973,7 +984,7 @@ class ToCSharp(Transformer):
         param_names = []
         for p in params:
             name = str(p).split()[-1]
-            param_names.append(name)
+            param_names.append(self._safe_name(name))
         if len(param_names) == 1:
             return param_names[0]
         return f"({', '.join(param_names)})"

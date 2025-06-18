@@ -415,6 +415,13 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_cs_keyword_var(self):
+        src = Path('tests/CsKeywordVar.pas').read_text()
+        expected = Path('tests/CsKeywordVar.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_sealed_class(self):
         src = Path('tests/SealedClass.pas').read_text()
         expected = Path('tests/SealedClass.cs').read_text().strip()
