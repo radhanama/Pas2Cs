@@ -785,7 +785,12 @@ class ToCSharp(Transformer):
         switch_body = []
         for _tag, labels, stmt in branches:
             for label in labels:
-                switch_body.append(f"case {label}:")
+                if isinstance(label, tuple) and label[0] == 'range':
+                    start, end = label[1], label[2]
+                    for val in range(start, end + 1):
+                        switch_body.append(f"case {val}:")
+                else:
+                    switch_body.append(f"case {label}:")
             if '\n' in stmt or not stmt.strip().endswith(';'):
                 body = f"{{\n{indent(stmt)}\nbreak;\n}}"
             else:
@@ -807,6 +812,9 @@ class ToCSharp(Transformer):
 
     def case_label(self, tok):
         return "null" if str(tok) == "nil" else str(tok)
+
+    def label_range(self, start, _dd, end):
+        return ('range', int(str(start)), int(str(end)))
 
     def block(self, *stmts):
         body = "\n".join(indent(s, 0) for s in stmts if s.strip())
@@ -846,7 +854,7 @@ class ToCSharp(Transformer):
         return f"{expr}"
 
     def number(self, n):
-        return n
+        return str(n).replace('_', '')
 
     def string(self, s):
         s = str(s)
@@ -855,8 +863,9 @@ class ToCSharp(Transformer):
             inner = inner.replace('"', '\\"')
             return f'"{inner}"'
         else:
-            val = ast.literal_eval(s)
-            return json.dumps(val)
+            inner = s[1:-1]
+            inner = inner.replace('\\', '\\\\').replace('"', '\\"')
+            return f'"{inner}"'
 
     def true(self, _):
         return "true"
@@ -1016,6 +1025,10 @@ class ToCSharp(Transformer):
 
     def deref(self, expr, _caret):
         return f"*{expr}"
+
+    def paren_index(self, expr, range_tok):
+        text = range_tok.value.replace("'", '"')
+        return f"({expr}){text}"
 
     def typeof_expr(self, _tok, typ, _rp=None):
         return f"typeof({map_type_ext(str(typ))})"

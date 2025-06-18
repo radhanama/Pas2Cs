@@ -139,7 +139,12 @@ on_handler: ON CNAME ":" type_name DO stmt -> on_handler
 
 case_stmt:   "case" expr "of" case_branch+ ("else" stmt+)? "end" ";"? -> case_stmt
 case_branch: case_label ("," case_label)* ":" stmt ";"?
-case_label: NUMBER | SQ_STRING | STRING | CNAME | NIL
+case_label: NUMBER DOTDOT NUMBER        -> label_range
+          | NUMBER
+          | SQ_STRING
+          | STRING
+          | CNAME
+          | NIL
 
 call_stmt:   var_ref ("(" arg_list? ")")? call_postfix* ";"?   -> call_stmt
            | generic_call_base ("(" arg_list? ")")? call_postfix* ";"? -> call_stmt
@@ -217,6 +222,7 @@ arg:         OUT expr                                -> out_arg
 
 new_stmt:    new_expr ";"?
 var_ref:     name_base (ARRAY_RANGE | "." name_term)* -> var
+           | "(" expr ")" ARRAY_RANGE -> paren_index
 
 var_section: "var"i (var_decl | var_decl_infer)+
 var_decl:    name_list ":" type_spec (":=" expr)? ";"       -> var_decl
@@ -292,9 +298,10 @@ DOTDOT:      ".."
 CHAR_CODE:   "#" NUMBER ("#" NUMBER)*
 
 %import common.CNAME -> BASE_CNAME
-%import common.NUMBER
-%import common.ESCAPED_STRING -> STRING
 %import common.WS
+
+NUMBER: /[0-9][_0-9]*/
+STRING: /"[^"\n]*"/
 
 CNAME: /&?[A-Za-z_][A-Za-z_0-9]*\??/
 COMMENT_BRACE: /\{[^}]*\}/
