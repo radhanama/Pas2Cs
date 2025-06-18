@@ -1,6 +1,6 @@
 # ────────────────────────── Grammar ──────────────────────────
 GRAMMAR = r"""
-?start:   namespace interface_section? class_section ("implementation" uses_clause? class_impl*)? ("end" ".")?
+?start:   namespace interface_section? class_section+ ("implementation" uses_clause? class_impl*)? ("end" ".")?
 
 interface_section: "interface" uses_clause? pre_class_decl*
 uses_clause:   "uses" dotted_name ("," dotted_name)* ";"       -> uses
