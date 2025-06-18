@@ -36,7 +36,7 @@ member_decl: attributes? method_decl_rule
 method_decl_rule: access_modifier? class_modifier? method_kind method_sig ";" (method_attr ";"?)* -> method_decl
 
 class_modifier: "class"
-method_attr: "override" | "static" | "abstract" | "virtual" | "reintroduce"i
+method_attr: "override" | "static" | "abstract" | "virtual" | "reintroduce"i | "overload"i
 method_kind: METHOD | PROCEDURE | FUNCTION | CONSTRUCTOR | DESTRUCTOR | OPERATOR
 access_modifier: "public"i | "protected"i | "private"i
 
@@ -174,11 +174,14 @@ inherited_stmt: "inherited"i (name_term ("(" arg_list? ")" call_postfix*)?)? ";"
            | set_lit
            | array_of_expr
            | new_expr
+           | anon_proc_expr
            | CHAR_CODE                               -> char_code
            | expr CARET                              -> deref
 
 lambda_expr: lambda_sig ("=>" ( block | expr ) | "->" ( block | expr )) -> lambda_expr
 lambda_sig: "(" param_list? ")"
+
+anon_proc_expr: (PROCEDURE | FUNCTION) param_block? return_block? ";"? block -> anon_proc
 
 set_lit: "[" (expr ("," expr)*)? "]"
 
