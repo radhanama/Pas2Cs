@@ -1,6 +1,6 @@
 # ────────────────────────── Grammar ──────────────────────────
 GRAMMAR = r"""
-?start:   namespace interface_section? class_section+ ("implementation" uses_clause? class_impl*)? ("end" ".")?
+?start:   namespace interface_section? class_section+ ("implementation" uses_clause? class_impl*)? ("end"i ("." | ";"))?
 
 interface_section: "interface" uses_clause? pre_class_decl*
 uses_clause:   "uses" dotted_name ("," dotted_name)* ";"       -> uses
@@ -84,7 +84,7 @@ class_impl:  class_modifier? method_kind method_impl
 method_impl: impl_head ";" var_section? block               -> m_impl
 impl_head:   method_name param_block? return_block?
 
-block:       "begin" stmt* "end" ";"?
+block:       "begin" stmt* "end"i ";"?
 
 ?stmt:       assign_stmt
            | op_assign_stmt
@@ -132,12 +132,12 @@ for_stmt:    "for"i CNAME (":" type_spec)? ":=" expr (TO | DOWNTO) expr (STEP ex
 loop_stmt:   LOOP stmt                                       -> loop_stmt
 while_stmt:  "while"i expr "do"i stmt                    -> while_stmt
 
-try_stmt:    "try" stmt* except_clause? finally_clause? "end" ";"? -> try_stmt
+try_stmt:    "try" stmt* except_clause? finally_clause? "end"i ";"? -> try_stmt
 except_clause: "except" (on_handler | stmt)*
 finally_clause: "finally" stmt+
 on_handler: ON CNAME ":" type_name DO stmt -> on_handler
 
-case_stmt:   "case" expr "of" case_branch+ ("else" stmt+)? "end" ";"? -> case_stmt
+case_stmt:   "case" expr "of" case_branch+ ("else" stmt+)? "end"i ";"? -> case_stmt
 case_branch: case_label ("," case_label)* ":" stmt ";"?
 case_label: NUMBER | SQ_STRING | STRING | CNAME | NIL
 
