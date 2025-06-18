@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
+using System.Collections;
 
 namespace Demo {
     public partial class MyList : List<string> {
@@ -11,6 +13,10 @@ namespace Demo {
             List<int> v;
             v = new List<int>();
             l.AddRange(v);
+        }
+        public void Parse(JObject ret) {
+            Hashtable aux;
+            aux = (ret as JObject).ToObject<Hashtable>();
         }
     }
     

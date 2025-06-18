@@ -2,7 +2,7 @@ namespace Demo;
 
 interface
 
-uses System.Collections.Generic;
+uses System.Collections.Generic, Newtonsoft.Json.Linq, System.Collections;
 
 type
   MyList = public class(List<String>)
@@ -13,6 +13,7 @@ type
   GenExample = public class
   public
     method UseList(l: List<String>);
+    method Parse(ret: JObject);
   end;
 
   GenericStatic = public class
@@ -37,6 +38,13 @@ var
 begin
   v := new List<Integer>;
   l.AddRange(v);
+end;
+
+method GenExample.Parse(ret: JObject);
+var
+  aux: Hashtable;
+begin
+  aux := (ret as JObject).ToObject<Hashtable>();
 end;
 
 class method GenericStatic.Use();

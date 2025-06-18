@@ -850,11 +850,17 @@ class ToCSharp(Transformer):
                 out.append('.' + self._safe_name(p))
         return ''.join(out)
 
-    def prop_call(self, name, args=None):
+    def prop_call(self, name, generics=None, args=None):
+        nm = str(name)
+        if isinstance(generics, list) and args is None:
+            args = generics
+            generics = None
+        if generics is not None:
+            nm += generics.value
         if args is None:
-            return ('prop', str(name), None)
+            return ('prop', nm, None)
         else:
-            return ('prop', str(name), list(args))
+            return ('prop', nm, list(args))
 
     def index_postfix(self, tok):
         text = tok.value.replace("'", '"')
@@ -892,13 +898,14 @@ class ToCSharp(Transformer):
                 call += f"({', '.join(first_args)})"
         else:
             if not first_args:
-                if parts and '<' in call:
-                    pass
-                elif call.startswith('typeof(') or call.startswith('new '):
-                    pass
-                elif ' as ' in call:
-                    pass
-                else:
+                if not parts:
+                    if call.startswith('typeof(') or call.startswith('new '):
+                        pass
+                    elif ' as ' in call:
+                        pass
+                    else:
+                        call += "()"
+                elif '.' not in call and ' as ' not in call and not call.startswith('typeof(') and not call.startswith('new '):
                     call += "()"
             else:
                 call += f"({', '.join(first_args)})"
@@ -916,6 +923,16 @@ class ToCSharp(Transformer):
                         call += f".{name}({', '.join(args)})"
                 elif kind == 'index':
                     call += part[1]
+            elif isinstance(part, Token) and part.type == 'GENERIC_ARGS':
+                if call.endswith("()"): 
+                    call = call[:-2] + part.value + "()"
+                    if i < len(parts) and isinstance(parts[i], list):
+                        i += 1
+                else:
+                    call += part.value
+                    if i < len(parts) and isinstance(parts[i], list):
+                        call += f"({', '.join(parts[i])})"
+                        i += 1
             else:
                 name = part
                 arglist = []
