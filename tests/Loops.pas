@@ -41,6 +41,11 @@ type
     class method Sum(arr: array of Integer): Integer;
   end;
 
+  ForEachIndexExample = public class
+  public
+    class method Sum(arr: array of Integer): Integer;
+  end;
+
   TypedForLoop = public class
   public
     class method Sum(arr: array of Integer): Integer;
@@ -123,6 +128,16 @@ begin
   total := 0;
   for each item: Integer in arr do
     total := total + item;
+  result := total;
+end;
+
+class method ForEachIndexExample.Sum(arr: array of Integer): Integer;
+var
+  total: Integer;
+begin
+  total := 0;
+  for each item in arr index idx do
+    total := total + item * idx;
   result := total;
 end;
 

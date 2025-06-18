@@ -71,6 +71,18 @@ namespace Demo {
         }
     }
     
+    public partial class ForEachIndexExample {
+        public static int Sum(int[] arr) {
+            int total;
+            total = 0;
+            for (var idx = 0; idx < arr.Length; idx++) {
+                var item = arr[idx];
+                total = total + item * idx;
+            }
+            return total;
+        }
+    }
+    
     public partial class TypedForLoop {
         public static int Sum(int[] arr) {
             int total;

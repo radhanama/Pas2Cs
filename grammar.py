@@ -128,7 +128,7 @@ with_stmt: WITH expr DO stmt                           -> with_stmt
 yield_stmt: YIELD expr ";"?                           -> yield_stmt
 if_stmt:     "if" expr "then" stmt ("else" stmt)?        -> if_stmt
 for_stmt:    "for"i CNAME (":" type_spec)? ":=" expr (TO | DOWNTO) expr (STEP expr)? ("do"i)? stmt  -> for_stmt
-           | "for"i "each"i? CNAME (":" type_spec)? IN expr ("do"i)? stmt      -> for_each_stmt
+           | "for"i "each"i? CNAME (":" type_spec)? IN expr (INDEX CNAME)? ("do"i)? stmt      -> for_each_stmt
 loop_stmt:   LOOP stmt                                       -> loop_stmt
 while_stmt:  "while"i expr "do"i stmt                    -> while_stmt
 
@@ -270,6 +270,7 @@ WRITE:       "write"i
 USING:       "using"i
 LOCKING:     "locking"i
 YIELD:       "yield"i
+INDEX:       "index"i
 IS:          "is"i
 AS:          "as"i
 AUTORELEASEPOOL: "autoreleasepool"i

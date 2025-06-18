@@ -692,15 +692,37 @@ class ToCSharp(Transformer):
             self.curr_locals.add(safe_var)
         return f"for ({prefix}{safe_var} = {start}; {cond}; {inc}) {body}"
 
-    def for_each_stmt(self, var, *rest):
-        if rest and getattr(rest[0], 'type', None) != 'IN' and rest[0] != 'in':
-            typ, _in, seq, body = rest
-        else:
-            _in, seq, body = rest
-            typ = None
+    def for_each_stmt(self, var, *parts):
+        parts = list(parts)
+        typ = None
+        if parts and getattr(parts[0], 'type', None) != 'IN' and str(parts[0]) != 'in':
+            typ = parts.pop(0)
+        if parts and isinstance(parts[0], Token) and parts[0].type == 'IN':
+            parts.pop(0)
+        seq = parts.pop(0)
+        idx_var = None
+        if parts and isinstance(parts[0], Token) and parts[0].type == 'INDEX':
+            parts.pop(0)
+            idx_var = parts.pop(0)
+        if parts and isinstance(parts[0], Token) and parts[0].type == 'DO':
+            parts.pop(0)
+        body = parts[0]
+
         t = "var" if typ is None else map_type_ext(str(typ))
         safe_var = self._safe_name(var)
-        return f"foreach ({t} {safe_var} in {seq}) {body}"
+
+        if idx_var is None:
+            return f"foreach ({t} {safe_var} in {seq}) {body}"
+
+        safe_idx = self._safe_name(idx_var)
+        body_cs = str(body)
+        if body_cs.strip().startswith('{'):
+            inner = body_cs.strip()[1:-1].strip()
+        else:
+            inner = body_cs.strip()
+        inner = f"{t} {safe_var} = {seq}[{safe_idx}];\n{inner}"
+        new_body = "{\n" + indent(inner) + "\n}"
+        return f"for (var {safe_idx} = 0; {safe_idx} < {seq}.Length; {safe_idx}++) {new_body}"
 
     def loop_stmt(self, _tok, body):
         return f"while (true) {body}"
