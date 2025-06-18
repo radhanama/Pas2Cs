@@ -157,13 +157,10 @@ class ToCSharp(Transformer):
         inner = ', '.join(types)
         return f"System.ValueTuple<{inner}>"
 
-    def generic_params(self, _lt, first, *rest):
-        names = [str(first)]
-        for item in rest:
-            if isinstance(item, Token) and item.type == ',':
-                continue
-            names.append(str(item))
-        return '<' + ', '.join(names) + '>'
+    def generic_params(self, *names):
+        # grammar only yields the parameter identifiers
+        cleaned = [str(n) for n in names]
+        return '<' + ', '.join(cleaned) + '>'
 
     def _add_type(self, cname, kind, base, sign_list):
         self.class_defs[str(cname)] = (kind, base, sign_list)
@@ -175,14 +172,16 @@ class ToCSharp(Transformer):
         if parts and isinstance(parts[0], str) and parts[0].startswith('<'):
             generics = parts[0]
             parts = parts[1:]
-        if len(parts) == 2:
-            base, sign = parts
-        else:
-            sign = parts[0]
-            base = None
+        # ignore unknown modifiers like "sealed" after the class keyword
+        while parts and isinstance(parts[0], Token) and parts[0].type == 'CNAME':
+            parts = parts[1:]
+        sign = parts[-1]
+        bases = list(parts[:-1]) if len(parts) > 1 else []
         prev = getattr(self, "curr_class", None)
         self.curr_class = str(cname) + generics
-        base_cs = f" : {map_type_ext(str(base))}" if base else ""
+        base_cs = ""
+        if bases:
+            base_cs = " : " + ", ".join(map_type_ext(str(b)) for b in bases)
         sign_list = sign if isinstance(sign, list) else []
         name_full = str(cname) + generics
         self._add_type(name_full, "class", base_cs, sign_list)
@@ -362,6 +361,12 @@ class ToCSharp(Transformer):
 
     def arg_list(self, *args):
         return list(args)
+
+    def arg(self, value):
+        return value
+
+    def named_arg(self, name, expr):
+        return expr
 
     def method_decl(self, *parts):
         for p in parts:
@@ -852,6 +857,9 @@ class ToCSharp(Transformer):
     def call_stmt(self, fn, *parts):
         return self.call(fn, *parts) + ";"
 
+    def new_stmt(self, expr):
+        return expr + ";"
+
     def inherited(self, name=None, args=None):
         if name is None:
             if self.curr_method:
@@ -921,6 +929,19 @@ class ToCSharp(Transformer):
     def set_lit(self, *elems):
         vals = ", ".join(elems)
         return f"new[]{{{vals}}}"
+
+    def array_of_expr(self, typ, args=None):
+        from utils import map_type_ext
+        if args is None:
+            arglist = ""
+        else:
+            parts = list(args)
+            if len(parts) == 1 and parts[0].startswith("new[]"):
+                inner = parts[0][6:-1]
+                arglist = inner
+            else:
+                arglist = ", ".join(parts)
+        return f"new {map_type_ext(str(typ))}[]{{{arglist}}}"
 
     def enum_item(self, name, *rest):
         if rest:

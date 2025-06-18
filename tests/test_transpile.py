@@ -316,6 +316,13 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_multi_base(self):
+        src = Path('tests/MultiBase.pas').read_text()
+        expected = Path('tests/MultiBase.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_event_operator(self):
         src = Path('tests/EventOperator.pas').read_text()
         expected = Path('tests/EventOperator.cs').read_text().strip()
@@ -411,6 +418,27 @@ class TranspileTests(unittest.TestCase):
     def test_keyword_name(self):
         src = Path('tests/KeywordName.pas').read_text()
         expected = Path('tests/KeywordName.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_sealed_class(self):
+        src = Path('tests/SealedClass.pas').read_text()
+        expected = Path('tests/SealedClass.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_new_stmt(self):
+        src = Path('tests/NewStmt.pas').read_text()
+        expected = Path('tests/NewStmt.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_array_cast(self):
+        src = Path('tests/ArrayCast.pas').read_text()
+        expected = Path('tests/ArrayCast.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])

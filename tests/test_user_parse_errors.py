@@ -31,3 +31,6 @@ class NewFeatureTests(unittest.TestCase):
 
     def test_op_assign(self):
         self.check_pair('OpAssign')
+
+    def test_named_arg(self):
+        self.check_pair('NamedArg')
