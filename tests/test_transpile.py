@@ -117,7 +117,6 @@ class TranspileTests(unittest.TestCase):
             todos,
             [
                 "// TODO: field count: int -> declare a field",
-                "// TODO: property Name: string -> implement as auto-property",
                 "// TODO: const DefaultCount -> define a constant",
             ],
         )
@@ -141,14 +140,14 @@ class TranspileTests(unittest.TestCase):
         expected = Path('tests/WriteProp.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, ["// TODO: property Flag: bool -> implement as auto-property"])
+        self.assertEqual(todos, [])
 
     def test_indexed_property(self):
         src = Path('tests/IndexedProp.pas').read_text()
         expected = Path('tests/IndexedProp.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, ["// TODO: property Items: string -> implement as auto-property"])
+        self.assertEqual(todos, [])
 
     def test_no_implementation(self):
         src = Path('tests/NoImpl.pas').read_text()
@@ -211,7 +210,7 @@ class TranspileTests(unittest.TestCase):
         expected = Path('tests/CaseStmt.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, ['// TODO: case statement'])
+        self.assertEqual(todos, [])
 
     def test_class_var(self):
         src = Path('tests/ClassVar.pas').read_text()
@@ -425,6 +424,27 @@ class TranspileTests(unittest.TestCase):
     def test_sealed_class(self):
         src = Path('tests/SealedClass.pas').read_text()
         expected = Path('tests/SealedClass.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_lambda(self):
+        src = Path('tests/Lambda.pas').read_text()
+        expected = Path('tests/Lambda.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_nullable(self):
+        src = Path('tests/Nullable.pas').read_text()
+        expected = Path('tests/Nullable.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_case_else(self):
+        src = Path('tests/CaseElse.pas').read_text()
+        expected = Path('tests/CaseElse.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
