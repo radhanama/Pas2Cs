@@ -717,7 +717,7 @@ class ToCSharp(Transformer):
         body_cs = "\n".join(indent(s,0) for s in body_stmts if isinstance(s,str) and s.strip())
         res = f"try\n{{\n{indent(body_cs)}\n}}"
 
-        if except_clause:
+        if except_clause is not None:
             generic_body = []
             for handler in except_clause:
                 if isinstance(handler, tuple) and handler[0] == 'on_handler':
@@ -726,9 +726,12 @@ class ToCSharp(Transformer):
                     res += f"\ncatch ({map_type_ext(str(typ))} {name})\n{catch_body}"
                 else:
                     generic_body.append(handler)
-            if generic_body:
+            if generic_body or not except_clause:
                 exc_cs = "\n".join(indent(s,0) for s in generic_body if isinstance(s,str) and s.strip())
-                res += f"\ncatch (Exception)\n{{\n{indent(exc_cs)}\n}}"
+                if exc_cs:
+                    res += f"\ncatch (Exception)\n{{\n{indent(exc_cs)}\n}}"
+                else:
+                    res += "\ncatch (Exception)\n{}"
 
         if finally_clause:
             fin_cs = "\n".join(indent(s,0) for s in finally_clause if isinstance(s,str) and s.strip())
