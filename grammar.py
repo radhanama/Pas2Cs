@@ -221,7 +221,7 @@ var_decl_infer: name_list ":=" expr ";"                 -> var_decl_infer
 
 LT:           "<"
 GT:           ">"
-GENERIC_ARGS: /<(?:(?:[^<>]|<[^<>]*>)+)>/
+GENERIC_ARGS: /<(?![=>])(?:(?:[^<>]|<[^<>]*>)+)>/
 OP_SUM:       "+" | "-" | "or"
 OP_MUL:       "*" | "/" | "and" | "mod"i
 OP_REL:       "=" | "<>" | "<=" | ">="
@@ -301,3 +301,4 @@ COMMENT_PAREN: /\(\*[^*]*\*\)/
 %ignore LINE_COMMENT
 %ignore COMMENT_PAREN
 """
+# Avoid treating comparison operators like "<=" as generic arguments in GENERIC_ARGS

@@ -34,3 +34,9 @@ class NewFeatureTests(unittest.TestCase):
 
     def test_named_arg(self):
         self.check_pair('NamedArg')
+
+    def test_teste_pas_parses(self):
+        """Parsing should succeed for the large external example."""
+        src = Path('teste.pas').read_text()
+        result, todos = transpile(src)
+        self.assertTrue(result.strip())
