@@ -17,7 +17,7 @@ type_def:    attributes? class_def
            | attributes? enum_def
            | alias_def
 
-class_def:   CNAME generic_params? "=" ("public"i)? "static"? "partial"? "abstract"? "class"i ("(" type_name ")")? class_signature "end"i ";" -> class_def
+class_def:   CNAME generic_params? "=" ("public"i)? "static"? "partial"? "abstract"? "class"i CNAME* ("(" type_name ("," type_name)* ")")? class_signature "end"i ";" -> class_def
 record_def:  CNAME generic_params? "=" ("public"i)? "record"i ("(" type_name ")")? class_signature "end"i ";" -> record_def
 interface_def: CNAME generic_params? "=" ("public"i)? "interface"i ("(" type_name ("," type_name)* ")")? class_signature "end"i ";" -> interface_def
 enum_def:    CNAME "=" ("public"i)? ("enum"i | "flags"i)? "(" enum_items ")" ("of" type_name)? ";" -> enum_def
@@ -103,6 +103,7 @@ block:       "begin" stmt* "end" ";"?
            | with_stmt
            | yield_stmt
            | call_stmt
+           | new_stmt
            | except_on_stmt
             | block
             |                         -> empty
@@ -116,7 +117,11 @@ raise_stmt: RAISE expr? ";"?                                 -> raise_stmt
 repeat_stmt: "repeat"i stmt* "until"i expr ";"?               -> repeat_stmt
 break_stmt: BREAK ";"?                                     -> break_stmt
 continue_stmt: CONTINUE ";"?                                -> continue_stmt
-var_stmt:    "var"i (var_decl | var_decl_infer)+            -> var_stmt
+# local variable declaration inside a statement block uses its own `var` keyword
+# and does not allow additional declarations without repeating `var`. Using a
+# single declaration avoids mis-parsing the following statement as another
+# variable.
+var_stmt:    "var"i (var_decl | var_decl_infer)             -> var_stmt
 using_stmt: USING CNAME (":" type_name)? ":=" expr DO stmt                  -> using_var
            | USING expr DO stmt                           -> using_expr
            | USING AUTORELEASEPOOL DO stmt                -> using_pool
@@ -138,6 +143,7 @@ call_stmt:   var_ref ("(" arg_list? ")")? call_postfix* ";"?     -> call_stmt
            | generic_call_base ("(" arg_list? ")")? call_postfix* ";"? -> call_stmt
            | new_expr "." name_term ("(" arg_list? ")")? call_postfix* ";"?     -> call_stmt
            | "(" expr ")" "." name_term ("(" arg_list? ")")? call_postfix* ";"? -> call_stmt
+new_stmt:    new_expr ";"?
 inherited_stmt: "inherited"i (name_term ("(" arg_list? ")" call_postfix*)?)? ";"? -> inherited
 
 ?expr:       NOT expr                    -> not_expr
@@ -164,6 +170,7 @@ inherited_stmt: "inherited"i (name_term ("(" arg_list? ")" call_postfix*)?)? ";"
            | var_ref
            | call_expr
            | set_lit
+           | array_of_expr
            | new_expr
            | CHAR_CODE                    -> char_code
            | expr CARET                  -> deref
@@ -173,6 +180,8 @@ set_lit: "[" (expr ("," expr)*)? "]"
 new_expr: "new" type_name "(" arg_list? ")"           -> new_obj
         | "new" type_name ARRAY_RANGE                 -> new_array
         | "new" type_name                             -> new_obj_noargs
+
+array_of_expr: "array"i "of"i type_name "(" arg_list? ")" -> array_of_expr
 
 typeof_expr: TYPEOF "(" type_name ")"      -> typeof_expr
 
@@ -194,7 +203,9 @@ call_expr:   var_ref "(" arg_list? ")" call_postfix*     -> call
            | "(" expr ")" "." name_term ("(" arg_list? ")")? call_postfix* -> call
            | "inherited"i name_term ("(" arg_list? ")")? call_postfix*        -> inherited_call_expr
            | typeof_expr call_postfix+                   -> call
-arg_list:    expr ("," expr)*
+arg_list:    arg ("," arg)*
+arg:         CNAME ":=" expr                -> named_arg
+           | expr
 
 var_ref:     name_base (ARRAY_RANGE | "." name_term)*   -> var
 
