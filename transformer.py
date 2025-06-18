@@ -914,6 +914,9 @@ class ToCSharp(Transformer):
     def call_stmt(self, fn, *parts):
         return self.call(fn, *parts) + ";"
 
+    def new_stmt(self, expr):
+        return expr + ";"
+
     def inherited(self, name=None, args=None):
         if name is None:
             if self.curr_method:
@@ -997,6 +1000,19 @@ class ToCSharp(Transformer):
     def set_lit(self, *elems):
         vals = ", ".join(elems)
         return f"new[]{{{vals}}}"
+
+    def array_of_expr(self, typ, args=None):
+        from utils import map_type_ext
+        if args is None:
+            arglist = ""
+        else:
+            parts = list(args)
+            if len(parts) == 1 and parts[0].startswith("new[]"):
+                inner = parts[0][6:-1]
+                arglist = inner
+            else:
+                arglist = ", ".join(parts)
+        return f"new {map_type_ext(str(typ))}[]{{{arglist}}}"
 
     def enum_item(self, name, *rest):
         if rest:

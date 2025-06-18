@@ -4,14 +4,15 @@ def indent(code: str, lvl: int = 1) -> str:
     return textwrap.indent(code, "    " * lvl, lambda _: True)
 
 def map_type(pas_type: str) -> str:
+    """Map basic Pascal type names to their C# equivalents."""
     simple = pas_type.split('.')[-1]
     mapping = {
-        "Integer": "int",
-        "String": "string",
-        "Boolean": "bool",
-        "Object": "object",
+        "integer": "int",
+        "string": "string",
+        "boolean": "bool",
+        "object": "object",
     }
-    return mapping.get(simple, pas_type)
+    return mapping.get(simple.lower(), pas_type)
 
 def map_type_ext(typ: str) -> str:
     nullable = typ.endswith('?')

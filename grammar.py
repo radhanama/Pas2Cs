@@ -106,6 +106,7 @@ block:       "begin" stmt* "end" ";"?
            | with_stmt
            | yield_stmt
            | call_stmt
+           | new_stmt
            | block
            
 
@@ -118,7 +119,7 @@ raise_stmt: RAISE expr? ";"?                           -> raise_stmt
 repeat_stmt: "repeat"i stmt* "until"i expr ";"?         -> repeat_stmt
 break_stmt: BREAK ";"?                                  -> break_stmt
 continue_stmt: CONTINUE ";"?                            -> continue_stmt
-var_stmt:    "var"i (var_decl | var_decl_infer)+         -> var_stmt
+var_stmt:    "var"i (var_decl | var_decl_infer)          -> var_stmt
 using_stmt: USING CNAME (":" type_spec)? ":=" expr DO stmt       -> using_var
           | USING expr DO stmt                        -> using_expr
           | USING AUTORELEASEPOOL DO stmt             -> using_pool
@@ -171,6 +172,7 @@ inherited_stmt: "inherited"i (name_term ("(" arg_list? ")" call_postfix*)?)? ";"
            | var_ref
            | call_expr
            | set_lit
+           | array_of_expr
            | new_expr
            | CHAR_CODE                               -> char_code
            | expr CARET                              -> deref
@@ -184,6 +186,7 @@ new_expr: "new" type_spec "(" arg_list? ")"         -> new_obj
         | "new" type_spec ARRAY_RANGE               -> new_array
         | "new" type_spec                           -> new_obj_noargs
 
+array_of_expr: "array"i "of"i type_name "(" arg_list? ")" -> array_of_expr
 typeof_expr: TYPEOF "(" type_spec ")"                   -> typeof_expr
 
 generic_call_base: dotted_name GENERIC_ARGS
@@ -206,6 +209,7 @@ arg_list:    arg ("," arg)*
 arg:         CNAME ":=" expr                         -> named_arg
            | expr
 
+new_stmt:    new_expr ";"?
 var_ref:     name_base (ARRAY_RANGE | "." name_term)* -> var
 
 var_section: "var"i (var_decl | var_decl_infer)+

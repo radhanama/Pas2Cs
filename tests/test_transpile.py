@@ -428,9 +428,23 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_new_stmt(self):
+        src = Path('tests/NewStmt.pas').read_text()
+        expected = Path('tests/NewStmt.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_lambda(self):
         src = Path('tests/Lambda.pas').read_text()
         expected = Path('tests/Lambda.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_array_cast(self):
+        src = Path('tests/ArrayCast.pas').read_text()
+        expected = Path('tests/ArrayCast.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
