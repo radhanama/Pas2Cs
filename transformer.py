@@ -175,19 +175,17 @@ class ToCSharp(Transformer):
         if parts and isinstance(parts[0], str) and parts[0].startswith('<'):
             generics = parts[0]
             parts = parts[1:]
-
         # ignore unknown modifiers like "sealed" after the class keyword
         while parts and isinstance(parts[0], Token) and parts[0].type == 'CNAME':
             parts = parts[1:]
 
-        if len(parts) == 2:
-            base, sign = parts
-        else:
-            sign = parts[0]
-            base = None
+        sign = parts[-1]
+        bases = list(parts[:-1]) if len(parts) > 1 else []
         prev = getattr(self, "curr_class", None)
         self.curr_class = str(cname) + generics
-        base_cs = f" : {map_type_ext(str(base))}" if base else ""
+        base_cs = ""
+        if bases:
+            base_cs = " : " + ", ".join(map_type_ext(str(b)) for b in bases)
         sign_list = sign if isinstance(sign, list) else []
         name_full = str(cname) + generics
         self._add_type(name_full, "class", base_cs, sign_list)

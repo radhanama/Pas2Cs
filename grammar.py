@@ -17,7 +17,7 @@ type_def:    attributes? class_def
            | attributes? enum_def
            | alias_def
 
-class_def:   CNAME generic_params? "=" ("public"i)? "static"? "partial"? "abstract"? "class"i CNAME* ("(" type_name ")")? class_signature "end"i ";" -> class_def
+class_def:   CNAME generic_params? "=" ("public"i)? "static"? "partial"? "abstract"? "class"i CNAME* ("(" type_name ("," type_name)* ")")? class_signature "end"i ";" -> class_def
 record_def:  CNAME generic_params? "=" ("public"i)? "record"i ("(" type_name ")")? class_signature "end"i ";" -> record_def
 interface_def: CNAME generic_params? "=" ("public"i)? "interface"i ("(" type_name ("," type_name)* ")")? class_signature "end"i ";" -> interface_def
 enum_def:    CNAME "=" ("public"i)? ("enum"i | "flags"i)? "(" enum_items ")" ("of" type_name)? ";" -> enum_def
