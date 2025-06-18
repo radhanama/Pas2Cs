@@ -103,6 +103,7 @@ block:       "begin" stmt* "end" ";"?
            | with_stmt
            | yield_stmt
            | call_stmt
+           | new_stmt
            | except_on_stmt
             | block
             |                         -> empty
@@ -138,6 +139,7 @@ call_stmt:   var_ref ("(" arg_list? ")")? call_postfix* ";"?     -> call_stmt
            | generic_call_base ("(" arg_list? ")")? call_postfix* ";"? -> call_stmt
            | new_expr "." name_term ("(" arg_list? ")")? call_postfix* ";"?     -> call_stmt
            | "(" expr ")" "." name_term ("(" arg_list? ")")? call_postfix* ";"? -> call_stmt
+new_stmt:    new_expr ";"?
 inherited_stmt: "inherited"i (name_term ("(" arg_list? ")" call_postfix*)?)? ";"? -> inherited
 
 ?expr:       NOT expr                    -> not_expr
@@ -164,6 +166,7 @@ inherited_stmt: "inherited"i (name_term ("(" arg_list? ")" call_postfix*)?)? ";"
            | var_ref
            | call_expr
            | set_lit
+           | array_of_expr
            | new_expr
            | CHAR_CODE                    -> char_code
            | expr CARET                  -> deref
@@ -173,6 +176,8 @@ set_lit: "[" (expr ("," expr)*)? "]"
 new_expr: "new" type_name "(" arg_list? ")"           -> new_obj
         | "new" type_name ARRAY_RANGE                 -> new_array
         | "new" type_name                             -> new_obj_noargs
+
+array_of_expr: "array"i "of"i type_name "(" arg_list? ")" -> array_of_expr
 
 typeof_expr: TYPEOF "(" type_name ")"      -> typeof_expr
 
