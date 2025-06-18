@@ -157,13 +157,10 @@ class ToCSharp(Transformer):
         inner = ', '.join(types)
         return f"System.ValueTuple<{inner}>"
 
-    def generic_params(self, _lt, first, *rest):
-        names = [str(first)]
-        for item in rest:
-            if isinstance(item, Token) and item.type == ',':
-                continue
-            names.append(str(item))
-        return '<' + ', '.join(names) + '>'
+    def generic_params(self, *names):
+        # grammar only yields the parameter identifiers
+        cleaned = [str(n) for n in names]
+        return '<' + ', '.join(cleaned) + '>'
 
     def _add_type(self, cname, kind, base, sign_list):
         self.class_defs[str(cname)] = (kind, base, sign_list)
@@ -178,7 +175,6 @@ class ToCSharp(Transformer):
         # ignore unknown modifiers like "sealed" after the class keyword
         while parts and isinstance(parts[0], Token) and parts[0].type == 'CNAME':
             parts = parts[1:]
-
         sign = parts[-1]
         bases = list(parts[:-1]) if len(parts) > 1 else []
         prev = getattr(self, "curr_class", None)
@@ -365,6 +361,12 @@ class ToCSharp(Transformer):
 
     def arg_list(self, *args):
         return list(args)
+
+    def arg(self, value):
+        return value
+
+    def named_arg(self, name, expr):
+        return expr
 
     def method_decl(self, *parts):
         for p in parts:

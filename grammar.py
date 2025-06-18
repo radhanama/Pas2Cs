@@ -194,7 +194,9 @@ call_expr:   var_ref "(" arg_list? ")" call_postfix*     -> call
            | "(" expr ")" "." name_term ("(" arg_list? ")")? call_postfix* -> call
            | "inherited"i name_term ("(" arg_list? ")")? call_postfix*        -> inherited_call_expr
            | typeof_expr call_postfix+                   -> call
-arg_list:    expr ("," expr)*
+arg_list:    arg ("," arg)*
+arg:         CNAME ":=" expr                -> named_arg
+           | expr
 
 var_ref:     name_base (ARRAY_RANGE | "." name_term)*   -> var
 
