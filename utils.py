@@ -15,9 +15,14 @@ def map_type(pas_type: str) -> str:
     return mapping.get(simple.lower(), pas_type)
 
 def map_type_ext(typ: str) -> str:
+    nullable = typ.endswith('?')
+    if nullable:
+        typ = typ[:-1]
     if typ.endswith('[]'):
-        return map_type(typ[:-2]) + '[]'
-    return map_type(typ)
+        mapped = map_type(typ[:-2]) + '[]'
+    else:
+        mapped = map_type(typ)
+    return mapped + ('?' if nullable else '')
 
 _SRC_TEXT = ""
 _LAST_POS = 0
