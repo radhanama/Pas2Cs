@@ -141,6 +141,12 @@ class ToCSharp(Transformer):
         t = map_type_ext(str(typ))
         return f"System.Collections.Generic.HashSet<{t}>"
 
+    def type_spec(self, typ, qmark=None):
+        base = str(typ)
+        if qmark is not None:
+            return base + "?"
+        return base
+
     def range_type(self, start, _dd, end):
         return "int"
 
@@ -436,19 +442,50 @@ class ToCSharp(Transformer):
         parts = list(parts)
         if parts and isinstance(parts[0], list):
             parts.pop(0)
-        typ = parts[0]
-        return (str(name), map_type_ext(str(typ)))
+        typ = parts.pop(0)
+        read_val = "get;"
+        write_val = "set;"
+        has_read = False
+        has_write = False
+        i = 0
+        while i < len(parts):
+            token = parts[i]
+            tval = str(token).lower()
+            if tval == 'read':
+                has_read = True
+                if i + 1 < len(parts) and isinstance(parts[i+1], Token):
+                    field_name = parts[i+1]
+                    read_val = f"get => {field_name};"
+                    i += 2
+                else:
+                    read_val = "get;"
+                    i += 1
+            elif tval == 'write':
+                has_write = True
+                if i + 1 < len(parts) and isinstance(parts[i+1], Token):
+                    field_name = parts[i+1]
+                    write_val = f"set => {field_name} = value;"
+                    i += 2
+                else:
+                    write_val = "set;"
+                    i += 1
+            else:
+                i += 1
+        if not has_read:
+            read_val = ""
+        if not has_write:
+            write_val = ""
+        return (str(name), map_type_ext(str(typ)), read_val, write_val)
 
     def property_index(self, *args):
         return []
 
     def property_decl(self, *parts):
         sig = parts[-1]
-        name, typ = sig
-        info = f"// TODO: property {name}: {typ} -> implement as auto-property"
-        impl = f"public {typ} {name} {{ get; set; }}"
-        self.todo.append(info)
-        return info + "\n" + impl
+        name, typ, getter, setter = sig
+        parts_cs = " ".join(p for p in [getter, setter] if p)
+        impl = f"public {typ} {name} {{ {parts_cs} }}"
+        return impl
 
     def event_decl(self, *parts):
         name = parts[-2]
@@ -598,16 +635,14 @@ class ToCSharp(Transformer):
         self.todo.append(info)
         return info
 
-    def except_part(self, *stmts):
+    def except_clause(self, *handlers):
+        return list(handlers)
+
+    def finally_clause(self, *stmts):
         return list(stmts)
 
-    def finally_part(self, *stmts):
-        return list(stmts)
-
-    def except_on_stmt(self, _on, name, typ, _do, stmt):
-        t = map_type_ext(str(typ))
-        body = stmt
-        return ("catch", t, str(name), body)
+    def on_handler(self, _on, name, typ, _do, stmt):
+        return ('on_handler', str(name), typ, stmt)
 
     def yield_stmt(self, _tok, expr, _semi=None):
         return f"yield return {expr};"
@@ -666,48 +701,70 @@ class ToCSharp(Transformer):
         return f"while ({cond}) {body}"
 
     def try_stmt(self, *parts):
-        body = []
-        catches = []
-        plain_except = []
-        mode = 'body'
-        for item in parts:
-            if mode == 'body':
-                if isinstance(item, tuple) and item and item[0] == 'catch':
-                    mode = 'except'
-                    catches.append(item)
+        body_stmts = []
+        except_clause = None
+        finally_clause = None
+
+        for part in parts:
+            if isinstance(part, list):
+                if except_clause is None:
+                    except_clause = part
                 else:
-                    body.append(item)
+                    finally_clause = part
             else:
-                if isinstance(item, tuple) and item and item[0] == 'catch':
-                    catches.append(item)
+                body_stmts.append(part)
+
+        body_cs = "\n".join(indent(s,0) for s in body_stmts if isinstance(s,str) and s.strip())
+        res = f"try\n{{\n{indent(body_cs)}\n}}"
+
+        if except_clause:
+            generic_body = []
+            for handler in except_clause:
+                if isinstance(handler, tuple) and handler[0] == 'on_handler':
+                    _tag, name, typ, stmt = handler
+                    catch_body = stmt if stmt.strip().startswith('{') else f"{{\n{indent(stmt)}\n}}"
+                    res += f"\ncatch ({map_type_ext(str(typ))} {name})\n{catch_body}"
                 else:
-                    plain_except.append(item)
+                    generic_body.append(handler)
+            if generic_body:
+                exc_cs = "\n".join(indent(s,0) for s in generic_body if isinstance(s,str) and s.strip())
+                res += f"\ncatch (Exception)\n{{\n{indent(exc_cs)}\n}}"
 
-        body_cs = "\n".join(indent(s, 0) for s in body if isinstance(s, str) and s.strip())
-        res = f"try {{\n{indent(body_cs)}\n}}"
+        if finally_clause:
+            fin_cs = "\n".join(indent(s,0) for s in finally_clause if isinstance(s,str) and s.strip())
+            res += f"\nfinally\n{{\n{indent(fin_cs)}\n}}"
 
-        if catches:
-            for cat in catches:
-                _, typ, name, stmt = cat
-                body = stmt
-                if not stmt.strip().startswith('{'):
-                    body = '{\n' + indent(stmt) + '\n}'
-                res += f" catch ({typ} {name}) {body}"
-        elif plain_except:
-            exc_cs = "\n".join(indent(s, 0) for s in plain_except if isinstance(s, str) and s.strip())
-            res += f" catch (Exception) {{\n{indent(exc_cs)}\n}}"
         return res
 
-    def case_stmt(self, expr, *branches):
-        info = "// TODO: case statement"
-        self.todo.append(info)
-        return info
+    def case_stmt(self, expr, *parts):
+        branches = [p for p in parts if isinstance(p, tuple) and p[0] == 'branch']
+        else_branch = [p for p in parts if not (isinstance(p, tuple) and p[0] == 'branch')]
+
+        switch_body = []
+        for _tag, labels, stmt in branches:
+            for label in labels:
+                switch_body.append(f"case {label}:")
+            if '\n' in stmt or not stmt.strip().endswith(';'):
+                body = f"{{\n{indent(stmt)}\nbreak;\n}}"
+            else:
+                body = f" {stmt} break;"
+            last = switch_body.pop()
+            switch_body.append(f"{last}{body}")
+
+        if else_branch:
+            else_stmts = "\n".join(s for s in else_branch if s.strip())
+            switch_body.append(f"default:\n{{\n{indent(else_stmts)}\nbreak;\n}}")
+
+        body_cs = indent("\n".join(switch_body))
+        return f"switch ({expr})\n{{\n{body_cs}\n}}"
 
     def case_branch(self, *parts):
-        return ""
+        stmt = parts[-1]
+        labels = parts[:-1]
+        return ('branch', labels, stmt)
 
     def case_label(self, tok):
-        return str(tok)
+        return "null" if str(tok) == "nil" else str(tok)
 
     def block(self, *stmts):
         body = "\n".join(indent(s, 0) for s in stmts if s.strip())
@@ -903,6 +960,20 @@ class ToCSharp(Transformer):
 
     def as_cast(self, expr, _tok, typ):
         return f"{expr} as {map_type_ext(str(typ))}"
+
+    def lambda_sig(self, params=None):
+        if params is None:
+            return "()"
+        param_names = []
+        for p in params:
+            name = str(p).split()[-1]
+            param_names.append(name)
+        if len(param_names) == 1:
+            return param_names[0]
+        return f"({', '.join(param_names)})"
+
+    def lambda_expr(self, sig, body):
+        return f"{sig} => {body}"
 
     def char_code(self, tok):
         nums = [int(n) for n in tok.value[1:].split('#') if n]
