@@ -374,6 +374,15 @@ class ToCSharp(Transformer):
     def arg(self, value):
         return value
 
+    def out_arg(self, _tok, value):
+        return f"out {value}"
+
+    def var_arg(self, _tok, value):
+        return f"ref {value}"
+
+    def const_arg(self, _tok, value):
+        return value
+
     def named_arg(self, name, expr):
         return expr
 

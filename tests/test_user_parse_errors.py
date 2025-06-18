@@ -29,8 +29,12 @@ class NewFeatureTests(unittest.TestCase):
     def test_op_assign(self):
         self.check_pair('OpAssign')
 
+    def test_out_arg(self):
+        self.check_pair('OutArg')
+
     def test_teste_pas_parses(self):
         """Parsing should succeed for the large external example."""
         src = Path('teste.pas').read_text()
         result, todos = transpile(src)
         self.assertTrue(result.strip())
+

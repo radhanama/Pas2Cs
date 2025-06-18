@@ -209,7 +209,10 @@ call_expr:   var_ref "(" arg_list? ")" call_postfix* -> call
            | "inherited"i name_term ("(" arg_list? ")")? call_postfix* -> inherited_call_expr
            | typeof_expr call_postfix+                     -> call
 arg_list:    arg ("," arg)*
-arg:         CNAME ":=" expr                         -> named_arg
+arg:         OUT expr                                -> out_arg
+           | VAR expr                                -> var_arg
+           | CONST expr                              -> const_arg
+           | CNAME ":=" expr                         -> named_arg
            | expr
 
 new_stmt:    new_expr ";"?
