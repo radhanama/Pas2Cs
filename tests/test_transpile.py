@@ -184,19 +184,13 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
-    def test_string_cast(self):
-        src = Path('tests/StringCast.pas').read_text()
-        expected = Path('tests/StringCast.cs').read_text().strip()
+    def test_misc_ops(self):
+        src = Path('tests/MiscOps.pas').read_text()
+        expected = Path('tests/MiscOps.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
-    def test_round_double(self):
-        src = Path('tests/RoundDouble.pas').read_text()
-        expected = Path('tests/RoundDouble.cs').read_text().strip()
-        result, todos = transpile(src)
-        self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, [])
 
     def test_method_attr(self):
         src = Path('tests/MethodAttr.pas').read_text()
@@ -364,23 +358,16 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
-    def test_char_code(self):
-        src = Path('tests/CharCode.pas').read_text()
-        expected = Path('tests/CharCode.cs').read_text().strip()
+    def test_char_utils(self):
+        src = Path('tests/CharUtils.pas').read_text()
+        expected = Path('tests/CharUtils.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
-    def test_char_code_seq(self):
-        src = Path('tests/CharCodeSeq.pas').read_text()
-        expected = Path('tests/CharCodeSeq.cs').read_text().strip()
-        result, todos = transpile(src)
-        self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, [])
-
-    def test_var_stmt(self):
-        src = Path('tests/VarStmt.pas').read_text()
-        expected = Path('tests/VarStmt.cs').read_text().strip()
+    def test_var_examples(self):
+        src = Path('tests/VarExamples.pas').read_text()
+        expected = Path('tests/VarExamples.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
@@ -400,16 +387,9 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
-    def test_is_operator(self):
-        src = Path('tests/IsOp.pas').read_text()
-        expected = Path('tests/IsOp.cs').read_text().strip()
-        result, todos = transpile(src)
-        self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, [])
-
-    def test_as_cast(self):
-        src = Path('tests/AsCast.pas').read_text()
-        expected = Path('tests/AsCast.cs').read_text().strip()
+    def test_type_casting(self):
+        src = Path('tests/TypeCasting.pas').read_text()
+        expected = Path('tests/TypeCasting.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
