@@ -491,5 +491,12 @@ class TranspileTests(unittest.TestCase):
             transpile(src)
         self.assertIn('Parse error', str(cm.exception))
 
+    def test_file_end_semicolon(self):
+        src = Path('tests/EndSemicolon.pas').read_text()
+        expected = Path('tests/EndSemicolon.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
 if __name__ == '__main__':
     unittest.main()
