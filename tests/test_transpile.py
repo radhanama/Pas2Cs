@@ -205,6 +205,13 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_overload_attr(self):
+        src = Path('tests/OverloadAttr.pas').read_text()
+        expected = Path('tests/OverloadAttr.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_case_stmt(self):
         src = Path('tests/CaseStmt.pas').read_text()
         expected = Path('tests/CaseStmt.cs').read_text().strip()
@@ -438,6 +445,13 @@ class TranspileTests(unittest.TestCase):
     def test_lambda(self):
         src = Path('tests/Lambda.pas').read_text()
         expected = Path('tests/Lambda.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_anon_proc(self):
+        src = Path('tests/AnonProc.pas').read_text()
+        expected = Path('tests/AnonProc.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])

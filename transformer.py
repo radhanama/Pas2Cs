@@ -978,6 +978,11 @@ class ToCSharp(Transformer):
     def lambda_expr(self, sig, body):
         return f"{sig} => {body}"
 
+    def anon_proc(self, _kind, params=None, block=None):
+        # Anonymous procedure or function converted to a lambda
+        sig = self.lambda_sig(params)
+        return f"{sig} => {block}"
+
     def char_code(self, tok):
         nums = [int(n) for n in tok.value[1:].split('#') if n]
         chars = []
