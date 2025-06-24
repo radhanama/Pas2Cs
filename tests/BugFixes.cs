@@ -19,6 +19,9 @@ namespace Demo {
         public void Underscore(object ds) {
             if (ds.Tables[0].Rows.Count > 10000) System.Console.WriteLine("big");
         }
+        public void CommaNumber(object ds) {
+            if (ds.Tables[0].Rows.Count > 10000) System.Console.WriteLine("big");
+        }
         public void Backslash(string src) {
             src = src.Replace("\\", "\\\\");
         }

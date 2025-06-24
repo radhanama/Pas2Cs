@@ -7,6 +7,7 @@ type
     method PathJoin(nome_arquivo: String);
     method CaseRange(x: Integer);
     method Underscore(ds: Object);
+    method CommaNumber(ds: Object);
     method Backslash(src: String);
   end;
 
@@ -34,6 +35,12 @@ end;
 method BugFixes.Underscore(ds: Object);
 begin
   if ds.Tables[0].Rows.Count > 10_000 then
+    System.Console.WriteLine('big');
+end;
+
+method BugFixes.CommaNumber(ds: Object);
+begin
+  if ds.Tables[0].Rows.Count > 10,000 then
     System.Console.WriteLine('big');
 end;
 

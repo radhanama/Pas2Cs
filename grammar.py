@@ -300,7 +300,7 @@ CHAR_CODE:   "#" NUMBER ("#" NUMBER)*
 %import common.CNAME -> BASE_CNAME
 %import common.WS
 
-NUMBER: /[0-9][_0-9]*(\.[0-9][_0-9]*)?/
+NUMBER: /[0-9]+([_,][0-9]+)*(\.[0-9]+([_,][0-9]+)*)?/
 STRING: /"[^"\n]*"/
 
 CNAME: /&?[A-Za-z_][A-Za-z_0-9]*\??/
