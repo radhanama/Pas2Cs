@@ -1,0 +1,16 @@
+namespace Demo;
+
+type
+  BeginSemi = class
+  public
+    class method Foo;
+  end;
+
+implementation
+
+class method BeginSemi.Foo;
+begin;
+  System.Console.WriteLine('Hello');
+end;
+
+end.

@@ -84,7 +84,7 @@ class_impl:  class_modifier? method_kind method_impl
 method_impl: impl_head ";" var_section? block               -> m_impl
 impl_head:   method_name param_block? return_block?
 
-block:       "begin" stmt* "end"i ";"?
+block:       "begin" ";"? stmt* "end"i ";"?
 
 ?stmt:       assign_stmt
            | op_assign_stmt
