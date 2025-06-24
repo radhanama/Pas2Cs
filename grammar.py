@@ -306,7 +306,7 @@ STRING: /"[^"\n]*"/
 CNAME: /&?[A-Za-z_][A-Za-z_0-9]*\??/
 COMMENT_BRACE: /\{[^}]*\}/
 LINE_COMMENT: /\/\/[^\n]*/
-COMMENT_PAREN: /\(\*[^*]*\*\)/
+COMMENT_PAREN: /\(\*[\s\S]*?\*\)/
 %ignore WS
 %ignore COMMENT_BRACE
 %ignore LINE_COMMENT
