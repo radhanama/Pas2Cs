@@ -59,7 +59,7 @@ type_spec: type_name "?"?                              -> type_spec
            | array_type
            | generic_type
            | dotted_name
-ARRAY_RANGE: "[" /[^\]]*/ "]"
+ARRAY_RANGE: /\[(?:[^\[\]]|\[[^\]]*\])*\]/
 array_type:  "array"i ARRAY_RANGE? "of"i type_name
 
 pointer_type: CARET type_name
@@ -126,13 +126,13 @@ using_stmt: USING CNAME (":" type_spec)? ":=" expr DO stmt       -> using_var
 locking_stmt: LOCKING expr DO stmt                      -> locking_stmt
 with_stmt: WITH expr DO stmt                           -> with_stmt
 yield_stmt: YIELD expr ";"?                           -> yield_stmt
-if_stmt:     "if" expr "then" stmt ("else" stmt)?        -> if_stmt
+if_stmt:     "if" expr "then" stmt? ("else" stmt)?        -> if_stmt
 for_stmt:    "for"i CNAME (":" type_spec)? ":=" expr (TO | DOWNTO) expr (STEP expr)? ("do"i)? stmt  -> for_stmt
            | "for"i "each"i? CNAME (":" type_spec)? IN expr (INDEX CNAME)? ("do"i)? stmt      -> for_each_stmt
 loop_stmt:   LOOP stmt                                       -> loop_stmt
 while_stmt:  "while"i expr "do"i stmt                    -> while_stmt
 
-try_stmt:    "try" stmt* except_clause? finally_clause? "end"i ";"? -> try_stmt
+try_stmt:    TRY stmt* except_clause? finally_clause? "end"i ";"? -> try_stmt
 except_clause: "except" (on_handler | stmt)*
 finally_clause: "finally" stmt+
 on_handler: ON CNAME ":" type_name DO stmt -> on_handler

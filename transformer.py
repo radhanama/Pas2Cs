@@ -666,9 +666,10 @@ class ToCSharp(Transformer):
     def yield_stmt(self, _tok, expr, _semi=None):
         return f"yield return {expr};"
 
-    def if_stmt(self, cond, then_block, else_block=None):
+    def if_stmt(self, cond, then_block=None, else_block=None):
+        then_part = then_block if then_block is not None else "{}"
         else_part = f" else {else_block}" if else_block else ""
-        return f"if ({cond}) {then_block}{else_part}"
+        return f"if ({cond}) {then_part}{else_part}"
 
     def for_stmt(self, var, *parts):
         parts = list(parts)
@@ -754,7 +755,7 @@ class ToCSharp(Transformer):
                     except_clause = part
                 else:
                     finally_clause = part
-            else:
+            elif not isinstance(part, Token):
                 body_stmts.append(part)
 
         body_cs = "\n".join(indent(s,0) for s in body_stmts if isinstance(s,str) and s.strip())
