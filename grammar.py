@@ -230,7 +230,7 @@ var_decl_infer: name_list ":=" expr ";"                 -> var_decl_infer
 
 LT:           "<"
 GT:           ">"
-GENERIC_ARGS: /<(?![=>])(?:(?:[^<>]|<[^<>]*>)+)>/
+GENERIC_ARGS: /<(?![=>])(?:(?:[^<>\n]|<[^<>\n]*>)+)>/
 OP_SUM:       "+" | "-" | "or"
 OP_MUL:       "*" | "/" | "and" | "mod"i | "div"i
 OP_REL:       "=" | "<>" | "<=" | ">="
@@ -304,7 +304,7 @@ NUMBER: /[0-9]+([_,][0-9]+)*(\.[0-9]+([_,][0-9]+)*)?/
 STRING: /"[^"\n]*"/
 
 CNAME: /&?[A-Za-z_][A-Za-z_0-9]*\??/
-COMMENT_BRACE: /\{[^}]*\}/
+COMMENT_BRACE: /\{(?s:.*?)\}/
 LINE_COMMENT: /\/\/[^\n]*/
 COMMENT_PAREN: /\(\*[\s\S]*?\*\)/
 %ignore WS
