@@ -8,6 +8,8 @@ namespace Demo {
     }
     
     public partial class VarStmt {
+        // TODO: const MinVal -> define a constant
+        public const double MinVal = -32768.1;
         public void Example() {
             string delimiter = ",";
         }

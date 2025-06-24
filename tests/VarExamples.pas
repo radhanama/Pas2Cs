@@ -13,6 +13,7 @@ type
   VarStmt = public class
   public
     method Example;
+    const MinVal : double = -32768.1;
   end;
 
   NamedArg = public class

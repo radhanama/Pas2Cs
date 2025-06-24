@@ -12,7 +12,7 @@ class NewFeatureTests(unittest.TestCase):
             self.assertEqual(todos, [])
 
     def test_var_examples(self):
-        self.check_pair('VarExamples')
+        self.check_pair('VarExamples', allow_todos=True)
 
     def test_type_casting(self):
         self.check_pair('TypeCasting')

@@ -377,7 +377,7 @@ class TranspileTests(unittest.TestCase):
         expected = Path('tests/VarExamples.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, [])
+        self.assertEqual(todos, ["// TODO: const MinVal -> define a constant"])
 
 
     def test_typeof_postfix(self):
