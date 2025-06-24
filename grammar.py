@@ -232,7 +232,7 @@ LT:           "<"
 GT:           ">"
 GENERIC_ARGS: /<(?![=>])(?:(?:[^<>]|<[^<>]*>)+)>/
 OP_SUM:       "+" | "-" | "or"
-OP_MUL:       "*" | "/" | "and" | "mod"i
+OP_MUL:       "*" | "/" | "and" | "mod"i | "div"i
 OP_REL:       "=" | "<>" | "<=" | ">="
 ADD_ASSIGN.2:  "+="
 SUB_ASSIGN.2:  "-="

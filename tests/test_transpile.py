@@ -234,6 +234,13 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_div_expr(self):
+        src = Path('tests/DivExpr.pas').read_text()
+        expected = Path('tests/DivExpr.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_less_than_call(self):
         src = Path('tests/LessThanCall.pas').read_text()
         expected = Path('tests/LessThanCall.cs').read_text().strip()

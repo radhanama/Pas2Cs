@@ -66,6 +66,8 @@ def fix_keyword(tok):
         tok.type = "NOT"
     elif v == "mod":
         tok.type = "OP_MUL"
+    elif v == "div":
+        tok.type = "OP_MUL"
     elif v == "while":
         tok.type = "WHILE"
     elif v == "do":
