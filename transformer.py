@@ -28,7 +28,11 @@ class ToCSharp(Transformer):
         self.usings = OrderedDict()
 
     def _safe_name(self, name):
-        return escape_cs_keyword(str(name))
+        text = str(name)
+        if '.' in text:
+            parts = text.split('.')
+            return '.'.join(escape_cs_keyword(p) for p in parts)
+        return escape_cs_keyword(text)
 
     def attributes(self, *items):
         return ""

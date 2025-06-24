@@ -408,6 +408,13 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_reserved_member_access(self):
+        src = Path('tests/ReservedMemberAccess.pas').read_text()
+        expected = Path('tests/ReservedMemberAccess.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, ['// TODO: field fInt: int -> declare a field'])
+
     def test_keyword_name(self):
         src = Path('tests/KeywordName.pas').read_text()
         expected = Path('tests/KeywordName.cs').read_text().strip()
