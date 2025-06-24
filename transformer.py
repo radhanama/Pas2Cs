@@ -859,7 +859,7 @@ class ToCSharp(Transformer):
         return f"{expr}"
 
     def number(self, n):
-        return str(n).replace('_', '')
+        return str(n).replace('_', '').replace(',', '')
 
     def string(self, s):
         s = str(s)
