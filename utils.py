@@ -152,6 +152,12 @@ def fix_keyword(tok):
         tok.type = "IS"
     elif v == "as":
         tok.type = "AS"
+    elif v == "program":
+        tok.type = "PROGRAM"
+    elif v == "initialization":
+        tok.type = "INITIALIZATION"
+    elif v == "finalization":
+        tok.type = "FINALIZATION"
 
     _LAST_POS = tok.end_pos
     return tok

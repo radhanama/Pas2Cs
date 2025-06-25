@@ -681,6 +681,12 @@ class ToCSharp(Transformer):
     def yield_stmt(self, _tok, expr, _semi=None):
         return f"yield return {expr};"
 
+    def initialization_section(self, *stmts):
+        return ""
+
+    def finalization_section(self, *stmts):
+        return ""
+
     def if_stmt(self, cond, then_block=None, else_block=None):
         then_part = then_block if then_block is not None else "{}"
         else_part = f" else {else_block}" if else_block else ""

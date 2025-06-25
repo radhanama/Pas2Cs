@@ -1,7 +1,6 @@
 # ────────────────────────── Grammar ──────────────────────────
 GRAMMAR = r"""
-?start:   (namespace | unit_decl | program_decl | library_decl) interface_section? class_section+ ("implementation" uses_clause? class_impl*)? ("end"i ("." | ";"))?
-
+?start:   (namespace | unit_decl | program_decl | library_decl) interface_section? class_section+ ("implementation" uses_clause? class_impl*)? initialization_section? ("end"i ("." | ";"))?
 interface_section: "interface" uses_clause? pre_class_decl*
 uses_clause:   "uses" dotted_name ("," dotted_name)* ";"       -> uses
 
@@ -21,8 +20,11 @@ dotted_name: name_part ("." name_part)* -> dotted
 
 namespace:   "namespace" dotted_name ";"                       -> namespace
 unit_decl:   "unit" dotted_name ";"                             -> namespace
-program_decl: "program"i dotted_name ";"                       -> namespace
+program_decl: "program"i dotted_name ";"              -> namespace
 library_decl: "library" dotted_name ";"                          -> namespace
+initialization_section: "initialization" stmt* finalization_section?
+finalization_section: "finalization" stmt*
+
 class_section: "type" type_def+                                -> class_section
 type_def:     attributes? class_def
             | attributes? record_def
@@ -77,6 +79,7 @@ array_type:  "array"i ARRAY_RANGE? "of"i type_name
 
 pointer_type: CARET type_name
 set_type: "set"i "of"i type_name
+
 range_type: NUMBER DOTDOT NUMBER
 
 tuple_type: "tuple"i "of" "(" type_name ("," type_name)* ")"
@@ -305,6 +308,9 @@ YIELD:       "yield"i
 INDEX:       "index"i
 IS:          "is"i
 AS:          "as"i
+PROGRAM:     "program"i
+INITIALIZATION: "initialization"i
+FINALIZATION: "finalization"i
 AUTORELEASEPOOL: "autoreleasepool"i
 RECORD:      "record"i
 INTERFACE:   "interface"i
@@ -331,12 +337,11 @@ NUMBER: /[0-9]+([_,][0-9]+)*(\.[0-9]+([_,][0-9]+)*)?/
 STRING: /"[^"\n]*"/
 
 CNAME: /&?[A-Za-z_][A-Za-z_0-9]*\??/
-COMMENT_BRACE.3: /\{(?s:.*?)\}/
-LINE_COMMENT.3: /\/\/[^\n]*/
-COMMENT_PAREN.3: /\(\*[\s\S]*?\*\)/
+COMMENT_BRACE: /\{(?s:.*?)\}/
+LINE_COMMENT: /\/\/[^\n]*/
+COMMENT_PAREN: /\(\*[\s\S]*?\*\)/
 %ignore WS
 %ignore COMMENT_BRACE
 %ignore LINE_COMMENT
 %ignore COMMENT_PAREN
 """
-# Avoid treating comparison operators like "<=" as generic arguments in GENERIC_ARGS
