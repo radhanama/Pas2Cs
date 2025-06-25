@@ -526,6 +526,13 @@ class ToCSharp(Transformer):
         expr = parts[0] if parts else None
         t = map_type_ext(str(typ)) if typ else 'var'
         safe_name = self._safe_name(name)
+        if self.curr_method:
+            if typ:
+                line = f"const {t} {safe_name} = {expr};"
+            else:
+                line = f"var {safe_name} = {expr};"
+            self.curr_locals.add(str(safe_name))
+            return line
         info = f"// TODO: const {safe_name} -> define a constant"
         impl = f"public const {t} {safe_name} = {expr};"
         self.todo.append(info)
@@ -534,6 +541,10 @@ class ToCSharp(Transformer):
     def const_block(self, *parts):
         decls = parts[1:] if parts and parts[0] == "" else parts
         return "\n".join(decls)
+
+    def method_decls(self, *sections):
+        parts = [s for s in sections if s]
+        return "\n".join(parts)
 
     # ── implementation part ─────────────────────────────────
     def m_impl(self, head, *parts):
