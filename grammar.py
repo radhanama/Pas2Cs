@@ -1,6 +1,6 @@
 # ────────────────────────── Grammar ──────────────────────────
 GRAMMAR = r"""
-?start:   namespace interface_section? class_section+ ("implementation" uses_clause? class_impl*)? ("end"i ("." | ";"))?
+?start:   (namespace | unit_decl) interface_section? class_section+ ("implementation" uses_clause? class_impl*)? ("end"i ("." | ";"))?
 
 interface_section: "interface" uses_clause? pre_class_decl*
 uses_clause:   "uses" dotted_name ("," dotted_name)* ";"       -> uses
@@ -8,8 +8,10 @@ uses_clause:   "uses" dotted_name ("," dotted_name)* ";"       -> uses
 attribute: "[" dotted_name ("(" arg_list? ")")? "]"
 attributes: attribute+
 
-namespace:   "namespace" dotted_name ";"                       -> namespace
 dotted_name: CNAME ("." CNAME)* -> dotted
+
+namespace:   "namespace" dotted_name ";"                       -> namespace
+unit_decl:   "unit" dotted_name ";"                             -> namespace
 class_section: "type" type_def+                                -> class_section
 type_def:     attributes? class_def
             | attributes? record_def

@@ -554,5 +554,12 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_unit_module(self):
+        src = Path('tests/UnitModule.pas').read_text()
+        expected = Path('tests/UnitModule.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
 if __name__ == '__main__':
     unittest.main()
