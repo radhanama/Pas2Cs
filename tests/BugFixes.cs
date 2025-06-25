@@ -25,5 +25,8 @@ namespace Demo {
         public void Backslash(string src) {
             src = src.Replace("\\", "\\\\");
         }
+        public void SQPath() {
+            System.Console.WriteLine("C:\\temp\\file.txt");
+        }
     }
 }
