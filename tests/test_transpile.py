@@ -262,6 +262,13 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_date_parse_compare(self):
+        src = Path('tests/DateParseCompare.pas').read_text()
+        expected = Path('tests/DateParseCompare.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_control_flow(self):
         src = Path('tests/ControlFlow.pas').read_text()
         expected = Path('tests/ControlFlow.cs').read_text().strip()
