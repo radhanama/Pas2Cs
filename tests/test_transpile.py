@@ -585,5 +585,19 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_ternary_if(self):
+        src = Path('tests/TernaryIf.pas').read_text()
+        expected = Path('tests/TernaryIf.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_shift_ops(self):
+        src = Path('tests/ShiftOps.pas').read_text()
+        expected = Path('tests/ShiftOps.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
 if __name__ == '__main__':
     unittest.main()

@@ -853,6 +853,8 @@ class ToCSharp(Transformer):
             "=": "==",
             "mod": "%",
             "div": "/",
+            "shl": "<<",
+            "shr": ">>",
         }
         return f"{left} {op_map.get(op, op)} {right}"
 
@@ -861,6 +863,9 @@ class ToCSharp(Transformer):
 
     def short_and(self, left, _and, _then, right):
         return self.binop(left, "and then", right)
+
+    def if_expr(self, cond, true_expr, false_expr):
+        return f"({cond}) ? {true_expr} : {false_expr}"
 
     def not_expr(self, _tok, expr):
         return f"!{expr}"

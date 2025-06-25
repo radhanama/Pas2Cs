@@ -162,8 +162,11 @@ inherited_stmt: "inherited"i (name_term ("(" arg_list? ")" call_postfix*)?)? ";"
            | AT var_ref                              -> addr_of
            | expr OP_SUM   expr                      -> binop
            | expr OP_MUL   expr                      -> binop
+           | expr SHL expr                          -> binop
+           | expr SHR expr                          -> binop
            | expr OP_SUM ELSE expr                   -> short_or
            | expr OP_MUL THEN expr                   -> short_and
+           | "if" expr "then" expr "else" expr       -> if_expr
            | expr (OP_REL|LT|GT) expr                -> binop
            | expr IN set_lit                         -> in_expr
            | expr NOT IN set_lit                     -> not_in_expr
@@ -241,6 +244,8 @@ GENERIC_ARGS: /<(?![=>])(?:(?:[^<>'()\n]|<[^<>'()\n]*>)+)>/
 OP_SUM:       "+" | "-" | "or"
 OP_MUL:       "*" | "/" | "and" | "mod"i | "div"i
 OP_REL:       "=" | "<>" | "<=" | ">="
+SHL:          "shl"i
+SHR:          "shr"i
 ADD_ASSIGN.2:  "+="
 SUB_ASSIGN.2:  "-="
 
