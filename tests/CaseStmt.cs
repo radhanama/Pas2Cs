@@ -8,4 +8,14 @@ namespace N {
             }
         }
     }
+    
+    public partial class EnumCase {
+        public void WeekDay(DayOfWeek day) {
+            switch (day)
+            {
+                case DayOfWeek.Friday: System.Console.WriteLine("fri"); break;
+                case DayOfWeek.Monday: System.Console.WriteLine("mon"); break;
+            }
+        }
+    }
 }

@@ -1,6 +1,7 @@
 import textwrap
 import json
 import ast
+import re
 from collections import defaultdict, OrderedDict
 from lark import Transformer, v_args, Token
 from utils import indent, map_type_ext, escape_cs_keyword
@@ -1036,8 +1037,23 @@ class ToCSharp(Transformer):
         text = range_tok.value.replace("'", '"')
         return f"({expr}){text}"
 
-    def typeof_expr(self, _tok, typ, _rp=None):
-        return f"typeof({map_type_ext(str(typ))})"
+    def typeof_expr(self, _tok, expr, _rp=None):
+        s = str(expr)
+        if re.fullmatch(r"-?\d+", s):
+            return "typeof(int)"
+        if re.fullmatch(r"-?\d+\.\d+", s):
+            return "typeof(double)"
+        low = s.lower()
+        if low in {"true", "false"}:
+            return "typeof(bool)"
+        if s.startswith('"') and s.endswith('"'):
+            return "typeof(string)"
+        if re.fullmatch(r"@?[A-Za-z_][A-Za-z_0-9]*\??", s):
+            return f"typeof({map_type_ext(s)})"
+        return f"({s}).GetType()"
+
+    def is_not_inst(self, expr, _is_tok, _not_tok, typ):
+        return f"{expr} is not {map_type_ext(str(typ))}"
 
     def is_inst(self, expr, _tok, typ):
         return f"{expr} is {map_type_ext(str(typ))}"

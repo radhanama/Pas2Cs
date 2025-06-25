@@ -143,7 +143,7 @@ case_label: NUMBER DOTDOT NUMBER        -> label_range
           | NUMBER
           | SQ_STRING
           | STRING
-          | CNAME
+          | dotted_name
           | NIL
 
 call_stmt:   var_ref ("(" arg_list? ")")? call_postfix* ";"?   -> call_stmt
@@ -164,6 +164,7 @@ inherited_stmt: "inherited"i (name_term ("(" arg_list? ")" call_postfix*)?)? ";"
            | expr (OP_REL|LT|GT) expr                -> binop
            | expr IN set_lit                         -> in_expr
            | expr NOT IN set_lit                     -> not_in_expr
+           | expr IS NOT type_spec                   -> is_not_inst
            | expr IS type_spec                       -> is_inst
            | expr AS type_spec                       -> as_cast
            | "(" expr ")"
@@ -195,7 +196,7 @@ new_expr: "new" type_spec "(" arg_list? ")"         -> new_obj
         | "new" type_spec                           -> new_obj_noargs
 
 array_of_expr: "array"i "of"i type_name "(" arg_list? ")" -> array_of_expr
-typeof_expr: TYPEOF "(" type_spec ")"                   -> typeof_expr
+typeof_expr: TYPEOF "(" expr ")"                        -> typeof_expr
 
 generic_call_base: dotted_name GENERIC_ARGS
 
