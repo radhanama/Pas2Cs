@@ -1,6 +1,6 @@
 # ────────────────────────── Grammar ──────────────────────────
 GRAMMAR = r"""
-?start:   (namespace | unit_decl) interface_section? class_section+ ("implementation" uses_clause? class_impl*)? ("end"i ("." | ";"))?
+?start:   (namespace | unit_decl | program_decl) interface_section? class_section+ ("implementation" uses_clause? class_impl*)? ("end"i ("." | ";"))?
 
 interface_section: "interface" uses_clause? pre_class_decl*
 uses_clause:   "uses" dotted_name ("," dotted_name)* ";"       -> uses
@@ -12,6 +12,7 @@ dotted_name: CNAME ("." CNAME)* -> dotted
 
 namespace:   "namespace" dotted_name ";"                       -> namespace
 unit_decl:   "unit" dotted_name ";"                             -> namespace
+program_decl: "program"i dotted_name ";"                       -> namespace
 class_section: "type" type_def+                                -> class_section
 type_def:     attributes? class_def
             | attributes? record_def
@@ -238,8 +239,8 @@ var_decl_infer: name_list ":=" expr ";"                 -> var_decl_infer
 LT:           "<"
 GT:           ">"
 GENERIC_ARGS: /<(?![=>])(?:(?:[^<>'()\n]|<[^<>'()\n]*>)+)>/
-OP_SUM.2:       "+" | "-" | "or" | "xor"i
-OP_MUL.2:       "*" | "/" | "and" | "mod"i | "div"i | "shl"i | "shr"i
+OP_SUM:       "+" | "-" | "or" | "xor"i
+OP_MUL:       "*" | "/" | "and" | "mod"i | "div"i | "shl"i | "shr"i
 OP_REL:       "=" | "<>" | "<=" | ">="
 ADD_ASSIGN.2:  "+="
 SUB_ASSIGN.2:  "-="
