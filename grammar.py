@@ -164,6 +164,7 @@ inherited_stmt: "inherited"i (name_term ("(" arg_list? ")" call_postfix*)?)? ";"
            | expr (OP_REL|LT|GT) expr                -> binop
            | expr IN set_lit                         -> in_expr
            | expr NOT IN set_lit                     -> not_in_expr
+           | expr IS NOT type_spec                   -> is_not_inst
            | expr IS type_spec                       -> is_inst
            | expr AS type_spec                       -> as_cast
            | "(" expr ")"

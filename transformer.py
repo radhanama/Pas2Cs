@@ -1039,6 +1039,9 @@ class ToCSharp(Transformer):
     def typeof_expr(self, _tok, typ, _rp=None):
         return f"typeof({map_type_ext(str(typ))})"
 
+    def is_not_inst(self, expr, _is_tok, _not_tok, typ):
+        return f"{expr} is not {map_type_ext(str(typ))}"
+
     def is_inst(self, expr, _tok, typ):
         return f"{expr} is {map_type_ext(str(typ))}"
 
