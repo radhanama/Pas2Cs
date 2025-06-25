@@ -804,18 +804,25 @@ class ToCSharp(Transformer):
 
         switch_body = []
         for _tag, labels, stmt in branches:
+            case_lines = []
             for label in labels:
                 if isinstance(label, tuple) and label[0] == 'range':
                     start, end = label[1], label[2]
-                    for val in range(start, end + 1):
-                        switch_body.append(f"case {val}:")
+                    if end - start > 1000:
+                        case_lines.append(
+                            f"case var v when v >= {start} && v <= {end}:"
+                        )
+                    else:
+                        for val in range(start, end + 1):
+                            case_lines.append(f"case {val}:")
                 else:
-                    switch_body.append(f"case {label}:")
+                    case_lines.append(f"case {label}:")
             if '\n' in stmt or not stmt.strip().endswith(';'):
                 body = f"{{\n{indent(stmt)}\nbreak;\n}}"
             else:
                 body = f" {stmt} break;"
-            last = switch_body.pop()
+            last = case_lines.pop()
+            switch_body.extend(case_lines)
             switch_body.append(f"{last}{body}")
 
         if else_branch:
@@ -1107,7 +1114,9 @@ class ToCSharp(Transformer):
         return f"{sig} => {block}"
 
     def if_expr(self, cond, true_val, false_val):
-        return f"{cond} ? {true_val} : {false_val}"
+        needs_paren = any(ch in cond for ch in "<>!=&|+-*/%") or " " in cond
+        c = f"({cond})" if needs_paren else cond
+        return f"{c} ? {true_val} : {false_val}"
 
     def char_code(self, tok):
         nums = [int(n) for n in tok.value[1:].split('#') if n]
