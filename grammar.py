@@ -186,6 +186,7 @@ inherited_stmt: "inherited"i (name_term ("(" arg_list? ")" call_postfix*)?)? ";"
            | array_of_expr
            | new_expr
            | anon_proc_expr
+           | "if" expr "then" expr "else" expr         -> if_expr
            | CHAR_CODE                               -> char_code
            | expr CARET                              -> deref
 

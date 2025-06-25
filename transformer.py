@@ -1097,6 +1097,9 @@ class ToCSharp(Transformer):
         sig = self.lambda_sig(params)
         return f"{sig} => {block}"
 
+    def if_expr(self, cond, true_val, false_val):
+        return f"{cond} ? {true_val} : {false_val}"
+
     def char_code(self, tok):
         nums = [int(n) for n in tok.value[1:].split('#') if n]
         chars = []
