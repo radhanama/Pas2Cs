@@ -133,6 +133,9 @@ class ToCSharp(Transformer):
         pieces = [p.value if isinstance(p, Token) else str(p) for p in parts]
         return ".".join(pieces)
 
+    def name_part(self, tok):
+        return tok.value
+
     def array_type(self, *parts):
         base = parts[-1]
         return f"{base}[]"

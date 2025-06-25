@@ -8,7 +8,16 @@ uses_clause:   "uses" dotted_name ("," dotted_name)* ";"       -> uses
 attribute: "[" dotted_name ("(" arg_list? ")")? "]"
 attributes: attribute+
 
-dotted_name: CNAME ("." CNAME)* -> dotted
+name_part: CNAME
+         | ARRAY
+         | RECORD
+         | INTERFACE
+         | ENUM
+         | EVENT
+         | OPERATOR
+         | TUPLE
+
+dotted_name: name_part ("." name_part)* -> dotted
 
 namespace:   "namespace" dotted_name ";"                       -> namespace
 unit_decl:   "unit" dotted_name ";"                             -> namespace
@@ -301,6 +310,7 @@ FLAGS:       "flags"i
 EVENT:       "event"i
 OPERATOR:    "operator"i
 TUPLE:       "tuple"i
+ARRAY:       "array"i
 TYPEOF:      "typeof"i
 AT:          "@"
 CARET:       "^"

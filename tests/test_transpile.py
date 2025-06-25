@@ -592,5 +592,12 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_array_indexof(self):
+        src = Path('tests/ArrayIndexOf.pas').read_text()
+        expected = Path('tests/ArrayIndexOf.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
 if __name__ == '__main__':
     unittest.main()
