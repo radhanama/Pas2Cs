@@ -197,7 +197,7 @@ new_expr: "new" type_spec "(" arg_list? ")"         -> new_obj
         | "new" type_spec                           -> new_obj_noargs
 
 array_of_expr: "array"i "of"i type_name "(" arg_list? ")" -> array_of_expr
-typeof_expr: TYPEOF "(" type_spec ")"                   -> typeof_expr
+typeof_expr: TYPEOF "(" expr ")"                        -> typeof_expr
 
 generic_call_base: dotted_name GENERIC_ARGS
 

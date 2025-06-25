@@ -429,6 +429,13 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_typeof_expr(self):
+        src = Path('tests/TypeOfExpr.pas').read_text()
+        expected = Path('tests/TypeOfExpr.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_reserved_prop(self):
         src = Path('tests/ReservedProp.pas').read_text()
         expected = Path('tests/ReservedProp.cs').read_text().strip()
