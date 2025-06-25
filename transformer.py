@@ -900,6 +900,7 @@ class ToCSharp(Transformer):
         s = str(s)
         if s.startswith("'"):
             inner = s[1:-1].replace("''", "'")
+            inner = inner.replace('\\', '\\\\')
             inner = inner.replace('"', '\\"')
             return f'"{inner}"'
         else:
