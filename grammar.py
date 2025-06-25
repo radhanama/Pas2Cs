@@ -170,6 +170,8 @@ inherited_stmt: "inherited"i (name_term ("(" arg_list? ")" call_postfix*)?)? ";"
            | expr AS type_spec                       -> as_cast
            | "(" expr ")"
            | NUMBER                                  -> number
+           | HEX_NUMBER                              -> hex_number
+           | BINARY_NUMBER                           -> binary_number
            | STRING                                  -> string
            | SQ_STRING                               -> string
            | TRUE                                    -> true
@@ -298,6 +300,9 @@ CARET:       "^"
 DOTDOT:      ".."
 
 CHAR_CODE:   "#" NUMBER ("#" NUMBER)*
+
+HEX_NUMBER: /\$[0-9A-Fa-f]+/
+BINARY_NUMBER: /%[01]+/
 
 %import common.CNAME -> BASE_CNAME
 %import common.WS

@@ -520,6 +520,16 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_number_literals(self):
+        src = Path('tests/NumberLiterals.pas').read_text()
+        expected = Path('tests/NumberLiterals.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [
+            "// TODO: const HexVal -> define a constant",
+            "// TODO: const BinVal -> define a constant",
+        ])
+
     def test_bug_fixes(self):
         src = Path('tests/BugFixes.pas').read_text()
         expected = Path('tests/BugFixes.cs').read_text().strip()

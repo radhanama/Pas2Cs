@@ -874,6 +874,12 @@ class ToCSharp(Transformer):
     def number(self, n):
         return str(n).replace('_', '').replace(',', '')
 
+    def hex_number(self, tok):
+        return '0x' + tok.value[1:]
+
+    def binary_number(self, tok):
+        return '0b' + tok.value[1:]
+
     def string(self, s):
         s = str(s)
         if s.startswith("'"):
