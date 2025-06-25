@@ -1,9 +1,11 @@
 namespace Demo {
-    public partial class Utils {
-        public int Shifts(int maskBits) {
-            var shifted = 1 << maskBits;
-            var maskByte = 255 >> maskBits;
-            return shifted + maskByte;
+    public partial class ShiftOps {
+        public static int Demo() {
+            int x;
+            x = 1 << 2;
+            x = x >> 1;
+            x = x ^ 3;
+            return x;
         }
     }
 }

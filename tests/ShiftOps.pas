@@ -1,18 +1,20 @@
 namespace Demo;
 
 type
-  Utils = class
+  ShiftOps = public class
   public
-    method Shifts(maskBits: Integer): Integer;
+    class method Demo(): Integer;
   end;
 
 implementation
 
-method Utils.Shifts(maskBits: Integer): Integer;
+class method ShiftOps.Demo(): Integer;
+var x: Integer;
 begin
-  var shifted := 1 shl maskBits;
-  var maskByte := 255 shr maskBits;
-  result := shifted + maskByte;
+  x := 1 shl 2;
+  x := x shr 1;
+  x := x xor 3;
+  exit x;
 end;
 
 end.

@@ -858,6 +858,7 @@ class ToCSharp(Transformer):
             "div": "/",
             "shl": "<<",
             "shr": ">>",
+            "xor": "^",
         }
         return f"{left} {op_map.get(op, op)} {right}"
 
