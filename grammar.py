@@ -21,7 +21,7 @@ dotted_name: name_part ("." name_part)* -> dotted
 
 namespace:   "namespace" dotted_name ";"                       -> namespace
 unit_decl:   "unit" dotted_name ";"                             -> namespace
-program_decl: "program" dotted_name ";"                          -> namespace
+program_decl: "program"i dotted_name ";"                       -> namespace
 library_decl: "library" dotted_name ";"                          -> namespace
 class_section: "type" type_def+                                -> class_section
 type_def:     attributes? class_def
@@ -252,8 +252,8 @@ var_decl_infer: name_list ":=" expr ";"                 -> var_decl_infer
 LT:           "<"
 GT:           ">"
 GENERIC_ARGS: /<(?![=>])(?:(?:[^<>'()\n]|<[^<>'()\n]*>)+)>/
-OP_SUM.2:       "+" | "-" | "or" | "xor"i
-OP_MUL.2:       "*" | "/" | "and" | "mod"i | "div"i
+OP_SUM:       "+" | "-" | "or" | "xor"i
+OP_MUL:       "*" | "/" | "and" | "mod"i | "div"i
 OP_REL:       "=" | "<>" | "<=" | ">="
 SHL:          "shl"i
 SHR:          "shr"i

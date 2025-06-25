@@ -613,5 +613,12 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_program_types(self):
+        src = Path('tests/ProgramTypes.pas').read_text()
+        expected = Path('tests/ProgramTypes.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
 if __name__ == '__main__':
     unittest.main()
