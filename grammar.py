@@ -1,6 +1,6 @@
 # ────────────────────────── Grammar ──────────────────────────
 GRAMMAR = r"""
-?start:   (namespace | unit_decl) interface_section? class_section+ ("implementation" uses_clause? class_impl*)? ("end"i ("." | ";"))?
+?start:   (namespace | unit_decl | program_decl | library_decl) interface_section? class_section+ ("implementation" uses_clause? class_impl*)? ("end"i ("." | ";"))?
 
 interface_section: "interface" uses_clause? pre_class_decl*
 uses_clause:   "uses" dotted_name ("," dotted_name)* ";"       -> uses
@@ -12,6 +12,8 @@ dotted_name: CNAME ("." CNAME)* -> dotted
 
 namespace:   "namespace" dotted_name ";"                       -> namespace
 unit_decl:   "unit" dotted_name ";"                             -> namespace
+program_decl: "program" dotted_name ";"                          -> namespace
+library_decl: "library" dotted_name ";"                          -> namespace
 class_section: "type" type_def+                                -> class_section
 type_def:     attributes? class_def
             | attributes? record_def
@@ -40,7 +42,7 @@ method_decl_rule: access_modifier? class_modifier? method_kind method_sig ";" (m
 class_modifier: "class"
 method_attr: "override" | "static" | "abstract" | "virtual" | "reintroduce"i | "overload"i
 method_kind: METHOD | PROCEDURE | FUNCTION | CONSTRUCTOR | DESTRUCTOR | OPERATOR
-access_modifier: "public"i | "protected"i | "private"i
+access_modifier: ("strict"i)? ("public"i | "protected"i | "private"i | "published"i)
 
 method_sig:    method_name param_block? return_block?            -> m_sig
              | param_block? return_block?                        -> m_sig_no_name
@@ -241,8 +243,8 @@ GENERIC_ARGS: /<(?![=>])(?:(?:[^<>'()\n]|<[^<>'()\n]*>)+)>/
 OP_SUM.2:       "+" | "-" | "or" | "xor"i
 OP_MUL.2:       "*" | "/" | "and" | "mod"i | "div"i | "shl"i | "shr"i
 OP_REL:       "=" | "<>" | "<=" | ">="
-ADD_ASSIGN.2:  "+="
-SUB_ASSIGN.2:  "-="
+ADD_ASSIGN.3:  "+="
+SUB_ASSIGN.3:  "-="
 
 NOT:         "not"i
 METHOD:      "method"i
@@ -314,9 +316,9 @@ NUMBER: /[0-9]+([_,][0-9]+)*(\.[0-9]+([_,][0-9]+)*)?/
 STRING: /"[^"\n]*"/
 
 CNAME: /&?[A-Za-z_][A-Za-z_0-9]*\??/
-COMMENT_BRACE: /\{(?s:.*?)\}/
-LINE_COMMENT: /\/\/[^\n]*/
-COMMENT_PAREN: /\(\*[\s\S]*?\*\)/
+COMMENT_BRACE.3: /\{(?s:.*?)\}/
+LINE_COMMENT.3: /\/\/[^\n]*/
+COMMENT_PAREN.3: /\(\*[\s\S]*?\*\)/
 %ignore WS
 %ignore COMMENT_BRACE
 %ignore LINE_COMMENT

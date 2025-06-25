@@ -6,5 +6,11 @@ namespace Demo {
         public void Visible() {
             System.Console.WriteLine("visible");
         }
+        public void ReallyHidden() {
+            System.Console.WriteLine("really hidden");
+        }
+        public void PublishedMethod() {
+            System.Console.WriteLine("published");
+        }
     }
 }
