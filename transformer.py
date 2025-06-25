@@ -808,13 +808,7 @@ class ToCSharp(Transformer):
             for label in labels:
                 if isinstance(label, tuple) and label[0] == 'range':
                     start, end = label[1], label[2]
-                    if end - start > 1000:
-                        case_lines.append(
-                            f"case var v when v >= {start} && v <= {end}:"
-                        )
-                    else:
-                        for val in range(start, end + 1):
-                            case_lines.append(f"case {val}:")
+                    case_lines.append(f"case >= {start} and <= {end}:")
                 else:
                     case_lines.append(f"case {label}:")
             if '\n' in stmt or not stmt.strip().endswith(';'):
