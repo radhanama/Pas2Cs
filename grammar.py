@@ -231,7 +231,7 @@ var_decl_infer: name_list ":=" expr ";"                 -> var_decl_infer
 
 LT:           "<"
 GT:           ">"
-GENERIC_ARGS: /<(?![=>])(?:(?:[^<>\n]|<[^<>\n]*>)+)>/
+GENERIC_ARGS: /<(?![=>])(?:(?:[^<>'()\n]|<[^<>'()\n]*>)+)>/
 OP_SUM:       "+" | "-" | "or"
 OP_MUL:       "*" | "/" | "and" | "mod"i | "div"i
 OP_REL:       "=" | "<>" | "<=" | ">="
