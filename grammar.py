@@ -144,7 +144,7 @@ case_label: NUMBER DOTDOT NUMBER        -> label_range
           | NUMBER
           | SQ_STRING
           | STRING
-          | CNAME
+          | dotted_name
           | NIL
 
 call_stmt:   var_ref ("(" arg_list? ")")? call_postfix* ";"?   -> call_stmt
