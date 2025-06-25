@@ -28,6 +28,25 @@ class ToCSharp(Transformer):
         self.manual_translate = manual_translate
         self.usings = OrderedDict()
 
+    def _translate_expr_text(self, text: str) -> str:
+        """Translate simple Pascal expressions used inside array indexes."""
+        text = text.replace("'", '"')
+        text = text.replace('<>', '!=')
+        # Replace standalone equality
+        text = re.sub(r'(?<![<>=:])=(?![=])', '==', text)
+        op_map = {
+            r'\bdiv\b': '/',
+            r'\bmod\b': '%',
+            r'\band\b': '&&',
+            r'\bor\b': '||',
+            r'\bshl\b': '<<',
+            r'\bshr\b': '>>',
+            r'\bxor\b': '^',
+        }
+        for pat, repl in op_map.items():
+            text = re.sub(pat, repl, text)
+        return text
+
     def _safe_name(self, name):
         text = str(name)
         if '.' in text:
@@ -922,7 +941,9 @@ class ToCSharp(Transformer):
             if isinstance(p, Token):
                 text = p.value
                 if p.type == 'ARRAY_RANGE':
-                    text = text.replace("'", '"')
+                    inner = text[1:-1]
+                    inner = self._translate_expr_text(inner)
+                    text = f"[{inner}]"
                 elif p.type == 'CNAME':
                     text = self._safe_name(text)
                 out.append(text)
@@ -943,8 +964,9 @@ class ToCSharp(Transformer):
             return ('prop', nm, list(args))
 
     def index_postfix(self, tok):
-        text = tok.value.replace("'", '"')
-        return ('index', text)
+        inner = tok.value[1:-1]
+        inner = self._translate_expr_text(inner)
+        return ('index', f"[{inner}]")
 
     def call_args(self, args=None):
         return [] if args is None else list(args)
@@ -970,6 +992,7 @@ class ToCSharp(Transformer):
                     expr = f"({expr})"
                 cast_expr = f"({typ}){expr}"
                 call = f"({cast_expr})" if parts else cast_expr
+
             elif lower == 'round':
                 inner = first_args[0]
                 round_expr = f"Math.Round({inner})"
@@ -1067,8 +1090,9 @@ class ToCSharp(Transformer):
         return f"*{expr}"
 
     def paren_index(self, expr, range_tok):
-        text = range_tok.value.replace("'", '"')
-        return f"({expr}){text}"
+        inner = range_tok.value[1:-1]
+        inner = self._translate_expr_text(inner)
+        return f"({expr})[{inner}]"
 
     def typeof_expr(self, _tok, expr, _rp=None):
         s = str(expr)
