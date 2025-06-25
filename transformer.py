@@ -804,20 +804,19 @@ class ToCSharp(Transformer):
 
         switch_body = []
         for _tag, labels, stmt in branches:
-            case_lines = []
+            patterns = []
             for label in labels:
                 if isinstance(label, tuple) and label[0] == 'range':
                     start, end = label[1], label[2]
-                    case_lines.append(f"case >= {start} and <= {end}:")
+                    patterns.append(f">= {start} and <= {end}")
                 else:
-                    case_lines.append(f"case {label}:")
+                    patterns.append(str(label))
+            case_line = "case " + " or ".join(patterns) + ":"
             if '\n' in stmt or not stmt.strip().endswith(';'):
                 body = f"{{\n{indent(stmt)}\nbreak;\n}}"
             else:
                 body = f" {stmt} break;"
-            last = case_lines.pop()
-            switch_body.extend(case_lines)
-            switch_body.append(f"{last}{body}")
+            switch_body.append(f"{case_line}{body}")
 
         if else_branch:
             else_stmts = "\n".join(s for s in else_branch if s.strip())
