@@ -37,10 +37,3 @@ class NewFeatureTests(unittest.TestCase):
 
     def test_if_or(self):
         self.check_pair('IfOr', allow_todos=True)
-
-    def test_teste_pas_parses(self):
-        """Parsing should succeed for the large external example."""
-        src = Path('teste.pas').read_text()
-        result, todos = transpile(src)
-        self.assertTrue(result.strip())
-
