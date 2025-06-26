@@ -2,7 +2,7 @@ namespace Demo;
 
 interface
 
-uses System.Collections.Generic;
+uses System.Collections.Generic, System;
 
 type
   BasicIf = public class

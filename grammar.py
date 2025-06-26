@@ -1,9 +1,10 @@
 # ────────────────────────── Grammar ──────────────────────────
 GRAMMAR = r"""
-?start:   (namespace | unit_decl | program_decl | library_decl) interface_section? class_section+ ("implementation" uses_clause? class_impl*)? initialization_section? ("end"i ("." | ";"))?
+?start:   assembly_attr* (namespace | unit_decl | program_decl | library_decl) interface_section? class_section+ ("implementation" uses_clause? class_impl*)? initialization_section? ("end"i ("." | ";"))?
 interface_section: "interface" uses_clause? pre_class_decl*
 uses_clause:   "uses" dotted_name ("," dotted_name)* ";"       -> uses
 
+assembly_attr: "[" CNAME ":" dotted_name ("(" arg_list? ")")? "]" ";"?
 
 attribute: "[" dotted_name ("(" arg_list? ")")? "]"
 attributes: attribute+
@@ -33,7 +34,7 @@ type_def:     attributes? class_def
             | attributes? enum_def
             | alias_def
 
-class_def:   CNAME generic_params? "=" ("public"i)? "static"? "partial"? "abstract"? "class"i ("sealed"i | "final"i)? CNAME* ("(" type_name ("," type_name)* ")")? class_signature "end"i ";" -> class_def
+class_def:   CNAME generic_params? "=" ("public"i)? "static"? "partial"? ("sealed"i | "final"i)? "abstract"? "class"i ("sealed"i | "final"i)? CNAME* ("(" type_name ("," type_name)* ")")? class_signature "end"i ";" -> class_def
 record_def:  CNAME generic_params? "=" ("public"i)? "packed"i? "record"i ("(" type_name ")")? class_signature "end"i ";" -> record_def
 interface_def: CNAME generic_params? "=" ("public"i)? "interface"i ("(" type_name ("," type_name)* ")")? class_signature "end"i ";" -> interface_def
 enum_def:    CNAME "=" ("public"i)? ("enum"i | "flags"i)? "(" enum_items ")" ("of" type_name)? ";" -> enum_def
@@ -66,6 +67,7 @@ param_block: "(" param_list? ")"                     -> params
 return_block: ":" type_spec                           -> rettype
 param_list:  param (";" param)*
 param:       (VAR|OUT|CONST)? name_list ":" type_spec (":=" expr)? -> param
+            | (VAR|OUT|CONST) name_list (":=" expr)? -> param_untyped
 name_list:   CNAME ("," CNAME)* -> names
 
 type_spec: type_name "?"?                              -> type_spec

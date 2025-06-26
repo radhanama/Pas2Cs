@@ -1,5 +1,9 @@
 namespace N;
 
+interface
+
+uses System;
+
 type
   TTest = public class
   public

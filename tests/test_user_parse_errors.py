@@ -40,3 +40,6 @@ class NewFeatureTests(unittest.TestCase):
 
     def test_result_call(self):
         self.check_pair('ResultCall')
+
+    def test_param_no_type(self):
+        self.check_pair('ParamNoType', allow_todos=True)

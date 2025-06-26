@@ -24,6 +24,10 @@ class ToCSharp(Transformer):
         self.alias_defs = []
         self.class_order = []
         self.impl_methods = defaultdict(set)
+        self.class_fields = defaultdict(set)
+        self.curr_impl_class = None
+        self.curr_unsafe = False
+        self.curr_class = None
         # optional callback invoked when a construct cannot be automatically
         # translated. It should accept (rule_name, children, line) and return a
         # string translation or None.
@@ -51,6 +55,10 @@ class ToCSharp(Transformer):
 
     def _safe_name(self, name):
         text = str(name)
+        if text.lower() == 'self':
+            return 'this'
+        if text.lower().startswith('self.'):
+            return 'this.' + '.'.join(escape_cs_keyword(p) for p in text.split('.')[1:])
         if '.' in text:
             parts = text.split('.')
             return '.'.join(escape_cs_keyword(p) for p in parts)
@@ -60,6 +68,9 @@ class ToCSharp(Transformer):
         return ""
 
     def attribute(self, *parts):
+        return ""
+
+    def assembly_attr(self, *parts):
         return ""
 
     # ── root rule -------------------------------------------------
@@ -168,6 +179,7 @@ class ToCSharp(Transformer):
         return f"{base}<{', '.join(parts)}>"
 
     def pointer_type(self, _caret, typ):
+        self.curr_unsafe = True
         return map_type_ext(str(typ)) + "*"
 
     def set_type(self, typ):
@@ -400,9 +412,21 @@ class ToCSharp(Transformer):
         parts = list(parts)
         if parts and isinstance(parts[0], Token):
             parts.pop(0)
-        names, ptype = parts[0], parts[1]
-        t = map_type_ext(str(ptype))
+        names = parts.pop(0)
+        ptype = None
+        if parts and not isinstance(parts[0], Token):
+            ptype = parts.pop(0)
+        if ptype is None:
+            t = "object"
+            info = f"// TODO: parameter {', '.join(names)} missing type"
+            self.todo.append(info)
+        else:
+            t = map_type_ext(str(ptype))
         return [f"{t} {self._safe_name(n)}" for n in names]
+
+    def param_untyped(self, *parts):
+        # variant of param rule when no type is declared
+        return self.param(*parts)
 
     def param_list(self, *ps):
         out = []
@@ -492,6 +516,8 @@ class ToCSharp(Transformer):
         static_kw = "static " if is_static else ""
         impl = f"public {static_kw}{t} {', '.join(names)}{init};"
         self.todo.append(info)
+        if self.curr_class:
+            self.class_fields[self.curr_class].update(names)
         return info + "\n" + impl
 
     def property_sig(self, name, *parts):
@@ -511,7 +537,10 @@ class ToCSharp(Transformer):
                 has_read = True
                 if i + 1 < len(parts) and isinstance(parts[i+1], Token):
                     field_name = self._safe_name(parts[i+1])
-                    read_val = f"get => {field_name};"
+                    if re.match(r'(?i)^(get_|set_)', field_name):
+                        read_val = f"get => {field_name}();"
+                    else:
+                        read_val = f"get => {field_name};"
                     i += 2
                 else:
                     read_val = "get;"
@@ -520,7 +549,10 @@ class ToCSharp(Transformer):
                 has_write = True
                 if i + 1 < len(parts) and isinstance(parts[i+1], Token):
                     field_name = self._safe_name(parts[i+1])
-                    write_val = f"set => {field_name} = value;"
+                    if re.match(r'(?i)^(get_|set_)', field_name):
+                        write_val = f"set => {field_name}(value);"
+                    else:
+                        write_val = f"set => {field_name} = value;"
                     i += 2
                 else:
                     write_val = "set;"
@@ -623,7 +655,8 @@ class ToCSharp(Transformer):
             else:
                 body = "{\n}"
         modifier = "static " if self.curr_static else ""
-        method = f"public {modifier}{ret} {name}({params_cs}) {body}"
+        unsafe_kw = "unsafe " if self.curr_unsafe else ""
+        method = f"public {modifier}{unsafe_kw}{ret} {name}({params_cs}) {body}"
         self.class_impls[cls].append(method)
         key = (name, params_cs, ret, self.curr_static)
         self.impl_methods[cls].add(key)
@@ -634,6 +667,8 @@ class ToCSharp(Transformer):
         self.curr_locals = set()
         self.curr_rettype = None
         self.used_result = False
+        self.curr_unsafe = False
+        self.curr_impl_class = None
         return ""
 
     def impl_head(self, name_parts, *rest):
@@ -680,6 +715,7 @@ class ToCSharp(Transformer):
         if self.curr_rettype:
             self.curr_locals.add("result")
         self.used_result = False
+        self.curr_impl_class = cls
         return (cls, name, ", ".join(param_list), self.curr_rettype)
 
     # ── statements ──────────────────────────────────────────
@@ -953,10 +989,6 @@ class ToCSharp(Transformer):
     def short_and(self, left, _and, _then, right):
         return self.binop(left, "and then", right)
 
-    def if_expr(self, cond, _then, true_expr, _else, false_expr):
-        cond_text = str(cond)
-        return f"{cond_text} ? {true_expr} : {false_expr}"
-
     def not_expr(self, _tok, expr):
         return f"!{expr}"
 
@@ -1126,23 +1158,38 @@ class ToCSharp(Transformer):
     def inherited(self, name=None, args=None):
         if name is None:
             if self.curr_method:
-                call_args = ", ".join(self.curr_params)
-                call = f"base.{self.curr_method}({call_args})" if call_args else f"base.{self.curr_method}()"
-                return call + ";"
+                base = self.class_defs.get(self.curr_impl_class, ("", "", [], set()))[1]
+                if base.strip():
+                    call_args = ", ".join(self.curr_params)
+                    call = f"base.{self.curr_method}({call_args})" if call_args else f"base.{self.curr_method}()"
+                    return call + ";"
+                return ""
             return "// TODO: inherited call"
         if str(name).lower() == "constructor":
             base_name = self.curr_method or "constructor"
             arglist = ", ".join(args or [])
-            return f"base.{base_name}({arglist});"
+            base = self.class_defs.get(self.curr_impl_class, ("", "", [], set()))[1]
+            if base.strip():
+                return f"base.{base_name}({arglist});"
+            return ""
         arglist = ", ".join(args or [])
-        return f"base.{name}({arglist});"
+        base = self.class_defs.get(self.curr_impl_class, ("", "", [], set()))[1]
+        if base.strip():
+            return f"base.{name}({arglist});"
+        return ""
 
     def inherited_call_expr(self, name, args=None):
         arglist = "" if args is None else ", ".join(args)
         if str(name).lower() == "constructor":
             base_name = self.curr_method or "constructor"
-            return f"base.{base_name}({arglist})"
-        return f"base.{name}({arglist})"
+            base = self.class_defs.get(self.curr_impl_class, ("", "", [], set()))[1]
+            if base.strip():
+                return f"base.{base_name}({arglist})"
+            return ""
+        base = self.class_defs.get(self.curr_impl_class, ("", "", [], set()))[1]
+        if base.strip():
+            return f"base.{name}({arglist})"
+        return ""
 
     def new_obj(self, name, args=None):
         arglist = "" if args is None else ", ".join(args)
@@ -1156,9 +1203,11 @@ class ToCSharp(Transformer):
         return f"new {map_type_ext(str(name))}[{inner}]"
 
     def addr_of(self, _at, var):
+        self.curr_unsafe = True
         return f"&{var}"
 
     def deref(self, expr, _caret):
+        self.curr_unsafe = True
         return f"*{expr}"
 
     def paren_index(self, expr, range_tok):
@@ -1209,9 +1258,15 @@ class ToCSharp(Transformer):
         sig = self.lambda_sig(params)
         return f"{sig} => {block}"
 
-    def if_expr(self, cond, _then, true_val, _else, false_val):
-        cond_text = str(cond)
-        return f"{cond_text} ? {true_val} : {false_val}"
+    def if_expr(self, *parts):
+        """Handle inline conditional expressions."""
+        if len(parts) == 3:
+            cond, true_val, false_val = parts
+        elif len(parts) == 5:
+            cond, true_val, false_val = parts[0], parts[2], parts[4]
+        else:
+            cond, true_val, false_val = parts[1], parts[3], parts[5]
+        return f"{cond} ? {true_val} : {false_val}"
 
     def char_code(self, tok):
         nums = [int(n) for n in tok.value[1:].split('#') if n]
