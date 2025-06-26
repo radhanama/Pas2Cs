@@ -21,15 +21,25 @@ def interactive_translate(rule: str, children, line: int) -> str | None:
         inp = ""
     return inp.strip() or None
 
+_PARSER: Lark | None = None
+
+
+def _get_parser() -> Lark:
+    global _PARSER
+    if _PARSER is None:
+        _PARSER = Lark(
+            GRAMMAR,
+            parser="lalr",
+            maybe_placeholders=True,
+            lexer_callbacks={"CNAME": fix_keyword},
+        )
+    return _PARSER
+
+
 def transpile(source: str, manual_translate=None, manual_parse_error=None) -> tuple[str, list[str]]:
     source = source.lstrip('\ufeff')
     set_source(source)
-    parser = Lark(
-        GRAMMAR,
-        parser="lalr",
-        maybe_placeholders=True,
-        lexer_callbacks={"CNAME": fix_keyword},
-    )
+    parser = _get_parser()
     try:
         tree = parser.parse(source)
     except Exception as e:
