@@ -234,6 +234,13 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_range_words(self):
+        src = Path('tests/RangeWords.pas').read_text()
+        expected = Path('tests/RangeWords.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_class_var(self):
         src = Path('tests/ClassVar.pas').read_text()
         expected = Path('tests/ClassVar.cs').read_text().strip()

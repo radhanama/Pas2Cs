@@ -10,9 +10,7 @@ namespace Demo {
         public void CaseRange(int x) {
             switch (x)
             {
-                case 1:
-                case 2:
-                case 3: System.Console.WriteLine("low"); break;
+                case >= 1 and <= 3: System.Console.WriteLine("low"); break;
                 case 4: System.Console.WriteLine("four"); break;
             }
         }
