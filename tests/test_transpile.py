@@ -564,16 +564,9 @@ class TranspileTests(unittest.TestCase):
             transpile(src)
         self.assertIn('Parse error', str(cm.exception))
 
-    def test_file_end_semicolon(self):
-        src = Path('tests/EndSemicolon.pas').read_text()
-        expected = Path('tests/EndSemicolon.cs').read_text().strip()
-        result, todos = transpile(src)
-        self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, [])
-
-    def test_begin_semicolon(self):
-        src = Path('tests/BeginSemicolon.pas').read_text()
-        expected = Path('tests/BeginSemicolon.cs').read_text().strip()
+    def test_semicolon_cases(self):
+        src = Path('tests/SemicolonCases.pas').read_text()
+        expected = Path('tests/SemicolonCases.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
@@ -623,6 +616,13 @@ class TranspileTests(unittest.TestCase):
     def test_program_types(self):
         src = Path('tests/ProgramTypes.pas').read_text()
         expected = Path('tests/ProgramTypes.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_program_cases(self):
+        src = Path('tests/ProgramCases.pas').read_text()
+        expected = Path('tests/ProgramCases.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])

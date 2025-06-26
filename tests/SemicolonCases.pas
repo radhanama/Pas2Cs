@@ -1,6 +1,9 @@
 namespace Demo;
 
 type
+  Foo = public class
+  end;
+
   BeginSemi = class
   public
     class method Foo;
@@ -13,4 +16,4 @@ begin;
   System.Console.WriteLine('Hello');
 end;
 
-end.
+End;
