@@ -1209,7 +1209,7 @@ class ToCSharp(Transformer):
         sig = self.lambda_sig(params)
         return f"{sig} => {block}"
 
-    def if_expr(self, cond, true_val, false_val):
+    def if_expr(self, cond, _then_tok, true_val, _else_tok, false_val):
         cond_text = str(cond)
         return f"{cond_text} ? {true_val} : {false_val}"
 

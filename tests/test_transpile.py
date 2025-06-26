@@ -534,6 +534,13 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_partial_sealed_class(self):
+        src = Path('tests/PartialSealed.pas').read_text()
+        expected = Path('tests/PartialSealed.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, ['// TODO: field defaultInstance: Settings -> declare a field'])
+
     def test_new_stmt(self):
         src = Path('tests/NewStmt.pas').read_text()
         expected = Path('tests/NewStmt.cs').read_text().strip()
