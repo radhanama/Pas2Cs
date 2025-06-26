@@ -268,7 +268,7 @@ var_decl_infer: name_list ":=" expr ";"                 -> var_decl_infer
 
 LT:           "<"
 GT:           ">"
-GENERIC_ARGS: /<[A-Za-z_][A-Za-z0-9_,\s]*>/
+GENERIC_ARGS: /<[A-Za-z_][A-Za-z0-9_,\.\s]*>/
 OP_SUM:       "+" | "-" | "or" | "xor"i
 OP_MUL:       "*" | "/" | "and" | "mod"i | "div"i
 OP_REL:       "=" | "<>" | "<=" | ">="
