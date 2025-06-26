@@ -1138,9 +1138,7 @@ class ToCSharp(Transformer):
         return f"{sig} => {block}"
 
     def if_expr(self, cond, true_val, false_val):
-        needs_paren = any(ch in cond for ch in "<>!=&|+-*/%") or " " in cond
-        c = f"({cond})" if needs_paren else cond
-        return f"{c} ? {true_val} : {false_val}"
+        return f"{cond} ? {true_val} : {false_val}"
 
     def char_code(self, tok):
         nums = [int(n) for n in tok.value[1:].split('#') if n]
