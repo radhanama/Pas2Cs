@@ -953,7 +953,7 @@ class ToCSharp(Transformer):
     def short_and(self, left, _and, _then, right):
         return self.binop(left, "and then", right)
 
-    def if_expr(self, cond, true_expr, false_expr):
+    def if_expr(self, cond, _then, true_expr, _else, false_expr):
         cond_text = str(cond)
         return f"{cond_text} ? {true_expr} : {false_expr}"
 
@@ -1209,7 +1209,7 @@ class ToCSharp(Transformer):
         sig = self.lambda_sig(params)
         return f"{sig} => {block}"
 
-    def if_expr(self, cond, true_val, false_val):
+    def if_expr(self, cond, _then, true_val, _else, false_val):
         cond_text = str(cond)
         return f"{cond_text} ? {true_val} : {false_val}"
 
