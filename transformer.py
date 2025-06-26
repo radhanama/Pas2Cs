@@ -64,7 +64,7 @@ class ToCSharp(Transformer):
     def start(self, ns, *parts):
         classes = []
         for cname in self.class_order:
-            kind, base, sign_list = self.class_defs.get(cname, ("class", "", []))
+            kind, base, sign_list, mods = self.class_defs.get(cname, ("class", "", [], ""))
             body_lines = []
             for line in sign_list:
                 info = self._parse_sig(line)
@@ -84,7 +84,7 @@ class ToCSharp(Transformer):
             else:
                 kw = "interface" if kind == "interface" else ("struct" if kind == "record" else "class")
                 partial = "partial " if kind in ("class", "record") else ""
-                classes.append(f"public {partial}{kw} {cname}{base} {{\n{body}\n}}")
+                classes.append(f"public {partial}{mods}{kw} {cname}{base} {{\n{body}\n}}")
         ns_body = "\n\n".join(classes)
         using_lines = ""
         if self.usings:
@@ -198,8 +198,8 @@ class ToCSharp(Transformer):
         cleaned = [str(n) for n in names]
         return '<' + ', '.join(cleaned) + '>'
 
-    def _add_type(self, cname, kind, base, sign_list):
-        self.class_defs[str(cname)] = (kind, base, sign_list)
+    def _add_type(self, cname, kind, base, sign_list, mods=""):
+        self.class_defs[str(cname)] = (kind, base, sign_list, mods)
         if str(cname) not in self.class_order:
             self.class_order.append(str(cname))
 
@@ -208,7 +208,10 @@ class ToCSharp(Transformer):
         if parts and isinstance(parts[0], str) and parts[0].startswith('<'):
             generics = parts[0]
             parts = parts[1:]
-        # ignore unknown modifiers like "sealed" after the class keyword
+        sealed_mod = ''
+        if parts and isinstance(parts[0], Token) and parts[0].type in {'SEALED','FINAL'}:
+            sealed_mod = 'sealed '
+            parts = parts[1:]
         while parts and isinstance(parts[0], Token) and parts[0].type == 'CNAME':
             parts = parts[1:]
         sign = parts[-1]
@@ -220,7 +223,7 @@ class ToCSharp(Transformer):
             base_cs = " : " + ", ".join(map_type_ext(str(b)) for b in bases)
         sign_list = sign if isinstance(sign, list) else []
         name_full = str(cname) + generics
-        self._add_type(name_full, "class", base_cs, sign_list)
+        self._add_type(name_full, "class", base_cs, sign_list, sealed_mod)
         self.curr_class = prev
         return ""
 
@@ -228,6 +231,8 @@ class ToCSharp(Transformer):
         generics = ''
         if parts and isinstance(parts[0], str) and parts[0].startswith('<'):
             generics = parts[0]
+            parts = parts[1:]
+        if parts and isinstance(parts[0], Token) and parts[0].type == 'PACKED':
             parts = parts[1:]
         if len(parts) == 2:
             base, sign = parts
@@ -1138,9 +1143,7 @@ class ToCSharp(Transformer):
         return f"{sig} => {block}"
 
     def if_expr(self, cond, true_val, false_val):
-        needs_paren = any(ch in cond for ch in "<>!=&|+-*/%") or " " in cond
-        c = f"({cond})" if needs_paren else cond
-        return f"{c} ? {true_val} : {false_val}"
+        return f"{cond} ? {true_val} : {false_val}"
 
     def char_code(self, tok):
         nums = [int(n) for n in tok.value[1:].split('#') if n]

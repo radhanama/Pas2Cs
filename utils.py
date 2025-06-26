@@ -20,8 +20,8 @@ def map_type(pas_type: str) -> str:
         "extended": "double",
         "currency": "decimal",
         "comp": "decimal",
-        "char": "Char",
-        "widechar": "Char",
+        "char": "char",
+        "widechar": "char",
         "ansistring": "string",
         "widestring": "string",
         "variant": "object",
@@ -148,6 +148,28 @@ def fix_keyword(tok):
         tok.type = "TUPLE"
     elif v == "typeof":
         tok.type = "TYPEOF"
+    elif v == "sealed":
+        tok.type = "SEALED"
+    elif v == "final":
+        tok.type = "FINAL"
+    elif v == "packed":
+        tok.type = "PACKED"
+    elif v == "inline":
+        tok.type = "INLINE"
+    elif v == "cdecl":
+        tok.type = "CDECL"
+    elif v == "stdcall":
+        tok.type = "STDCALL"
+    elif v == "safecall":
+        tok.type = "SAFECALL"
+    elif v == "varargs":
+        tok.type = "VARARGS"
+    elif v == "external":
+        tok.type = "EXTERNAL"
+    elif v == "forward":
+        tok.type = "FORWARD"
+    elif v == "threadvar":
+        tok.type = "THREADVAR"
     elif v == "is":
         tok.type = "IS"
     elif v == "as":
