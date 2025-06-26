@@ -620,6 +620,13 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_extra_semi(self):
+        src = Path('tests/ExtraSemi.pas').read_text()
+        expected = Path('tests/ExtraSemi.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_local_const(self):
         src = Path('tests/LocalConst.pas').read_text()
         expected = Path('tests/LocalConst.cs').read_text().strip()
