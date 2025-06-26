@@ -16,6 +16,7 @@ name_part: CNAME
          | EVENT
          | OPERATOR
          | TUPLE
+         | RESULT
 
 dotted_name: name_part ("." name_part)* -> dotted
 namespace:   "namespace" dotted_name ";"                       -> namespace
