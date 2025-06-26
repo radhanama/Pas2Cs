@@ -62,6 +62,9 @@ class ToCSharp(Transformer):
     def attribute(self, *parts):
         return ""
 
+    def assembly_attr(self, *parts):
+        return ""
+
     # ── root rule -------------------------------------------------
     def start(self, ns, *parts):
         classes = []
@@ -953,7 +956,7 @@ class ToCSharp(Transformer):
     def short_and(self, left, _and, _then, right):
         return self.binop(left, "and then", right)
 
-    def if_expr(self, cond, true_expr, false_expr):
+    def if_expr(self, cond, _then_tok, true_expr, _else_tok, false_expr):
         cond_text = str(cond)
         return f"{cond_text} ? {true_expr} : {false_expr}"
 
@@ -1209,7 +1212,7 @@ class ToCSharp(Transformer):
         sig = self.lambda_sig(params)
         return f"{sig} => {block}"
 
-    def if_expr(self, cond, true_val, false_val):
+    def if_expr(self, cond, _then_tok, true_val, _else_tok, false_val):
         cond_text = str(cond)
         return f"{cond_text} ? {true_val} : {false_val}"
 
