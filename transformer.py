@@ -28,6 +28,25 @@ class ToCSharp(Transformer):
         self.manual_translate = manual_translate
         self.usings = OrderedDict()
 
+    def _translate_expr_text(self, text: str) -> str:
+        """Translate simple Pascal expressions used inside array indexes."""
+        text = text.replace("'", '"')
+        text = text.replace('<>', '!=')
+        # Replace standalone equality
+        text = re.sub(r'(?<![<>=:])=(?![=])', '==', text)
+        op_map = {
+            r'\bdiv\b': '/',
+            r'\bmod\b': '%',
+            r'\band\b': '&&',
+            r'\bor\b': '||',
+            r'\bshl\b': '<<',
+            r'\bshr\b': '>>',
+            r'\bxor\b': '^',
+        }
+        for pat, repl in op_map.items():
+            text = re.sub(pat, repl, text)
+        return text
+
     def _safe_name(self, name):
         text = str(name)
         if '.' in text:
@@ -804,19 +823,19 @@ class ToCSharp(Transformer):
 
         switch_body = []
         for _tag, labels, stmt in branches:
+            patterns = []
             for label in labels:
                 if isinstance(label, tuple) and label[0] == 'range':
                     start, end = label[1], label[2]
-                    for val in range(start, end + 1):
-                        switch_body.append(f"case {val}:")
+                    patterns.append(f">= {start} and <= {end}")
                 else:
-                    switch_body.append(f"case {label}:")
+                    patterns.append(str(label))
+            case_line = "case " + " or ".join(patterns) + ":"
             if '\n' in stmt or not stmt.strip().endswith(';'):
                 body = f"{{\n{indent(stmt)}\nbreak;\n}}"
             else:
                 body = f" {stmt} break;"
-            last = switch_body.pop()
-            switch_body.append(f"{last}{body}")
+            switch_body.append(f"{case_line}{body}")
 
         if else_branch:
             else_stmts = "\n".join(s for s in else_branch if s.strip())
@@ -893,6 +912,7 @@ class ToCSharp(Transformer):
         s = str(s)
         if s.startswith("'"):
             inner = s[1:-1].replace("''", "'")
+            inner = inner.replace('\\', '\\\\')
             inner = inner.replace('"', '\\"')
             return f'"{inner}"'
         else:
@@ -915,7 +935,9 @@ class ToCSharp(Transformer):
             if isinstance(p, Token):
                 text = p.value
                 if p.type == 'ARRAY_RANGE':
-                    text = text.replace("'", '"')
+                    inner = text[1:-1]
+                    inner = self._translate_expr_text(inner)
+                    text = f"[{inner}]"
                 elif p.type == 'CNAME':
                     text = self._safe_name(text)
                 out.append(text)
@@ -936,8 +958,9 @@ class ToCSharp(Transformer):
             return ('prop', nm, list(args))
 
     def index_postfix(self, tok):
-        text = tok.value.replace("'", '"')
-        return ('index', text)
+        inner = tok.value[1:-1]
+        inner = self._translate_expr_text(inner)
+        return ('index', f"[{inner}]")
 
     def call_args(self, args=None):
         return [] if args is None else list(args)
@@ -1060,8 +1083,9 @@ class ToCSharp(Transformer):
         return f"*{expr}"
 
     def paren_index(self, expr, range_tok):
-        text = range_tok.value.replace("'", '"')
-        return f"({expr}){text}"
+        inner = range_tok.value[1:-1]
+        inner = self._translate_expr_text(inner)
+        return f"({expr})[{inner}]"
 
     def typeof_expr(self, _tok, expr, _rp=None):
         s = str(expr)
@@ -1107,7 +1131,9 @@ class ToCSharp(Transformer):
         return f"{sig} => {block}"
 
     def if_expr(self, cond, true_val, false_val):
-        return f"{cond} ? {true_val} : {false_val}"
+        needs_paren = any(ch in cond for ch in "<>!=&|+-*/%") or " " in cond
+        c = f"({cond})" if needs_paren else cond
+        return f"{c} ? {true_val} : {false_val}"
 
     def char_code(self, tok):
         nums = [int(n) for n in tok.value[1:].split('#') if n]

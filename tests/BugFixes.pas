@@ -49,4 +49,9 @@ begin
   src := src.Replace("\", "\\");
 end;
 
+method BugFixes.SQPath;
+begin
+  System.Console.WriteLine('C:\temp\file.txt');
+end;
+
 end.
