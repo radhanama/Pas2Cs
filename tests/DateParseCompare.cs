@@ -1,3 +1,5 @@
+using System;
+
 namespace Demo {
     public partial class DateParseCompare {
         public void Check(int numDias) {

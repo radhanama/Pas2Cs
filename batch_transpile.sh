@@ -9,7 +9,7 @@ shift || { echo "Uso: $0 LOGFILE DIR [DIR...]" >&2; exit 1; }
 : > "$log_file"
 
 # coleta todos os arquivos .pas em um array
-mapfile -d '' files < <(find "$@" -name '*.pas' -print0)
+mapfile -d '' files < <(find "$@" -type f -name '*.pas' ! -name '*.designer.pas' -print0)
 total=${#files[@]}
 
 if (( total == 0 )); then

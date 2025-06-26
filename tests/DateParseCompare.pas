@@ -1,5 +1,9 @@
 namespace Demo;
 
+interface
+
+uses System;
+
 type
   DateParseCompare = class
   public

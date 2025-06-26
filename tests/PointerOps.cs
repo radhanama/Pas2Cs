@@ -1,6 +1,6 @@
 namespace Demo {
     public partial class PointerOps {
-        public void Demo() {
+        public unsafe void Demo() {
             int x;
             int* p;
             int y;

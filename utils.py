@@ -1,9 +1,41 @@
 import textwrap
 import sys
 import locale
+import unicodedata
 # ─────────────────── Utility helpers ─────────────────────────
 def indent(code: str, lvl: int = 1) -> str:
     return textwrap.indent(code, "    " * lvl, lambda _: True)
+
+def remove_accents(text: str) -> str:
+    """Return `text` with any diacritical marks stripped."""
+    nfkd = unicodedata.normalize('NFD', text)
+    return ''.join(ch for ch in nfkd if not unicodedata.combining(ch))
+
+def remove_accents_code(text: str) -> str:
+    """Strip accents from `text` but keep contents of single-quoted strings."""
+    result = []
+    i = 0
+    in_str = False
+    while i < len(text):
+        ch = text[i]
+        if in_str:
+            result.append(ch)
+            if ch == "'":
+                if i + 1 < len(text) and text[i + 1] == "'":
+                    result.append(text[i + 1])
+                    i += 1
+                else:
+                    in_str = False
+            i += 1
+            continue
+        else:
+            if ch == "'":
+                in_str = True
+                result.append(ch)
+            else:
+                result.append(remove_accents(ch))
+            i += 1
+    return ''.join(result)
 
 def map_type(pas_type: str) -> str:
     """Map basic Pascal type names to their C# equivalents."""
@@ -29,6 +61,10 @@ def map_type(pas_type: str) -> str:
         "variant": "object",
         "olevariant": "object",
         "string": "string",
+        "type": "System.Type",
+        "stringbuilder": "StringBuilder",
+        "dataset": "DataSet",
+        "datatable": "DataTable",
         "boolean": "bool",
         "object": "object",
     }
