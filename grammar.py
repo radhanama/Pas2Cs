@@ -146,7 +146,7 @@ using_stmt: USING CNAME (":" type_spec)? ":=" expr DO stmt       -> using_var
 locking_stmt: LOCKING expr DO stmt                      -> locking_stmt
 with_stmt: WITH expr DO stmt                           -> with_stmt
 yield_stmt: YIELD expr ";"?                           -> yield_stmt
-if_stmt:     "if" expr "then" stmt? ("else" stmt)?        -> if_stmt
+if_stmt:     "if"i expr THEN stmt? (ELSE stmt)?        -> if_stmt
 for_stmt:    "for"i CNAME (":" type_spec)? ":=" expr (TO | DOWNTO) expr (STEP expr)? ("do"i)? stmt  -> for_stmt
            | "for"i "each"i? CNAME (":" type_spec)? IN expr (INDEX CNAME)? ("do"i)? stmt      -> for_each_stmt
 loop_stmt:   LOOP stmt                                       -> loop_stmt
@@ -159,7 +159,7 @@ finally_clause: FINALLY stmt+
 on_handler: ON CNAME ":" type_name DO stmt -> on_handler
           | ON CNAME ":" type_name DO ";" -> on_handler_empty
 
-case_stmt:   "case" expr "of" case_branch+ ("else" stmt+)? "end"i ";"? -> case_stmt
+case_stmt:   "case" expr "of" case_branch+ (ELSE stmt+)? "end"i ";"? -> case_stmt
 case_branch: case_label ("," case_label)* ":" stmt ";"?
 signed_number: OP_SUM? NUMBER          -> signed_number
 case_label: signed_number DOTDOT signed_number        -> label_range
@@ -186,7 +186,7 @@ inherited_stmt: "inherited"i (name_term ("(" arg_list? ")" call_postfix*)?)? ";"
            | expr SHR expr                          -> binop
            | expr OP_SUM ELSE expr                   -> short_or
            | expr OP_MUL THEN expr                   -> short_and
-           | "if" expr "then" expr "else" expr       -> if_expr
+           | "if"i expr THEN expr ELSE expr       -> if_expr
            | expr (OP_REL|LT|GT) expr                -> binop
            | expr IN set_lit                         -> in_expr
            | expr NOT IN set_lit                     -> not_in_expr
@@ -209,7 +209,7 @@ inherited_stmt: "inherited"i (name_term ("(" arg_list? ")" call_postfix*)?)? ";"
            | array_of_expr
            | new_expr
            | anon_proc_expr
-           | "if" expr "then" expr "else" expr         -> if_expr
+           | "if"i expr THEN expr ELSE expr         -> if_expr
            | CHAR_CODE                               -> char_code
            | expr CARET                              -> deref
 

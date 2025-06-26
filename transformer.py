@@ -760,7 +760,7 @@ class ToCSharp(Transformer):
     def finalization_section(self, *stmts):
         return ""
 
-    def if_stmt(self, cond, then_block=None, else_block=None):
+    def if_stmt(self, cond, _then=None, then_block=None, _else=None, else_block=None):
         then_part = then_block if then_block is not None else "{}"
         else_part = f" else {else_block}" if else_block else ""
         return f"if ({cond}) {then_part}{else_part}"
@@ -883,6 +883,7 @@ class ToCSharp(Transformer):
     def case_stmt(self, expr, *parts):
         branches = [p for p in parts if isinstance(p, tuple) and p[0] == 'branch']
         else_branch = [p for p in parts if not (isinstance(p, tuple) and p[0] == 'branch')]
+        else_branch = [p for p in else_branch if not (isinstance(p, Token) and p.type == 'ELSE')]
 
         switch_body = []
         for _tag, labels, stmt in branches:
@@ -952,11 +953,8 @@ class ToCSharp(Transformer):
     def short_and(self, left, _and, _then, right):
         return self.binop(left, "and then", right)
 
-    def if_expr(self, cond, true_expr, false_expr):
-        cond_text = str(cond)
-        if not cond_text.startswith('(') and any(c in cond_text for c in ' <>!=&|+-*/%'):
-            cond_text = f"({cond_text})"
-        return f"{cond_text} ? {true_expr} : {false_expr}"
+    def if_expr(self, cond, _then, true_expr, _else, false_expr):
+        return f"{cond} ? {true_expr} : {false_expr}"
 
     def not_expr(self, _tok, expr):
         return f"!{expr}"
@@ -1210,11 +1208,8 @@ class ToCSharp(Transformer):
         sig = self.lambda_sig(params)
         return f"{sig} => {block}"
 
-    def if_expr(self, cond, true_val, false_val):
-        cond_text = str(cond)
-        if not cond_text.startswith('(') and any(c in cond_text for c in ' <>!=&|+-*/%'):
-            cond_text = f"({cond_text})"
-        return f"{cond_text} ? {true_val} : {false_val}"
+    def if_expr(self, cond, _then, true_val, _else, false_val):
+        return f"{cond} ? {true_val} : {false_val}"
 
     def char_code(self, tok):
         nums = [int(n) for n in tok.value[1:].split('#') if n]
