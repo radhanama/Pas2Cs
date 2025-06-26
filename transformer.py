@@ -760,7 +760,7 @@ class ToCSharp(Transformer):
     def finalization_section(self, *stmts):
         return ""
 
-    def if_stmt(self, cond, then_block=None, else_block=None):
+    def if_stmt(self, cond, _then=None, then_block=None, _else=None, else_block=None):
         then_part = then_block if then_block is not None else "{}"
         else_part = f" else {else_block}" if else_block else ""
         return f"if ({cond}) {then_part}{else_part}"
@@ -883,6 +883,7 @@ class ToCSharp(Transformer):
     def case_stmt(self, expr, *parts):
         branches = [p for p in parts if isinstance(p, tuple) and p[0] == 'branch']
         else_branch = [p for p in parts if not (isinstance(p, tuple) and p[0] == 'branch')]
+        else_branch = [p for p in else_branch if not (isinstance(p, Token) and p.type == 'ELSE')]
 
         switch_body = []
         for _tag, labels, stmt in branches:

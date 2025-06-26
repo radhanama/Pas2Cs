@@ -7,8 +7,9 @@ type
     method PathJoin(nome_arquivo: String);
     method CaseRange(x: Integer);
     method Underscore(ds: Object);
-    method CommaNumber(ds: Object);
-    method Backslash(src: String);
+  method CommaNumber(ds: Object);
+  method Backslash(src: String);
+  method PascalIf(flag: Boolean);
   end;
 
 implementation
@@ -47,6 +48,11 @@ end;
 method BugFixes.Backslash(src: String);
 begin
   src := src.Replace("\", "\\");
+end;
+method BugFixes.PascalIf(flag: Boolean);
+begin
+  If flag then
+    System.Console.WriteLine('ok');
 end;
 
 method BugFixes.SQPath;
