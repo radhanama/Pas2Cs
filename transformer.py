@@ -691,6 +691,9 @@ class ToCSharp(Transformer):
     def except_clause(self, *handlers):
         return list(handlers)
 
+    def except_empty(self, *_):
+        return []
+
     def finally_clause(self, *stmts):
         return list(stmts)
 
