@@ -351,6 +351,13 @@ class TranspileTests(unittest.TestCase):
             "// TODO: field B: int -> declare a field",
         ])
 
+    def test_packed_record(self):
+        src = Path('tests/PackedRecord.pas').read_text()
+        expected = Path('tests/PackedRecord.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, ["// TODO: field X: int -> declare a field"])
+
     def test_set_type(self):
         src = Path('tests/SetType.pas').read_text()
         expected = Path('tests/SetType.cs').read_text().strip()

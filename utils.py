@@ -144,6 +144,8 @@ def fix_keyword(tok):
         tok.type = "EVENT"
     elif v == "operator":
         tok.type = "OPERATOR"
+    elif v == "packed":
+        tok.type = "PACKED"
     elif v == "tuple":
         tok.type = "TUPLE"
     elif v == "typeof":
