@@ -8,7 +8,7 @@ from pathlib import Path
 from lark import Lark
 from grammar import GRAMMAR
 from transformer import ToCSharp
-from utils import fix_keyword, set_source
+from utils import fix_keyword, set_source, safe_print
 
 
 def interactive_translate(rule: str, children, line: int) -> str | None:
@@ -93,6 +93,6 @@ if __name__ == "__main__":
     #         file=sys.stderr,
     #     )
     #     sys.exit(1)
-    print(cs_out)
+    safe_print(cs_out)
     # if todos:
     #     print("\n".join(todos), file=sys.stderr)

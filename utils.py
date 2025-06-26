@@ -1,4 +1,6 @@
 import textwrap
+import sys
+import locale
 # ─────────────────── Utility helpers ─────────────────────────
 def indent(code: str, lvl: int = 1) -> str:
     return textwrap.indent(code, "    " * lvl, lambda _: True)
@@ -180,3 +182,10 @@ CS_KEYWORDS = {
 def escape_cs_keyword(name: str) -> str:
     """Prefix `name` with '@' if it is a reserved C# keyword."""
     return f"@{name}" if name in CS_KEYWORDS else name
+
+
+def safe_print(text: str) -> None:
+    """Print `text` without raising encoding errors."""
+    enc = sys.stdout.encoding or locale.getpreferredencoding(False)
+    sys.stdout.buffer.write(text.encode(enc, errors="replace"))
+    sys.stdout.buffer.write(b"\n")

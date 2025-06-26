@@ -648,5 +648,21 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_safe_print_cp1252(self):
+        import io, sys
+        from utils import safe_print
+
+        buf = io.BytesIO()
+        writer = io.TextIOWrapper(buf, encoding="cp1252", errors="strict")
+        original = sys.stdout
+        sys.stdout = writer
+        try:
+            safe_print("\u0151")
+            writer.flush()
+        finally:
+            sys.stdout = original
+        out = buf.getvalue()
+        self.assertTrue(out.endswith(b"\n"))
+
 if __name__ == '__main__':
     unittest.main()
