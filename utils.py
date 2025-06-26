@@ -20,8 +20,8 @@ def map_type(pas_type: str) -> str:
         "extended": "double",
         "currency": "decimal",
         "comp": "decimal",
-        "char": "Char",
-        "widechar": "Char",
+        "char": "char",
+        "widechar": "char",
         "ansistring": "string",
         "widestring": "string",
         "variant": "object",
@@ -144,6 +144,8 @@ def fix_keyword(tok):
         tok.type = "EVENT"
     elif v == "operator":
         tok.type = "OPERATOR"
+    elif v == "packed":
+        tok.type = "PACKED"
     elif v == "tuple":
         tok.type = "TUPLE"
     elif v == "typeof":
