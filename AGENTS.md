@@ -2,7 +2,8 @@
 
 - Use test-driven development: write or update tests before implementing features or fixes.
 - Always create tests for new behaviour and run them. Avoid skipping tests.
-- When adding new Pascal examples under `tests/`, group related `.pas` cases into a single file whenever possible to keep the test suite small.
+- When adding new Pascal examples under `tests/`, **always** group related `.pas` cases into a single file whenever possible to keep the test suite small and organized.
+- When running tests, do not stop execution unless a test clearly hangs for an excessively long time. Prematurely killing slow tests often wastes more time by forcing additional reruns.
 - Before running the transpiler or tests, install dependencies:
   ```bash
   pip install lark-parser
