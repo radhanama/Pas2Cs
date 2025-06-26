@@ -154,6 +154,7 @@ except_clause: "except" (on_handler | stmt)*                       -> except_cla
              | "except" ";"                                   -> except_empty
 finally_clause: "finally" stmt+
 on_handler: ON CNAME ":" type_name DO stmt -> on_handler
+          | ON CNAME ":" type_name DO ";" -> on_handler_empty
 
 case_stmt:   "case" expr "of" case_branch+ ("else" stmt+)? "end"i ";"? -> case_stmt
 case_branch: case_label ("," case_label)* ":" stmt ";"?
