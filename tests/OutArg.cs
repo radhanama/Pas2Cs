@@ -1,3 +1,5 @@
+using System;
+
 namespace Demo {
     public partial class SguUtils {
         public static DateTime UltimoDiaMes(int mes, int ano) {

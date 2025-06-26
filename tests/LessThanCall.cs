@@ -1,3 +1,5 @@
+using System;
+
 namespace Demo {
     public partial class DateCheck {
         public static void Test() {

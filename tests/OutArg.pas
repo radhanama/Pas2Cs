@@ -2,6 +2,8 @@ namespace Demo;
 
 interface
 
+uses System;
+
 type
   SguUtils = public class
   public

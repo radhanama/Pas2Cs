@@ -32,7 +32,6 @@ def _get_parser() -> Lark:
             GRAMMAR,
             parser="lalr",
             maybe_placeholders=True,
-            propagate_positions=True,
             lexer_callbacks={"CNAME": fix_keyword},
         )
     return _PARSER

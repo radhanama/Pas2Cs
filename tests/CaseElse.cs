@@ -1,3 +1,5 @@
+using System;
+
 namespace N {
     public partial class TTest {
         public void Foo(int x) {
