@@ -33,6 +33,7 @@ def _get_parser() -> Lark:
             parser="lalr",
             maybe_placeholders=True,
             lexer_callbacks={"CNAME": fix_keyword},
+            cache=True,
         )
     return _PARSER
 
@@ -78,35 +79,52 @@ def interactive_parse_error(err, source: str) -> str | None:
     return inp.strip() or None
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        sys.exit("usage: pas2cs.py [--interactive] <input.pas>  (redirect output to .cs)")
+    import argparse
 
-    interactive = False
-    if "--interactive" in sys.argv:
-        interactive = True
-        sys.argv.remove("--interactive")
-
-    src_file = sys.argv[1]
-    try:
-        src_txt = Path(src_file).read_text(encoding="utf-8")
-    except UnicodeDecodeError:
-        src_txt = Path(src_file).read_text(encoding="cp1252")
-    # try:
-    manual = interactive_translate if interactive else None
-    parse_manual = interactive_parse_error if interactive else None
-    cs_out, todos = transpile(
-        src_txt,
-        manual_translate=manual,
-        manual_parse_error=parse_manual,
+    parser = argparse.ArgumentParser(description="Transpile Pascal to C#")
+    parser.add_argument("files", nargs="+", help="Input Pascal source files")
+    parser.add_argument(
+        "--interactive", action="store_true", help="Prompt for translations on errors"
     )
-    # except SyntaxError as e:
-    #     print(str(e), file=sys.stderr)
-    #     print(
-    #         f"Manual intervention required near the location above in {src_file}."
-    #         " Please edit the source to resolve the issue and rerun.",
-    #         file=sys.stderr,
-    #     )
-    #     sys.exit(1)
-    safe_print(cs_out)
-    # if todos:
-    #     print("\n".join(todos), file=sys.stderr)
+    args = parser.parse_args()
+
+    manual = interactive_translate if args.interactive else None
+    parse_manual = interactive_parse_error if args.interactive else None
+
+    if len(args.files) == 1:
+        src_file = args.files[0]
+        try:
+            src_txt = Path(src_file).read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            src_txt = Path(src_file).read_text(encoding="cp1252")
+
+        cs_out, _ = transpile(
+            src_txt,
+            manual_translate=manual,
+            manual_parse_error=parse_manual,
+        )
+        safe_print(cs_out)
+    else:
+        success = 0
+        fail = 0
+        for src_file in args.files:
+            try:
+                try:
+                    src_txt = Path(src_file).read_text(encoding="utf-8")
+                except UnicodeDecodeError:
+                    src_txt = Path(src_file).read_text(encoding="cp1252")
+
+                cs_out, _ = transpile(
+                    src_txt,
+                    manual_translate=manual,
+                    manual_parse_error=parse_manual,
+                )
+                Path(src_file).with_suffix(".cs").write_text(cs_out, encoding="utf-8")
+                success += 1
+            except Exception as e:  # pylint: disable=broad-except
+                fail += 1
+                print(f"ERROR in {src_file}: {e}", file=sys.stderr)
+
+        print(f"Processed {len(args.files)} files: ok={success}, errors={fail}")
+        if fail:
+            sys.exit(1)
