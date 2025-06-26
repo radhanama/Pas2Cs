@@ -59,6 +59,13 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_cstyle_comment(self):
+        src = Path('tests/CStyleComment.pas').read_text()
+        expected = Path('tests/CStyleComment.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_single_stmt(self):
         src = Path('tests/SingleStmt.pas').read_text()
         expected = Path('tests/SingleStmt.cs').read_text().strip()

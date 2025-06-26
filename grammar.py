@@ -361,8 +361,10 @@ CNAME: /&?[A-Za-z_][A-Za-z_0-9]*\??/
 COMMENT_BRACE: /\{(?s:.*?)\}/
 LINE_COMMENT: /\/\/[^\n]*/
 COMMENT_PAREN: /\(\*[\s\S]*?\*\)/
+COMMENT_STAR: /\/\*[\s\S]*?\*\//
 %ignore WS
 %ignore COMMENT_BRACE
 %ignore LINE_COMMENT
 %ignore COMMENT_PAREN
+%ignore COMMENT_STAR
 """
