@@ -6,7 +6,7 @@ namespace Demo {
         public int indUltimaPos;
         public bool Check(int frowInd) {
             bool result;
-            if (self.ehVazio || frowInd > self.indUltimaPos || frowInd == -1) result = true; else result = false;
+            if (this.ehVazio || frowInd > this.indUltimaPos || frowInd == -1) result = true; else result = false;
             return result;
         }
     }

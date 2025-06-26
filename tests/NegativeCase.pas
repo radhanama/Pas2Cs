@@ -1,9 +1,5 @@
 namespace N;
 
-interface
-
-uses System;
-
 type
   TTest = public class
   public
@@ -15,9 +11,8 @@ implementation
 method TTest.Foo(x: Integer);
 begin
   case x of
-    1: Console.WriteLine('one');
-  else
-    Console.WriteLine('other');
+    -1: Console.WriteLine('neg one');
+    -2: Console.WriteLine('neg two');
   end;
 end;
 

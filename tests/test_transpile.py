@@ -59,6 +59,13 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_cstyle_comment(self):
+        src = Path('tests/CStyleComment.pas').read_text()
+        expected = Path('tests/CStyleComment.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_single_stmt(self):
         src = Path('tests/SingleStmt.pas').read_text()
         expected = Path('tests/SingleStmt.cs').read_text().strip()
@@ -230,6 +237,13 @@ class TranspileTests(unittest.TestCase):
     def test_case_stmt(self):
         src = Path('tests/CaseStmt.pas').read_text()
         expected = Path('tests/CaseStmt.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_negative_case(self):
+        src = Path('tests/NegativeCase.pas').read_text()
+        expected = Path('tests/NegativeCase.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
@@ -606,6 +620,13 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_extra_semi(self):
+        src = Path('tests/ExtraSemi.pas').read_text()
+        expected = Path('tests/ExtraSemi.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_local_const(self):
         src = Path('tests/LocalConst.pas').read_text()
         expected = Path('tests/LocalConst.cs').read_text().strip()
@@ -665,6 +686,13 @@ class TranspileTests(unittest.TestCase):
     def test_extra_keywords(self):
         src = Path('tests/ExtraKeywords.pas').read_text()
         expected = Path('tests/ExtraKeywords.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_accented_name(self):
+        src = Path('tests/AccentedName.pas').read_text()
+        expected = Path('tests/AccentedName.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])

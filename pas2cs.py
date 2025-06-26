@@ -4,11 +4,12 @@
 # MIT‑0 licence.  Usage:  python pas2cs.py  InFile.pas  > OutFile.cs
 # ------------------------------------------------------------
 import sys
+import re
 from pathlib import Path
 from lark import Lark
 from grammar import GRAMMAR
 from transformer import ToCSharp
-from utils import fix_keyword, set_source, safe_print
+from utils import fix_keyword, set_source, safe_print, remove_accents_code
 
 
 def interactive_translate(rule: str, children, line: int) -> str | None:
@@ -21,15 +22,28 @@ def interactive_translate(rule: str, children, line: int) -> str | None:
         inp = ""
     return inp.strip() or None
 
+_PARSER: Lark | None = None
+
+
+def _get_parser() -> Lark:
+    global _PARSER
+    if _PARSER is None:
+        _PARSER = Lark(
+            GRAMMAR,
+            parser="lalr",
+            maybe_placeholders=True,
+            lexer_callbacks={"CNAME": fix_keyword},
+        )
+    return _PARSER
+
+
 def transpile(source: str, manual_translate=None, manual_parse_error=None) -> tuple[str, list[str]]:
     source = source.lstrip('\ufeff')
+    # Collapse accidental double semicolons which can appear in some Pascal code
+    source = re.sub(r';;(?=\s*(?:\n|$))', ';', source)
+    source = remove_accents_code(source)
     set_source(source)
-    parser = Lark(
-        GRAMMAR,
-        parser="lalr",
-        maybe_placeholders=True,
-        lexer_callbacks={"CNAME": fix_keyword},
-    )
+    parser = _get_parser()
     try:
         tree = parser.parse(source)
     except Exception as e:
