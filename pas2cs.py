@@ -107,7 +107,9 @@ if __name__ == "__main__":
     else:
         success = 0
         fail = 0
-        for src_file in args.files:
+        total = len(args.files)
+        bar_width = 40
+        for i, src_file in enumerate(args.files, 1):
             try:
                 try:
                     src_txt = Path(src_file).read_text(encoding="utf-8")
@@ -125,6 +127,13 @@ if __name__ == "__main__":
                 fail += 1
                 print(f"ERROR in {src_file}: {e}", file=sys.stderr)
 
-        print(f"Processed {len(args.files)} files: ok={success}, errors={fail}")
+            percent = i * 100 // total
+            hashes = percent * bar_width // 100
+            dots = bar_width - hashes
+            bar = "#" * hashes + "." * dots
+            print(f"[{bar}] {percent}% ({i}/{total}) OK:{success} ERR:{fail}", end="\r", flush=True)
+
+        print()
+        print(f"Processed {total} files: ok={success}, errors={fail}")
         if fail:
             sys.exit(1)
