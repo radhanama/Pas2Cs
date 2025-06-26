@@ -702,6 +702,7 @@ class ToCSharp(Transformer):
         return info
 
     def except_clause(self, *handlers):
+        handlers = [h for h in handlers if not isinstance(h, Token)]
         return list(handlers)
 
     def except_empty(self, *_):
