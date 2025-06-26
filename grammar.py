@@ -128,9 +128,9 @@ block:       "begin" ";"? stmt* "end"i ";"?
            | block
            
 
-assign_stmt: var_ref ":=" expr ";"?                     -> assign
-op_assign_stmt: var_ref ADD_ASSIGN expr ";"?              -> op_assign
-              | var_ref SUB_ASSIGN expr ";"?              -> op_assign
+assign_stmt: (var_ref | call_lhs) ":=" expr ";"?                     -> assign
+op_assign_stmt: (var_ref | call_lhs) ADD_ASSIGN expr ";"?              -> op_assign
+              | (var_ref | call_lhs) SUB_ASSIGN expr ";"?              -> op_assign
 return_stmt: RESULT ":=" expr ";"?                      -> result_ret
            | EXIT expr? ";"?                            -> exit_ret
 raise_stmt: RAISE expr? ";"?                           -> raise_stmt
@@ -238,6 +238,12 @@ call_expr:   var_ref "(" arg_list? ")" call_postfix* -> call
            | "(" expr ")" "." name_term GENERIC_ARGS? call_args? call_postfix* -> call
            | "inherited"i name_term GENERIC_ARGS? call_args? call_postfix* -> inherited_call_expr
            | typeof_expr call_postfix+                     -> call
+
+call_lhs:   var_ref "(" arg_list? ")" call_postfix+                 -> call
+           | generic_call_base ("(" arg_list? ")")? call_postfix+    -> call
+           | new_expr "." name_term GENERIC_ARGS? call_args? call_postfix+ -> call
+           | "(" expr ")" "." name_term GENERIC_ARGS? call_args? call_postfix+ -> call
+           | typeof_expr call_postfix+                                 -> call
 arg_list:    arg ("," arg)*
 arg:         OUT expr                                -> out_arg
            | VAR expr                                -> var_arg
