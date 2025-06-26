@@ -913,7 +913,9 @@ class ToCSharp(Transformer):
         return ('branch', labels, stmt)
 
     def case_label(self, tok):
-        return "null" if str(tok) == "nil" else str(tok)
+        if isinstance(tok, Token):
+            return "null" if tok.type == "NIL" else tok.value
+        return str(tok)
 
     def label_range(self, start, _dd, end):
         return ('range', int(str(start)), int(str(end)))
@@ -964,6 +966,17 @@ class ToCSharp(Transformer):
 
     def number(self, n):
         return str(n).replace('_', '').replace(',', '')
+
+    def signed_number(self, *parts):
+        if len(parts) == 2:
+            sign, num = parts
+            sign = str(sign)
+        else:
+            sign, num = '', parts[0]
+        val = int(str(num).replace('_', '').replace(',', ''))
+        if sign == '-':
+            val = -val
+        return val
 
     def hex_number(self, tok):
         return '0x' + tok.value[1:]
