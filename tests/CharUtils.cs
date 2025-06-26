@@ -1,13 +1,17 @@
 namespace Demo {
     public partial class CharCodeExample {
         public static string GetNewline() {
-            return "\r" + "\n";
+            string result;
+            result = "\r" + "\n";
+            return result;
         }
     }
     
     public partial class CharSeq {
         public static string GetCRLF() {
-            return "\r\n";
+            string result;
+            result = "\r\n";
+            return result;
         }
     }
 }

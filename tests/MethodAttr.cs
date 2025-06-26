@@ -1,7 +1,9 @@
 namespace Demo {
     public partial class AttrSample {
         public static int Foo() {
-            return 0;
+            int result;
+            result = 0;
+            return result;
         }
     }
 }

@@ -1,6 +1,7 @@
 namespace DemoProg {
     public partial class ProgramTypes {
         public static byte Run(byte b, ushort w, short s, int l) {
+            byte result;
             byte x;
             ushort y;
             short z;
@@ -9,7 +10,8 @@ namespace DemoProg {
             y = w;
             z = s;
             m = l;
-            return x;
+            result = x;
+            return result;
         }
     }
 }

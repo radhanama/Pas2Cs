@@ -7,20 +7,24 @@ namespace Demo {
     
     public partial class ForEachExample {
         public static int Sum(int[] arr) {
+            int result;
             int total;
             total = 0;
             foreach (var item in arr) total = total + item;
-            return total;
+            result = total;
+            return result;
         }
     }
     
     public partial class StepExample {
         public static int Sum() {
+            int result;
             int i;
             int total;
             total = 0;
             for (i = 1; i <= 5; i += 2) total = total + i;
-            return total;
+            result = total;
+            return result;
         }
     }
     
@@ -64,31 +68,37 @@ namespace Demo {
     
     public partial class TypedForEach {
         public static int Sum(int[] arr) {
+            int result;
             int total;
             total = 0;
             foreach (int item in arr) total = total + item;
-            return total;
+            result = total;
+            return result;
         }
     }
     
     public partial class ForEachIndexExample {
         public static int Sum(int[] arr) {
+            int result;
             int total;
             total = 0;
             for (var idx = 0; idx < arr.Length; idx++) {
                 var item = arr[idx];
                 total = total + item * idx;
             }
-            return total;
+            result = total;
+            return result;
         }
     }
     
     public partial class TypedForLoop {
         public static int Sum(int[] arr) {
+            int result;
             int total;
             total = 0;
             for (int i = 0; i <= length(arr) - 1; i++) total = total + arr[i];
-            return total;
+            result = total;
+            return result;
         }
     }
 }

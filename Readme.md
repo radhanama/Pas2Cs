@@ -15,7 +15,7 @@ keeping both languages building in the same .NET solution.
 | ✅ | Parses `namespace`, `type … public class`, static `class method`s |
 | ✅ | Converts `Integer`, `String`, `Boolean` → `int`, `string`, `bool` |
 | ✅ | Handles `begin … end` blocks, `if … then … else`, `for … to … do` |
-| ✅ | Maps `result := …` / `exit …;` to `return` |
+| ✅ | Supports `exit …;` and implicit `Result` variables |
 | ✅ | Arithmetic/logic ops (`+ - * / and or`, `= <> <= >=`) |
 | ✅ | Emits **`// TODO:`** comments + stderr warnings for unsupported constructs |
 | 🔜 | Add `while`, `try/finally`, `record`, generics, properties, etc. |

@@ -5,7 +5,9 @@ namespace Demo {
         // TODO: const BinVal -> define a constant
         public const int BinVal = 0b1011;
         public int Value() {
-            return HexVal + BinVal;
+            int result;
+            result = HexVal + BinVal;
+            return result;
         }
     }
 }

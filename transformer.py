@@ -17,6 +17,8 @@ class ToCSharp(Transformer):
         self.curr_kind = None
         self.curr_static = False
         self.curr_locals = set()
+        self.used_result = False
+        self.curr_rettype = None
         self.class_defs = OrderedDict()
         self.class_impls = defaultdict(list)
         self.alias_defs = []
@@ -592,9 +594,34 @@ class ToCSharp(Transformer):
         cls, name, params, rettype = head
         params_cs = params or ""
         ret       = map_type_ext(rettype) if rettype else "void"
+        inner = textwrap.dedent(body[2:-2]).strip()
+
+        if rettype:
+            lines = [ln.strip() for ln in inner.split('\n') if ln.strip()]
+            has_ret = bool(lines) and lines[-1].startswith("return ")
+            if self.used_result:
+                result_decl = f"{map_type_ext(rettype)} result;"
+                if vars_code:
+                    vars_code = result_decl + "\n" + vars_code
+                else:
+                    vars_code = result_decl
+                if not has_ret:
+                    if inner:
+                        inner += "\n"
+                    inner += "return result;"
+            else:
+                if not has_ret:
+                    if inner:
+                        inner += "\n"
+                    inner += f"return default({map_type_ext(rettype)});"
+
         if vars_code:
-            inner = textwrap.dedent(body[2:-2]).strip()
             body = "{\n" + indent(vars_code + ("\n" + inner if inner else "")) + "\n}"
+        else:
+            if inner:
+                body = "{\n" + indent(inner) + "\n}"
+            else:
+                body = "{\n}"
         modifier = "static " if self.curr_static else ""
         method = f"public {modifier}{ret} {name}({params_cs}) {body}"
         self.class_impls[cls].append(method)
@@ -605,6 +632,8 @@ class ToCSharp(Transformer):
         self.curr_params = []
         self.curr_static = False
         self.curr_locals = set()
+        self.curr_rettype = None
+        self.used_result = False
         return ""
 
     def impl_head(self, name_parts, *rest):
@@ -647,7 +676,11 @@ class ToCSharp(Transformer):
         self.curr_method = name
         self.curr_params = param_names
         self.curr_locals = set(param_names)
-        return (cls, name, ", ".join(param_list), str(rettype or ""))
+        self.curr_rettype = str(rettype or "")
+        if self.curr_rettype:
+            self.curr_locals.add("result")
+        self.used_result = False
+        return (cls, name, ", ".join(param_list), self.curr_rettype)
 
     # ── statements ──────────────────────────────────────────
     def assign(self, var, expr):
@@ -657,7 +690,8 @@ class ToCSharp(Transformer):
         return f"{var} {op} {expr};"
 
     def result_ret(self, _tok, expr):
-        return f"return {expr};"
+        self.used_result = True
+        return f"result = {expr};"
 
     def exit_ret(self, _tok, expr=None):
         return f"return{(' ' + expr) if expr else ''};"

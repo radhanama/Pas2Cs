@@ -1,7 +1,9 @@
 namespace Demo {
     public partial class Foo {
         public int Value() {
-            return 123;
+            int result;
+            result = 123;
+            return result;
         }
     }
 }

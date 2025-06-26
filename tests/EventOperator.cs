@@ -5,7 +5,9 @@ namespace Demo {
         // TODO: event OnSomething: EventHandler -> implement
         public event EventHandler OnSomething;
         public int Add(int a, int b) {
-            return a + b;
+            int result;
+            result = a + b;
+            return result;
         }
     }
 }
