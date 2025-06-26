@@ -412,9 +412,21 @@ class ToCSharp(Transformer):
         parts = list(parts)
         if parts and isinstance(parts[0], Token):
             parts.pop(0)
-        names, ptype = parts[0], parts[1]
-        t = map_type_ext(str(ptype))
+        names = parts.pop(0)
+        ptype = None
+        if parts and not isinstance(parts[0], Token):
+            ptype = parts.pop(0)
+        if ptype is None:
+            t = "object"
+            info = f"// TODO: parameter {', '.join(names)} missing type"
+            self.todo.append(info)
+        else:
+            t = map_type_ext(str(ptype))
         return [f"{t} {self._safe_name(n)}" for n in names]
+
+    def param_untyped(self, *parts):
+        # variant of param rule when no type is declared
+        return self.param(*parts)
 
     def param_list(self, *ps):
         out = []
