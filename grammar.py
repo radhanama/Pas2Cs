@@ -32,7 +32,7 @@ type_def:     attributes? class_def
             | attributes? enum_def
             | alias_def
 
-class_def:   CNAME generic_params? "=" ("public"i)? "static"? "partial"? "abstract"? "class"i CNAME* ("(" type_name ("," type_name)* ")")? class_signature "end"i ";" -> class_def
+class_def:   CNAME generic_params? "=" ("public"i)? "static"? "partial"? "abstract"? "class"i ("sealed"i | "final"i)? CNAME* ("(" type_name ("," type_name)* ")")? class_signature "end"i ";" -> class_def
 record_def:  CNAME generic_params? "=" ("public"i)? "packed"i? "record"i ("(" type_name ")")? class_signature "end"i ";" -> record_def
 interface_def: CNAME generic_params? "=" ("public"i)? "interface"i ("(" type_name ("," type_name)* ")")? class_signature "end"i ";" -> interface_def
 enum_def:    CNAME "=" ("public"i)? ("enum"i | "flags"i)? "(" enum_items ")" ("of" type_name)? ";" -> enum_def
@@ -52,7 +52,8 @@ method_decl_rule: access_modifier? class_modifier? method_kind method_sig ";" (m
 
 class_modifier: "class"
 method_attr: "override" | "static" | "abstract" | "virtual" | "reintroduce"i | "overload"i
-           | "cdecl"i | "stdcall"i | "safecall"i | "varargs"i | "deprecated"i | "platform"i
+           | "inline"i | "cdecl"i | "stdcall"i | "safecall"i | "varargs"i
+           | "external"i | "forward"i | "platform"i | "deprecated"i | "message"i
 method_kind: METHOD | PROCEDURE | FUNCTION | CONSTRUCTOR | DESTRUCTOR | OPERATOR
 access_modifier: ("strict"i)? ("public"i | "protected"i | "private"i | "published"i)
 
@@ -255,7 +256,7 @@ new_stmt:    new_expr ";"?
 var_ref:     name_base (ARRAY_RANGE | "." name_term)* -> var
            | "(" expr ")" ARRAY_RANGE -> paren_index
 
-var_section: "var"i (var_decl | var_decl_infer)+
+var_section: ("var"i | "threadvar"i) (var_decl | var_decl_infer)+
 var_decl:    name_list ":" type_spec (":=" expr)? ";"       -> var_decl
 var_decl_infer: name_list ":=" expr ";"                 -> var_decl_infer
 
@@ -329,6 +330,16 @@ PACKED:      "packed"i
 TUPLE:       "tuple"i
 ARRAY:       "array"i
 TYPEOF:      "typeof"i
+SEALED:      "sealed"i
+FINAL:       "final"i
+INLINE:      "inline"i
+CDECL:       "cdecl"i
+STDCALL:     "stdcall"i
+SAFECALL:    "safecall"i
+VARARGS:     "varargs"i
+EXTERNAL:    "external"i
+FORWARD:     "forward"i
+THREADVAR:   "threadvar"i
 AT:          "@"
 CARET:       "^"
 DOTDOT:      ".."

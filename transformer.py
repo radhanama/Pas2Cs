@@ -210,7 +210,10 @@ class ToCSharp(Transformer):
             generics = parts[0]
             parts = parts[1:]
         sealed = False
-        # detect modifiers like "sealed" after the class keyword
+        if parts and isinstance(parts[0], Token) and parts[0].type in {'SEALED','FINAL'}:
+            sealed = True
+            parts = parts[1:]
+        # detect modifiers like "sealed" appearing as identifiers
         while parts and isinstance(parts[0], Token) and parts[0].type == 'CNAME':
             val = str(parts[0]).lower()
             if val in {'sealed', 'final'}:
@@ -236,6 +239,8 @@ class ToCSharp(Transformer):
         generics = ''
         if parts and isinstance(parts[0], str) and parts[0].startswith('<'):
             generics = parts[0]
+            parts = parts[1:]
+        if parts and isinstance(parts[0], Token) and parts[0].type == 'PACKED':
             parts = parts[1:]
         if len(parts) == 2:
             base, sign = parts
