@@ -590,6 +590,13 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_hour_check(self):
+        src = Path('tests/HourCheck.pas').read_text()
+        expected = Path('tests/HourCheck.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_multi_type_sections(self):
         src = Path('tests/MultiTypeSections.pas').read_text()
         expected = Path('tests/MultiTypeSections.cs').read_text().strip()
