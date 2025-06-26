@@ -951,7 +951,11 @@ class ToCSharp(Transformer):
         return self.binop(left, "and then", right)
 
     def if_expr(self, cond, true_expr, false_expr):
-        return f"{cond} ? {true_expr} : {false_expr}"
+        cond_str = str(cond)
+        if any(op in cond_str for op in [' ', '>', '<', '=', '!', '&', '|', '+', '-', '*', '/', '%']):
+            if not (cond_str.startswith('(') and cond_str.endswith(')')):
+                cond_str = f"({cond_str})"
+        return f"{cond_str} ? {true_expr} : {false_expr}"
 
     def not_expr(self, _tok, expr):
         return f"!{expr}"
@@ -1195,7 +1199,11 @@ class ToCSharp(Transformer):
         return f"{sig} => {block}"
 
     def if_expr(self, cond, true_val, false_val):
-        return f"{cond} ? {true_val} : {false_val}"
+        cond_str = str(cond)
+        if any(op in cond_str for op in [' ', '>', '<', '=', '!', '&', '|', '+', '-', '*', '/', '%']):
+            if not (cond_str.startswith('(') and cond_str.endswith(')')):
+                cond_str = f"({cond_str})"
+        return f"{cond_str} ? {true_val} : {false_val}"
 
     def char_code(self, tok):
         nums = [int(n) for n in tok.value[1:].split('#') if n]
