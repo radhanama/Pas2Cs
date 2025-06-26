@@ -52,6 +52,7 @@ method_decl_rule: access_modifier? class_modifier? method_kind method_sig ";" (m
 
 class_modifier: "class"
 method_attr: "override" | "static" | "abstract" | "virtual" | "reintroduce"i | "overload"i
+           | "cdecl"i | "stdcall"i | "safecall"i | "varargs"i | "deprecated"i | "platform"i
 method_kind: METHOD | PROCEDURE | FUNCTION | CONSTRUCTOR | DESTRUCTOR | OPERATOR
 access_modifier: ("strict"i)? ("public"i | "protected"i | "private"i | "published"i)
 

@@ -220,6 +220,13 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_method_conv(self):
+        src = Path('tests/MethodConv.pas').read_text()
+        expected = Path('tests/MethodConv.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_case_stmt(self):
         src = Path('tests/CaseStmt.pas').read_text()
         expected = Path('tests/CaseStmt.cs').read_text().strip()
