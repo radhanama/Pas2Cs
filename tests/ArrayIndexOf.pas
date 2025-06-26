@@ -8,6 +8,8 @@ type
 
 implementation
 
+uses System.Text;
+
 method Utils.Sanitize(ch: Char; invalidChars: array of Char; sanitizedInput: StringBuilder);
 begin
   if Array.IndexOf(invalidChars, ch) = -1 then

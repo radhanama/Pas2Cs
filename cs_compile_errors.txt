@@ -1,0 +1,126 @@
+tests/AliasDef.cs(1,25): error CS0246: The type or namespace name `Type' could not be found. Consider using fully qualified name `System.Type'
+tests/ArrayCast.cs(4,19): warning CS0219: The variable `arr' is assigned but its value is never used
+tests/ArrayIndexOf.cs(3,60): error CS0246: The type or namespace name `StringBuilder' could not be found. Are you missing `System.Text' using directive?
+tests/ArrayVar.cs(3,24): error CS0246: The type or namespace name `DataSet' could not be found. Are you missing an assembly reference?
+tests/BugFixes.cs(13,21): error CS1525: Unexpected symbol `>='
+tests/CaseElse.cs(6,25): error CS0103: The name `Console' does not exist in the current context
+tests/CaseElse.cs(9,21): error CS0103: The name `Console' does not exist in the current context
+tests/CaseStmt.cs(13,29): error CS0246: The type or namespace name `DayOfWeek' could not be found. Are you missing `System' using directive?
+tests/ChainedCall.cs(4,13): error CS0103: The name `getObj' does not exist in the current context
+tests/ClassMembers.cs(5,37): error CS0428: Cannot convert method group `get_Name' to non-delegate type `string'. Consider using parentheses to invoke the method
+tests/ClassMembers.cs(5,54): error CS0131: The left-hand side of an assignment must be a variable, a property or an indexer
+tests/ClassMembers.cs(9,18): error CS0117: `object' does not contain a definition for `Create'
+/usr/lib/mono/4.5/mscorlib.dll (Location of the symbol related to previous error)
+tests/ClassMembers.cs(12,18): error CS0117: `object' does not contain a definition for `Destroy'
+/usr/lib/mono/4.5/mscorlib.dll (Location of the symbol related to previous error)
+tests/ComplexFunction.cs(1,14): error CS0234: The type or namespace name `Data' does not exist in the namespace `System'. Are you missing `System.Data' assembly reference?
+tests/ComplexFunction.cs(5,16): error CS0246: The type or namespace name `DataSet' could not be found. Are you missing an assembly reference?
+tests/ControlFlow.cs(6,25): error CS0103: The name `Console' does not exist in the current context
+tests/ControlFlow.cs(12,25): error CS0103: The name `Console' does not exist in the current context
+tests/ControlFlow.cs(12,56): error CS0103: The name `Console' does not exist in the current context
+tests/ControlFlow.cs(18,50): error CS0103: The name `Console' does not exist in the current context
+tests/ControlFlow.cs(24,107): error CS0103: The name `Console' does not exist in the current context
+tests/ControlFlow.cs(30,25): error CS0103: The name `Console' does not exist in the current context
+tests/ControlFlow.cs(31,25): error CS0103: The name `Console' does not exist in the current context
+tests/CsKeywordVar.cs(5,17): warning CS0219: The variable `base' is assigned but its value is never used
+tests/CtorNoName.cs(4,18): error CS0117: `object' does not contain a definition for `Create'
+/usr/lib/mono/4.5/mscorlib.dll (Location of the symbol related to previous error)
+tests/CtorNoName.cs(7,18): error CS0117: `object' does not contain a definition for `Create'
+/usr/lib/mono/4.5/mscorlib.dll (Location of the symbol related to previous error)
+tests/CtorNoName.cs(10,18): error CS0117: `object' does not contain a definition for `Destroy'
+/usr/lib/mono/4.5/mscorlib.dll (Location of the symbol related to previous error)
+tests/DateParseCompare.cs(4,17): error CS0103: The name `DateTime' does not exist in the current context
+tests/DateParseCompare.cs(4,80): error CS0103: The name `Console' does not exist in the current context
+tests/Defaults.cs(4,18): error CS0117: `object' does not contain a definition for `Test'
+/usr/lib/mono/4.5/mscorlib.dll (Location of the symbol related to previous error)
+tests/EventOperator.cs(6,35): warning CS0067: The event `Demo.MyClass.OnSomething' is never used
+tests/ExportarDados.cs(3,7): error CS0246: The type or namespace name `ShineOn' could not be found. Are you missing an assembly reference?
+tests/ExportarDados.cs(4,14): error CS0234: The type or namespace name `Data' does not exist in the namespace `System'. Are you missing `System.Data' assembly reference?
+tests/ExportarDados.cs(5,14): error CS0234: The type or namespace name `Drawing' does not exist in the namespace `System'. Are you missing `System.Drawing' assembly reference?
+tests/ExportarDados.cs(7,18): error CS0234: The type or namespace name `SessionState' does not exist in the namespace `System.Web'. Are you missing an assembly reference?
+tests/ExportarDados.cs(8,18): error CS0234: The type or namespace name `UI' does not exist in the namespace `System.Web'. Are you missing an assembly reference?
+tests/ExportarDados.cs(9,18): error CS0234: The type or namespace name `UI' does not exist in the namespace `System.Web'. Are you missing an assembly reference?
+tests/ExportarDados.cs(10,18): error CS0234: The type or namespace name `UI' does not exist in the namespace `System.Web'. Are you missing an assembly reference?
+tests/ExportarDados.cs(11,7): error CS0246: The type or namespace name `SGU' could not be found. Are you missing an assembly reference?
+tests/ExportarDados.cs(12,7): error CS0246: The type or namespace name `SGU' could not be found. Are you missing an assembly reference?
+tests/ExportarDados.cs(13,7): error CS0246: The type or namespace name `MetaBuilders' could not be found. Are you missing an assembly reference?
+tests/ExportarDados.cs(14,7): error CS0246: The type or namespace name `ShineOn' could not be found. Are you missing an assembly reference?
+tests/ExportarDados.cs(15,7): error CS0246: The type or namespace name `C1' could not be found. Are you missing an assembly reference?
+tests/ExportarDados.cs(16,7): error CS0246: The type or namespace name `c1' could not be found. Are you missing an assembly reference?
+tests/ExportarDados.cs(17,7): error CS0246: The type or namespace name `log4net' could not be found. Are you missing an assembly reference?
+tests/ExportarDados.cs(23,7): error CS0246: The type or namespace name `log4net' could not be found. Are you missing an assembly reference?
+tests/ExportarDados.cs(24,7): error CS0246: The type or namespace name `c1' could not be found. Are you missing an assembly reference?
+tests/ExportarDados.cs(26,7): error CS0246: The type or namespace name `SGU' could not be found. Are you missing an assembly reference?
+tests/ExportarDados.cs(27,7): error CS0246: The type or namespace name `BarcodeNETWorkShop' could not be found. Are you missing an assembly reference?
+tests/ExportarDados.cs(32,42): error CS0246: The type or namespace name `TPageBasico2' could not be found. Are you missing an assembly reference?
+tests/ExportarDados.cs(33,46): error CS0246: The type or namespace name `EventArgs' could not be found. Are you missing `System' using directive?
+tests/Generics.cs(2,7): error CS0246: The type or namespace name `Newtonsoft' could not be found. Are you missing an assembly reference?
+tests/Generics.cs(17,27): error CS0246: The type or namespace name `JObject' could not be found. Are you missing an assembly reference?
+tests/IfOr.cs(9,17): error CS0103: The name `self' does not exist in the current context
+tests/IndexAssign.cs(3,24): error CS0246: The type or namespace name `DataSet' could not be found. Are you missing an assembly reference?
+tests/IndexedProp.cs(3,38): error CS0103: The name `GetItem' does not exist in the current context
+tests/IndexedProp.cs(3,54): error CS0103: The name `SetItem' does not exist in the current context
+tests/InheritedCall.cs(11,20): warning CS0108: `Demo.Derived.Foo(int)' hides inherited member `Demo.Base.Foo(int)'. Use the new keyword if hiding was intended
+tests/InheritedCall.cs(3,20): (Location of the symbol related to previous warning)
+tests/InheritedCtorCall.cs(8,21): warning CS0108: `Demo.Derived.Create()' hides inherited member `Demo.Base.Create()'. Use the new keyword if hiding was intended
+tests/InheritedCtorCall.cs(3,21): (Location of the symbol related to previous warning)
+tests/IsNotType.cs(4,25): error CS1525: Unexpected symbol `string'
+tests/KeywordName.cs(5,29): error CS0246: The type or namespace name `MailMessage' could not be found. Are you missing `System.Net.Mail' using directive?
+tests/Lambda.cs(4,13): error CS0815: An implicitly typed local variable declaration cannot be initialized with `anonymous method'
+tests/Lambda.cs(5,20): error CS0119: Expression denotes a `variable', where a `method group' was expected
+tests/LargeCaseRange.cs(6,21): error CS1525: Unexpected symbol `>='
+tests/LessThanCall.cs(4,17): error CS0103: The name `DateTime' does not exist in the current context
+tests/LocalConst.cs(8,13): error CS0103: The name `result' does not exist in the current context
+tests/LockingStmt.cs(4,24): error CS0103: The name `Console' does not exist in the current context
+tests/Loops.cs(99,34): error CS0103: The name `length' does not exist in the current context
+tests/MiscOps.cs(1,14): error CS0234: The type or namespace name `Data' does not exist in the namespace `System'. Are you missing `System.Data' assembly reference?
+tests/MiscOps.cs(5,32): error CS0246: The type or namespace name `DataSet' could not be found. Are you missing an assembly reference?
+tests/MultiBase.cs(7,43): error CS0246: The type or namespace name `IFoo' could not be found. Are you missing an assembly reference?
+tests/MultiBase.cs(7,49): error CS0246: The type or namespace name `IBar' could not be found. Are you missing an assembly reference?
+tests/MultiBase.cs(8,21): warning CS0108: `Demo.Child.BaseMethod()' hides inherited member `Demo.BaseCls.BaseMethod()'. Use the new keyword if hiding was intended
+tests/MultiBase.cs(3,21): (Location of the symbol related to previous warning)
+tests/NewArgs.cs(4,50): warning CS0219: The variable `t' is assigned but its value is never used
+tests/NewStmt.cs(4,17): error CS0246: The type or namespace name `Exception' could not be found. Are you missing `System' using directive?
+tests/OutArg.cs(3,23): error CS0246: The type or namespace name `DateTime' could not be found. Are you missing `System' using directive?
+tests/PointerOps.cs(5,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+tests/PointerOps.cs(8,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+tests/PointerOps.cs(9,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+tests/PostCallIndex.cs(3,32): error CS0246: The type or namespace name `DataSet' could not be found. Are you missing an assembly reference?
+tests/ProgramCases.cs(12,20): warning CS0219: The variable `y' is assigned but its value is never used
+tests/ProgramCases.cs(13,19): warning CS0219: The variable `z' is assigned but its value is never used
+tests/ProgramCases.cs(14,17): warning CS0219: The variable `m' is assigned but its value is never used
+tests/ProgramTypes.cs(6,20): warning CS0219: The variable `y' is assigned but its value is never used
+tests/ProgramTypes.cs(7,19): warning CS0219: The variable `z' is assigned but its value is never used
+tests/ProgramTypes.cs(8,17): warning CS0219: The variable `m' is assigned but its value is never used
+tests/PropertyAssign.cs(8,50): error CS1041: Identifier expected, `checked' is a keyword
+tests/PropertyAssign.cs(8,58): error CS1001: Unexpected symbol `=', expecting identifier
+tests/Raise.cs(4,23): error CS0246: The type or namespace name `Exception' could not be found. Are you missing `System' using directive?
+tests/RangeWords.cs(9,21): error CS1525: Unexpected symbol `>='
+tests/RangeWords.cs(10,24): error CS1525: Unexpected symbol `or'
+tests/RangeWords.cs(11,21): error CS1525: Unexpected symbol `>='
+tests/RangeWords.cs(12,25): error CS1525: Unexpected symbol `or'
+tests/RangeWords.cs(13,21): error CS1525: Unexpected symbol `>='
+tests/RangeWords.cs(14,21): error CS1525: Unexpected symbol `>='
+tests/RangeWords.cs(15,21): error CS1525: Unexpected symbol `>='
+tests/RangeWords.cs(16,21): error CS1525: Unexpected symbol `>='
+tests/RangeWords.cs(17,21): error CS1525: Unexpected symbol `>='
+tests/RangeWords.cs(18,21): error CS1525: Unexpected symbol `>='
+tests/RangeWords.cs(19,21): error CS1525: Unexpected symbol `>='
+tests/ReservedProp.cs(3,26): error CS0246: The type or namespace name `MailMessage' could not be found. Are you missing `System.Net.Mail' using directive?
+tests/SetType.cs(6,17): error CS0029: Cannot implicitly convert type `int[]' to `System.Collections.Generic.HashSet<int>'
+tests/TryExceptOnEmpty.cs(10,30): warning CS0168: The variable `E' is declared but never used
+tests/TypeCasting.cs(14,25): error CS0246: The type or namespace name `DB2DataAdapter' could not be found. Are you missing an assembly reference?
+tests/TypeOfExpr.cs(3,28): error CS0246: The type or namespace name `DataTable' could not be found. Are you missing an assembly reference?
+tests/TypeOfNew.cs(9,13): error CS0103: The name `Console' does not exist in the current context
+tests/TypeOfPostfix.cs(1,7): error CS0246: The type or namespace name `LogManager' could not be found. Are you missing an assembly reference?
+tests/TypedUsing.cs(3,23): error CS0246: The type or namespace name `IDisposable' could not be found. Are you missing `System' using directive?
+tests/UsingStmt.cs(4,30): error CS0103: The name `GetRes' does not exist in the current context
+tests/UsingStmt.cs(4,40): error CS0103: The name `Console' does not exist in the current context
+tests/VarCallArg.cs(6,17): error CS0103: The name `Interlocked' does not exist in the current context
+tests/VarExamples.cs(6,27): error CS0246: The type or namespace name `WebClient' could not be found. Are you missing `System.Net' using directive?
+tests/VarExamples.cs(20,21): error CS1502: The best overloaded method match for `System.Console.WriteLine(string, object)' has some invalid arguments
+/usr/lib/mono/4.5/mscorlib.dll (Location of the symbol related to previous error)
+tests/VarExamples.cs(20,31): error CS1503: Argument `#1' cannot convert `int' expression to type `string'
+tests/WithStmt.cs(3,26): error CS0246: The type or namespace name `Person' could not be found. Are you missing an assembly reference?
+tests/WriteProp.cs(3,21): error CS8051: Auto-implemented property `Demo.WriteProp.Flag' must have get accessor
+tests/YieldStmt.cs(3,21): error CS1624: The body of `Demo.YieldExample.Dummy()' cannot be an iterator block because `void' is not an iterator interface type

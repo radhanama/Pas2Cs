@@ -29,6 +29,10 @@ def map_type(pas_type: str) -> str:
         "variant": "object",
         "olevariant": "object",
         "string": "string",
+        "type": "System.Type",
+        "stringbuilder": "StringBuilder",
+        "dataset": "DataSet",
+        "datatable": "DataTable",
         "boolean": "bool",
         "object": "object",
     }
