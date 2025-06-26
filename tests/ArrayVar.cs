@@ -1,8 +1,10 @@
 namespace Demo {
     public partial class ArrayVar {
         public int Foo(DataSet ds) {
+            int result;
             DataColumn[] columns;
-            return 0;
+            result = 0;
+            return result;
         }
     }
 }

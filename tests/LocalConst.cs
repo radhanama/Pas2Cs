@@ -5,8 +5,7 @@ namespace Demo {
             var str = "mysqrt";
             i = 1;
             j = 2;
-            return str;
+            result = str;
         }
     }
 }
-

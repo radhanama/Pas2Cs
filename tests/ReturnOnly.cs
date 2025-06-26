@@ -1,7 +1,9 @@
 namespace Test {
     public partial class Foo {
         public int Bar() {
-            return 1;
+            int result;
+            result = 1;
+            return result;
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Data;
 namespace Demo {
     public partial class MyClass {
         public DataSet myfunction(string idAutor, string idLicit, string situacao, string dtIniEmissao, string dtFimEmissao, string idCC, string idMetaFase) {
+            DataSet result;
             TStringList strSql;
             DateTime dtIni, dtFim;
             strSql = new TStringList();
@@ -21,7 +22,8 @@ namespace Demo {
                 strSql.Add("my sql '" + dtFim.Tostring("yyyy-MM-dd") + "'");
             }
             strSql.Add("my sql");
-            return helper.openSQL(strSql.Text);
+            result = helper.openSQL(strSql.Text);
+            return result;
         }
     }
 }

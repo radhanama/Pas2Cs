@@ -1,9 +1,11 @@
 namespace Demo {
     public partial class AsExample {
         public string CastIt(object v) {
+            string result;
             string s;
             s = v as string;
-            return s;
+            result = s;
+            return result;
         }
     }
     

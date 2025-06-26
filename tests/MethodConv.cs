@@ -1,7 +1,9 @@
 namespace Demo {
     public partial class Conventions {
         public int Foo(int a) {
-            return a;
+            int result;
+            result = a;
+            return result;
         }
         public void Bar() {
         }
