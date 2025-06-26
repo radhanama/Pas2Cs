@@ -557,16 +557,9 @@ class TranspileTests(unittest.TestCase):
             transpile(src)
         self.assertIn('Parse error', str(cm.exception))
 
-    def test_file_end_semicolon(self):
-        src = Path('tests/EndSemicolon.pas').read_text()
-        expected = Path('tests/EndSemicolon.cs').read_text().strip()
-        result, todos = transpile(src)
-        self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, [])
-
-    def test_begin_semicolon(self):
-        src = Path('tests/BeginSemicolon.pas').read_text()
-        expected = Path('tests/BeginSemicolon.cs').read_text().strip()
+    def test_semicolon_cases(self):
+        src = Path('tests/SemicolonCases.pas').read_text()
+        expected = Path('tests/SemicolonCases.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
@@ -585,9 +578,31 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_ternary_if(self):
+        src = Path('tests/TernaryIf.pas').read_text()
+        expected = Path('tests/TernaryIf.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+
     def test_shift_ops(self):
         src = Path('tests/ShiftOps.pas').read_text()
         expected = Path('tests/ShiftOps.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_array_indexof(self):
+        src = Path('tests/ArrayIndexOf.pas').read_text()
+        expected = Path('tests/ArrayIndexOf.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_program_cases(self):
+        src = Path('tests/ProgramCases.pas').read_text()
+        expected = Path('tests/ProgramCases.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])

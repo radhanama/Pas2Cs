@@ -8,6 +8,24 @@ def map_type(pas_type: str) -> str:
     simple = pas_type.split('.')[-1]
     mapping = {
         "integer": "int",
+        "longint": "int",
+        "longword": "uint",
+        "smallint": "short",
+        "shortint": "sbyte",
+        "word": "ushort",
+        "byte": "byte",
+        "single": "float",
+        "double": "double",
+        "real": "double",
+        "extended": "double",
+        "currency": "decimal",
+        "comp": "decimal",
+        "char": "char",
+        "widechar": "char",
+        "ansistring": "string",
+        "widestring": "string",
+        "variant": "object",
+        "olevariant": "object",
         "string": "string",
         "boolean": "bool",
         "object": "object",
@@ -100,6 +118,10 @@ def fix_keyword(tok):
         tok.type = "STEP"
     elif v == "loop":
         tok.type = "LOOP"
+    elif v == "shl" or v == "shr":
+        tok.type = "OP_MUL"
+    elif v == "xor":
+        tok.type = "OP_SUM"
     elif v == "with":
         tok.type = "WITH"
     elif v == "using":
@@ -130,6 +152,12 @@ def fix_keyword(tok):
         tok.type = "IS"
     elif v == "as":
         tok.type = "AS"
+    elif v == "program":
+        tok.type = "PROGRAM"
+    elif v == "initialization":
+        tok.type = "INITIALIZATION"
+    elif v == "finalization":
+        tok.type = "FINALIZATION"
 
     _LAST_POS = tok.end_pos
     return tok

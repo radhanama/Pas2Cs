@@ -133,6 +133,9 @@ class ToCSharp(Transformer):
         pieces = [p.value if isinstance(p, Token) else str(p) for p in parts]
         return ".".join(pieces)
 
+    def name_part(self, tok):
+        return tok.value
+
     def array_type(self, *parts):
         base = parts[-1]
         return f"{base}[]"
@@ -678,6 +681,12 @@ class ToCSharp(Transformer):
     def yield_stmt(self, _tok, expr, _semi=None):
         return f"yield return {expr};"
 
+    def initialization_section(self, *stmts):
+        return ""
+
+    def finalization_section(self, *stmts):
+        return ""
+
     def if_stmt(self, cond, then_block=None, else_block=None):
         then_part = then_block if then_block is not None else "{}"
         else_part = f" else {else_block}" if else_block else ""
@@ -864,6 +873,9 @@ class ToCSharp(Transformer):
 
     def short_and(self, left, _and, _then, right):
         return self.binop(left, "and then", right)
+
+    def if_expr(self, cond, true_expr, false_expr):
+        return f"({cond}) ? {true_expr} : {false_expr}"
 
     def not_expr(self, _tok, expr):
         return f"!{expr}"

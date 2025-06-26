@@ -1,17 +1,30 @@
 # ────────────────────────── Grammar ──────────────────────────
 GRAMMAR = r"""
-?start:   (namespace | unit_decl) interface_section? class_section+ ("implementation" uses_clause? class_impl*)? ("end"i ("." | ";"))?
-
+?start:   (namespace | unit_decl | program_decl | library_decl) interface_section? class_section+ ("implementation" uses_clause? class_impl*)? initialization_section? ("end"i ("." | ";"))?
 interface_section: "interface" uses_clause? pre_class_decl*
 uses_clause:   "uses" dotted_name ("," dotted_name)* ";"       -> uses
+
 
 attribute: "[" dotted_name ("(" arg_list? ")")? "]"
 attributes: attribute+
 
-dotted_name: CNAME ("." CNAME)* -> dotted
+name_part: CNAME
+         | ARRAY
+         | RECORD
+         | INTERFACE
+         | ENUM
+         | EVENT
+         | OPERATOR
+         | TUPLE
 
+dotted_name: name_part ("." name_part)* -> dotted
 namespace:   "namespace" dotted_name ";"                       -> namespace
 unit_decl:   "unit" dotted_name ";"                             -> namespace
+program_decl: "program"i dotted_name ";"              -> namespace
+library_decl: "library" dotted_name ";"                          -> namespace
+initialization_section: "initialization" stmt* finalization_section?
+finalization_section: "finalization" stmt*
+
 class_section: "type" type_def+                                -> class_section
 type_def:     attributes? class_def
             | attributes? record_def
@@ -40,7 +53,7 @@ method_decl_rule: access_modifier? class_modifier? method_kind method_sig ";" (m
 class_modifier: "class"
 method_attr: "override" | "static" | "abstract" | "virtual" | "reintroduce"i | "overload"i
 method_kind: METHOD | PROCEDURE | FUNCTION | CONSTRUCTOR | DESTRUCTOR | OPERATOR
-access_modifier: "public"i | "protected"i | "private"i
+access_modifier: ("strict"i)? ("public"i | "protected"i | "private"i | "published"i)
 
 method_sig:    method_name param_block? return_block?            -> m_sig
              | param_block? return_block?                        -> m_sig_no_name
@@ -162,8 +175,11 @@ inherited_stmt: "inherited"i (name_term ("(" arg_list? ")" call_postfix*)?)? ";"
            | AT var_ref                              -> addr_of
            | expr OP_SUM   expr                      -> binop
            | expr OP_MUL   expr                      -> binop
+           | expr SHL expr                          -> binop
+           | expr SHR expr                          -> binop
            | expr OP_SUM ELSE expr                   -> short_or
            | expr OP_MUL THEN expr                   -> short_and
+           | "if" expr "then" expr "else" expr       -> if_expr
            | expr (OP_REL|LT|GT) expr                -> binop
            | expr IN set_lit                         -> in_expr
            | expr NOT IN set_lit                     -> not_in_expr
@@ -238,9 +254,11 @@ var_decl_infer: name_list ":=" expr ";"                 -> var_decl_infer
 LT:           "<"
 GT:           ">"
 GENERIC_ARGS: /<(?![=>])(?:(?:[^<>'()\n]|<[^<>'()\n]*>)+)>/
-OP_SUM.2:       "+" | "-" | "or" | "xor"i
-OP_MUL.2:       "*" | "/" | "and" | "mod"i | "div"i | "shl"i | "shr"i
+OP_SUM:       "+" | "-" | "or" | "xor"i
+OP_MUL:       "*" | "/" | "and" | "mod"i | "div"i
 OP_REL:       "=" | "<>" | "<=" | ">="
+SHL:          "shl"i
+SHR:          "shr"i
 ADD_ASSIGN.2:  "+="
 SUB_ASSIGN.2:  "-="
 
@@ -289,6 +307,9 @@ YIELD:       "yield"i
 INDEX:       "index"i
 IS:          "is"i
 AS:          "as"i
+PROGRAM:     "program"i
+INITIALIZATION: "initialization"i
+FINALIZATION: "finalization"i
 AUTORELEASEPOOL: "autoreleasepool"i
 RECORD:      "record"i
 INTERFACE:   "interface"i
@@ -297,6 +318,7 @@ FLAGS:       "flags"i
 EVENT:       "event"i
 OPERATOR:    "operator"i
 TUPLE:       "tuple"i
+ARRAY:       "array"i
 TYPEOF:      "typeof"i
 AT:          "@"
 CARET:       "^"
