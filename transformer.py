@@ -713,6 +713,9 @@ class ToCSharp(Transformer):
     def on_handler(self, _on, name, typ, _do, stmt):
         return ('on_handler', str(name), typ, stmt)
 
+    def on_handler_empty(self, _on, name, typ, _do):
+        return ('on_handler', str(name), typ, '')
+
     def yield_stmt(self, _tok, expr, _semi=None):
         return f"yield return {expr};"
 
@@ -822,7 +825,10 @@ class ToCSharp(Transformer):
             for handler in except_clause:
                 if isinstance(handler, tuple) and handler[0] == 'on_handler':
                     _tag, name, typ, stmt = handler
-                    catch_body = stmt if stmt.strip().startswith('{') else f"{{\n{indent(stmt)}\n}}"
+                    if stmt.strip():
+                        catch_body = stmt if stmt.strip().startswith('{') else f"{{\n{indent(stmt)}\n}}"
+                    else:
+                        catch_body = "{}"
                     res += f"\ncatch ({map_type_ext(str(typ))} {name})\n{catch_body}"
                 else:
                     generic_body.append(handler)
