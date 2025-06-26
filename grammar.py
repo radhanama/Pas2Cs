@@ -160,8 +160,9 @@ on_handler: ON CNAME ":" type_name DO stmt -> on_handler
 
 case_stmt:   "case" expr "of" case_branch+ ("else" stmt+)? "end"i ";"? -> case_stmt
 case_branch: case_label ("," case_label)* ":" stmt ";"?
-case_label: NUMBER DOTDOT NUMBER        -> label_range
-          | NUMBER
+signed_number: OP_SUM? NUMBER          -> signed_number
+case_label: signed_number DOTDOT signed_number        -> label_range
+          | signed_number
           | SQ_STRING
           | STRING
           | dotted_name
