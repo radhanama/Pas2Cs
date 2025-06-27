@@ -7,7 +7,7 @@ type
   end;
 
 implementation
-uses System;
+uses System, System.Net.Mail;
 
 method KeywordName.DoStuff(mail: MailMessage);
 var

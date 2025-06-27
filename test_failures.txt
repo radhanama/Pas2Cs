@@ -1,1 +1,1 @@
-1 failing test: test_ternary_if. Output mismatch due to missing parentheses in conditional expression.
+All tests pass.

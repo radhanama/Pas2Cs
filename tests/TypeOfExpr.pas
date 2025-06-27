@@ -7,6 +7,7 @@ type
   end;
 
 implementation
+uses System.Data;
 
 method TypeOfExpr.AddCol(dt: DataTable);
 begin

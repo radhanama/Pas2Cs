@@ -1,3 +1,5 @@
+using System;
+
 namespace Demo {
     public partial class TypeOfNew {
         public static byte[] MakeArray(int len) {

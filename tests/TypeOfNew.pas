@@ -8,6 +8,7 @@ type
   end;
 
 implementation
+uses System;
 
 class method TypeOfNew.MakeArray(len: Integer): array of Byte;
 begin

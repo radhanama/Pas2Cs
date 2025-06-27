@@ -7,6 +7,7 @@ type
   end;
 
 implementation
+uses System.Net.Mail;
 
 method ReservedProp.Send(mail: MailMessage; emailTo: String);
 begin

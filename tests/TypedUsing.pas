@@ -8,6 +8,7 @@ type
   end;
 
 implementation
+uses System;
 
 class method TypedUsing.GetRes: IDisposable;
 begin
