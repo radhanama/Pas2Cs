@@ -46,6 +46,7 @@ class_signature: member_decl* -> class_sign
 member_decl: attributes? method_decl_rule
            | attributes? access_modifier? (CLASSVAR | VAR) attributes? name_list ":" type_spec (":=" expr)? ";"      -> field_decl
            | access_modifier? name_list ":" type_spec (":=" expr)? ";"      -> field_decl
+
            | attributes? access_modifier? "class"? "property"i property_sig ";"      -> property_decl
            | attributes? access_modifier? "event"i CNAME ":" type_spec ";"  -> event_decl
            | attributes? access_modifier? "class"? "const"i const_decl+            -> const_block
