@@ -18,7 +18,7 @@ if (( total == 0 )); then
 fi
 
 # processa em lotes para evitar 'argument list too long'
-batch_size=100
+batch_size=300
 count=0
 success=0
 fail=0

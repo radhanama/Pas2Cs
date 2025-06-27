@@ -41,7 +41,7 @@ def _get_parser() -> Lark:
 def transpile(source: str, manual_translate=None, manual_parse_error=None) -> tuple[str, list[str]]:
     source = source.lstrip('\ufeff')
     # Collapse accidental double semicolons which can appear in some Pascal code
-    source = re.sub(r';;(?=\s*(?:\n|$))', ';', source)
+    source = re.sub(r';\s?;(?=\s*(?:\n|$))', ';', source)
     source = remove_accents_code(source)
     set_source(source)
     parser = _get_parser()
