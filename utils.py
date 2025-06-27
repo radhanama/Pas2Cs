@@ -83,6 +83,64 @@ def map_type_ext(typ: str) -> str:
 _SRC_TEXT = ""
 _LAST_POS = 0
 
+# Mapping of Pascal keywords to their lexer token types. Used by `fix_keyword`
+# for efficient keyword detection.
+KEYWORD_MAP = {
+    "and": "OP_MUL",
+    "or": "OP_SUM",
+    "not": "NOT",
+    "mod": "OP_MUL",
+    "div": "OP_MUL",
+    "while": "WHILE",
+    "do": "DO",
+    "for": "FOR",
+    "to": "TO",
+    "const": "CONST",
+    "try": "TRY",
+    "except": "EXCEPT",
+    "finally": "FINALLY",
+    "on": "ON",
+    "end": "END",
+    "begin": "BEGIN",
+    "break": "BREAK",
+    "continue": "CONTINUE",
+    "each": "EACH",
+    "step": "STEP",
+    "loop": "LOOP",
+    "shl": "OP_MUL",
+    "shr": "OP_MUL",
+    "xor": "OP_SUM",
+    "with": "WITH",
+    "using": "USING",
+    "locking": "LOCKING",
+    "yield": "YIELD",
+    "autoreleasepool": "AUTORELEASEPOOL",
+    "record": "RECORD",
+    "interface": "INTERFACE",
+    "enum": "ENUM",
+    "flags": "FLAGS",
+    "event": "EVENT",
+    "operator": "OPERATOR",
+    "packed": "PACKED",
+    "tuple": "TUPLE",
+    "typeof": "TYPEOF",
+    "sealed": "SEALED",
+    "final": "FINAL",
+    "inline": "INLINE",
+    "cdecl": "CDECL",
+    "stdcall": "STDCALL",
+    "safecall": "SAFECALL",
+    "varargs": "VARARGS",
+    "external": "EXTERNAL",
+    "forward": "FORWARD",
+    "threadvar": "THREADVAR",
+    "is": "IS",
+    "as": "AS",
+    "program": "PROGRAM",
+    "initialization": "INITIALIZATION",
+    "finalization": "FINALIZATION",
+}
+
 def set_source(text: str) -> None:
     """Store source text so fix_keyword can check surrounding characters."""
     global _SRC_TEXT, _LAST_POS
@@ -114,112 +172,9 @@ def fix_keyword(tok):
         _LAST_POS = tok.end_pos
         return tok
 
-    if v == "and":
-        tok.type = "OP_MUL"
-    elif v == "or":
-        tok.type = "OP_SUM"
-    elif v == "not":
-        tok.type = "NOT"
-    elif v == "mod":
-        tok.type = "OP_MUL"
-    elif v == "div":
-        tok.type = "OP_MUL"
-    elif v == "while":
-        tok.type = "WHILE"
-    elif v == "do":
-        tok.type = "DO"
-    elif v == "for":
-        tok.type = "FOR"
-    elif v == "to":
-        tok.type = "TO"
-    elif v == "const":
-        tok.type = "CONST"
-    elif v == "try":
-        tok.type = "TRY"
-    elif v == "except":
-        tok.type = "EXCEPT"
-    elif v == "finally":
-        tok.type = "FINALLY"
-    elif v == "on":
-        tok.type = "ON"
-    elif v == "end":
-        tok.type = "END"
-    elif v == "begin":
-        tok.type = "BEGIN"
-    elif v == "break":
-        tok.type = "BREAK"
-    elif v == "continue":
-        tok.type = "CONTINUE"
-    elif v == "each":
-        tok.type = "EACH"
-    elif v == "step":
-        tok.type = "STEP"
-    elif v == "loop":
-        tok.type = "LOOP"
-    elif v == "shl" or v == "shr":
-        tok.type = "OP_MUL"
-    elif v == "xor":
-        tok.type = "OP_SUM"
-    elif v == "with":
-        tok.type = "WITH"
-    elif v == "using":
-        tok.type = "USING"
-    elif v == "locking":
-        tok.type = "LOCKING"
-    elif v == "yield":
-        tok.type = "YIELD"
-    elif v == "autoreleasepool":
-        tok.type = "AUTORELEASEPOOL"
-    elif v == "record":
-        tok.type = "RECORD"
-    elif v == "interface":
-        tok.type = "INTERFACE"
-    elif v == "enum":
-        tok.type = "ENUM"
-    elif v == "flags":
-        tok.type = "FLAGS"
-    elif v == "event":
-        tok.type = "EVENT"
-    elif v == "operator":
-        tok.type = "OPERATOR"
-    elif v == "packed":
-        tok.type = "PACKED"
-    elif v == "tuple":
-        tok.type = "TUPLE"
-    elif v == "typeof":
-        tok.type = "TYPEOF"
-    elif v == "sealed":
-        tok.type = "SEALED"
-    elif v == "final":
-        tok.type = "FINAL"
-    elif v == "packed":
-        tok.type = "PACKED"
-    elif v == "inline":
-        tok.type = "INLINE"
-    elif v == "cdecl":
-        tok.type = "CDECL"
-    elif v == "stdcall":
-        tok.type = "STDCALL"
-    elif v == "safecall":
-        tok.type = "SAFECALL"
-    elif v == "varargs":
-        tok.type = "VARARGS"
-    elif v == "external":
-        tok.type = "EXTERNAL"
-    elif v == "forward":
-        tok.type = "FORWARD"
-    elif v == "threadvar":
-        tok.type = "THREADVAR"
-    elif v == "is":
-        tok.type = "IS"
-    elif v == "as":
-        tok.type = "AS"
-    elif v == "program":
-        tok.type = "PROGRAM"
-    elif v == "initialization":
-        tok.type = "INITIALIZATION"
-    elif v == "finalization":
-        tok.type = "FINALIZATION"
+    token_type = KEYWORD_MAP.get(v)
+    if token_type:
+        tok.type = token_type
 
     _LAST_POS = tok.end_pos
     return tok
