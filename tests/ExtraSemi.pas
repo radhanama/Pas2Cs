@@ -8,11 +8,12 @@ type
 
 implementation
 
-class method ExtraSemi.Demo();
-var x: Integer;
-begin
+  class method ExtraSemi.Demo();
+  var x: Integer;
+  begin
   x := 1;;
+  ;
   x := x + 1;;
-end;
+  end;
 
 end.
