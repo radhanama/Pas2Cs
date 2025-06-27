@@ -284,8 +284,8 @@ PROCEDURE:   "procedure"i
 FUNCTION:    "function"i
 CONSTRUCTOR: "constructor"i
 DESTRUCTOR:  "destructor"i
-CLASSVAR.2:  /class\s+var/i
 VAR:         "var"i
+CLASSVAR.2:  /class\s+var/i
 OUT:         "out"i
 CONST:       "const"i
 FOR:         "for"i
