@@ -5,5 +5,11 @@ namespace Demo {
             result = 0;
             return result;
         }
+        [Obsolete]
+        public static int Bar(int x) {
+            int result;
+            result = x;
+            return result;
+        }
     }
 }

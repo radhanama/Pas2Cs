@@ -25,6 +25,7 @@ class ToCSharp(Transformer):
         self.class_order = []
         self.impl_methods = defaultdict(set)
         self.class_fields = defaultdict(set)
+        self.method_attrs = defaultdict(dict)
         self.curr_impl_class = None
         self.curr_unsafe = False
         self.curr_class = None
@@ -33,6 +34,9 @@ class ToCSharp(Transformer):
         # string translation or None.
         self.manual_translate = manual_translate
         self.usings = OrderedDict()
+        self.assembly_attrs = []
+        self.class_attributes = defaultdict(list)
+        self.in_attribute = False
 
     def _translate_expr_text(self, text: str) -> str:
         """Translate simple Pascal expressions used inside array indexes."""
@@ -65,12 +69,33 @@ class ToCSharp(Transformer):
         return escape_cs_keyword(text)
 
     def attributes(self, *items):
-        return ""
+        return list(items)
 
     def attribute(self, *parts):
-        return ""
+        name = str(parts[0])
+        args = None
+        if len(parts) > 1:
+            args = parts[1]
+        prev = self.in_attribute
+        self.in_attribute = True
+        if args:
+            arg_text = ", ".join(args)
+            result = f"[{name}({arg_text})]"
+        else:
+            result = f"[{name}]"
+        self.in_attribute = prev
+        return result
 
     def assembly_attr(self, *parts):
+        _assembly = parts[0]
+        name = str(parts[1])
+        args = parts[2] if len(parts) > 2 else None
+        if args:
+            arg_text = ", ".join(args)
+            attr = f"[assembly: {name}({arg_text})]"
+        else:
+            attr = f"[assembly: {name}]"
+        self.assembly_attrs.append(attr)
         return ""
 
     # ── root rule -------------------------------------------------
@@ -91,14 +116,16 @@ class ToCSharp(Transformer):
             body_lines.extend(self.class_impls.get(cname, []))
             body = "\n".join(body_lines).rstrip()
             body = indent(body) if body else ""
+            attrs = self.class_attributes.get(cname, [])
+            attr_lines = "\n".join(attrs) + "\n" if attrs else ""
             if kind == "enum":
                 enum_body = ",\n".join(sign_list)
-                classes.append(f"public enum {cname} {{\n{indent(enum_body)}\n}}")
+                classes.append(f"{attr_lines}public enum {cname} {{\n{indent(enum_body)}\n}}")
             else:
                 kw = "interface" if kind == "interface" else ("struct" if kind == "record" else "class")
                 partial = "partial " if kind in ("class", "record") else ""
                 sealed_kw = "sealed " if 'sealed' in mods else ""
-                classes.append(f"public {sealed_kw}{partial}{kw} {cname}{base} {{\n{body}\n}}")
+                classes.append(f"{attr_lines}public {sealed_kw}{partial}{kw} {cname}{base} {{\n{body}\n}}")
         ns_body = "\n\n".join(classes)
         using_lines = ""
         if self.usings:
@@ -106,6 +133,8 @@ class ToCSharp(Transformer):
         alias_lines = "\n".join(self.alias_defs)
 
         header_parts = []
+        if self.assembly_attrs:
+            header_parts.append("\n".join(self.assembly_attrs))
         if using_lines:
             header_parts.append(using_lines)
         if alias_lines:
@@ -119,6 +148,11 @@ class ToCSharp(Transformer):
 
     def _parse_sig(self, line):
         line = line.strip()
+        if "[" in line:
+            parts = line.split("\n")
+            line = parts[-1].strip()
+            while line.startswith("[") and "]" in line:
+                line = line.split("]", 1)[1].strip()
         if not line.startswith("public"):
             return None
         line = line[len("public"):].strip()
@@ -214,9 +248,19 @@ class ToCSharp(Transformer):
         return '<' + ', '.join(cleaned) + '>'
 
     def _add_type(self, cname, kind, base, sign_list, mods=None):
-        self.class_defs[str(cname)] = (kind, base, sign_list, mods or set())
-        if str(cname) not in self.class_order:
-            self.class_order.append(str(cname))
+        cname_str = str(cname)
+        self.class_defs[cname_str] = (kind, base, sign_list, mods or set())
+        if cname_str not in self.class_order:
+            self.class_order.append(cname_str)
+        # capture method attributes from interface declarations
+        for line in sign_list:
+            if '[' in line:
+                parts = line.split('\n')
+                attrs = [p.strip() for p in parts[:-1] if p.strip()]
+                decl = parts[-1].strip()
+                info = self._parse_sig(decl)
+                if info:
+                    self.method_attrs[cname_str][info] = attrs
 
     def class_def(self, cname, *parts):
         generics = ''
@@ -321,8 +365,15 @@ class ToCSharp(Transformer):
         return ""
 
     def type_def(self, *parts):
+        attrs = []
+        if parts and isinstance(parts[0], list):
+            attrs = parts[0]
+            parts = parts[1:]
         item = parts[-1]
-        return item
+        result = item
+        if attrs and self.class_order:
+            self.class_attributes[self.class_order[-1]].extend(attrs)
+        return result
 
     def class_section(self, *classes):
         return ""
@@ -450,6 +501,8 @@ class ToCSharp(Transformer):
         return value
 
     def named_arg(self, name, expr):
+        if self.in_attribute:
+            return f"{name} = {expr}"
         return expr
 
     def method_decl(self, *parts):
@@ -462,8 +515,17 @@ class ToCSharp(Transformer):
         self.curr_static = False
         return sig
 
-    def member_decl(self, item):
-        return item
+    def member_decl(self, *items):
+        attrs = []
+        items = list(items)
+        if items and isinstance(items[0], list):
+            attrs = items.pop(0)
+        if not items:
+            return ""
+        decl = items[-1]
+        if attrs:
+            return "\n".join(attrs + [decl])
+        return decl
 
     def section(self, token=None):
         return ""
@@ -657,8 +719,11 @@ class ToCSharp(Transformer):
         modifier = "static " if self.curr_static else ""
         unsafe_kw = "unsafe " if self.curr_unsafe else ""
         method = f"public {modifier}{unsafe_kw}{ret} {name}({params_cs}) {body}"
-        self.class_impls[cls].append(method)
         key = (name, params_cs, ret, self.curr_static)
+        attrs = self.method_attrs.get(cls, {}).get(key)
+        if attrs:
+            method = "\n".join(attrs) + "\n" + method
+        self.class_impls[cls].append(method)
         self.impl_methods[cls].add(key)
         # clear method context after generating its body
         self.curr_method = None
