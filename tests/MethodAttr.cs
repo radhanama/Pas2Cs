@@ -12,4 +12,19 @@ namespace Demo {
             return result;
         }
     }
+    
+    public partial class WebService {
+        [WebMethod(EnableSession = true)]
+        [ScriptMethod]
+        public static string SalvarCadastro(string natrend, string prestserv, string data, string base_calculo, string vl_imposto) {
+            string result;
+            result = "";
+            return result;
+        }
+        public string DescricaoNatRend(object natrend) {
+            string result;
+            result = "";
+            return result;
+        }
+    }
 }

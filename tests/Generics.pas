@@ -2,7 +2,7 @@ namespace Demo;
 
 interface
 
-uses System.Collections.Generic, Newtonsoft.Json.Linq, System.Collections;
+uses System.Collections.Generic, Newtonsoft.Json.Linq, System.Collections, System.IO;
 
 type
   MyList = public class(List<String>)
@@ -14,6 +14,7 @@ type
   public
     method UseList(l: List<String>);
     method Parse(ret: JObject);
+    method WithNested(d: Dictionary<String, List<FileInfo>>);
   end;
 
   GenericStatic = public class
@@ -45,6 +46,13 @@ var
   aux: Hashtable;
 begin
   aux := (ret as JObject).ToObject<Hashtable>();
+end;
+
+method GenExample.WithNested(d: Dictionary<String, List<FileInfo>>);
+var
+  x: Dictionary<String, List<FileInfo>>;
+begin
+  x := new Dictionary<String, List<FileInfo>>;
 end;
 
 class method GenericStatic.Use();
