@@ -205,6 +205,10 @@ class ToCSharp(Transformer):
         self.curr_static = True
         return ""
 
+    def CLASSVAR(self, token=None):
+        self.curr_static = True
+        return "var"
+
     # ── module / class ───────────────────────────────────────
     def namespace(self, name):
         self.ns = str(name)
