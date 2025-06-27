@@ -17,15 +17,34 @@ if (( total == 0 )); then
     exit 0
 fi
 
-# processa todos os arquivos em uma única chamada ao Python
-python pas2cs.py "${files[@]}" 2>>"$log_file"
+# processa em lotes para evitar 'argument list too long'
+batch_size=100
+count=0
+success=0
+fail=0
+bar_width=40
 
-# imprime resumo simples
-if grep -q '^ERROR' "$log_file"; then
-    erros=$(grep -c '^ERROR' "$log_file")
-    ok=$(( total - erros ))
-else
-    erros=0
-    ok=$total
-fi
-echo "Concluído: total=$total, ok=$ok, erros=$erros"
+draw_progress() {
+    local percent=$(( count * 100 / total ))
+    local hashes=$(( percent * bar_width / 100 ))
+    local dots=$(( bar_width - hashes ))
+    local bar
+    bar=$(printf '%0.s#' $(seq 1 $hashes))
+    bar+=$(printf '%0.s.' $(seq 1 $dots))
+    echo -ne "[$bar] $percent% ($count/$total) OK:$success ERR:$fail\r"
+}
+
+while (( count < total )); do
+    batch=("${files[@]:count:batch_size}")
+    output=$(python pas2cs.py "${batch[@]}" 2>>"$log_file")
+    last_line=$(echo "$output" | tail -n 1)
+    if [[ $last_line =~ ok=([0-9]+),[[:space:]]errors=([0-9]+) ]]; then
+        success=$(( success + BASH_REMATCH[1] ))
+        fail=$(( fail + BASH_REMATCH[2] ))
+    fi
+    count=$(( count + ${#batch[@]} ))
+    draw_progress
+done
+echo
+echo "Concluído: total=$total, ok=$success, erros=$fail"
+exit $(( fail > 0 ))
