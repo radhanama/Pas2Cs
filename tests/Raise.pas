@@ -1,6 +1,7 @@
 namespace Demo;
 
 interface
+uses System;
 
 type
   RaiseExample = public class
