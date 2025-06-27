@@ -23,6 +23,9 @@ def interactive_translate(rule: str, children, line: int) -> str | None:
     return inp.strip() or None
 
 _PARSER: Lark | None = None
+# Cache file to store the compiled parser so it can be reused across
+# multiple processes (e.g. CLI calls or test runs).
+_CACHE_FILE = Path(__file__).with_suffix(".lark")
 
 
 def _get_parser() -> Lark:
@@ -33,7 +36,7 @@ def _get_parser() -> Lark:
             parser="lalr",
             maybe_placeholders=True,
             lexer_callbacks={"CNAME": fix_keyword},
-            cache=True,
+            cache=str(_CACHE_FILE),
         )
     return _PARSER
 

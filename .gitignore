@@ -5,3 +5,4 @@ Pas2CsCS/PascalScanner.cs
 Pas2CsCS.Tests/bin/
 Pas2CsCS.Tests/obj/
 __pycache__/
+pas2cs.lark
