@@ -227,6 +227,13 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_field_attr(self):
+        src = Path('tests/FieldAttr.pas').read_text()
+        expected = Path('tests/FieldAttr.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, ["// TODO: field Field: int -> declare a field"])
+
     def test_method_conv(self):
         src = Path('tests/MethodConv.pas').read_text()
         expected = Path('tests/MethodConv.cs').read_text().strip()

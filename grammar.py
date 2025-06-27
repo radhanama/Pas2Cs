@@ -44,7 +44,7 @@ enum_item:   CNAME ("=" NUMBER)?                               -> enum_item
 
 class_signature: member_decl* -> class_sign
 member_decl: attributes? method_decl_rule
-           | attributes? access_modifier? class_modifier? VAR? name_list ":" type_spec (":=" expr)? ";"      -> field_decl
+           | attributes? access_modifier? class_modifier? VAR? attributes? name_list ":" type_spec (":=" expr)? ";"      -> field_decl
            | attributes? access_modifier? "class"? "property"i property_sig ";"      -> property_decl
            | attributes? access_modifier? "event"i CNAME ":" type_spec ";"  -> event_decl
            | attributes? access_modifier? "class"? "const"i const_decl+            -> const_block
@@ -79,7 +79,7 @@ type_spec: type_name "?"?                              -> type_spec
            | array_type
            | generic_type
            | dotted_name
-ARRAY_RANGE: /\[(?:[^\[\]]|\[[^\]]*\])*\]/
+ARRAY_RANGE: /\[(?![^\]]*:=)(?:[^\[\]]|\[[^\]]*\])*\]/
 array_type:  "array"i ARRAY_RANGE? "of"i type_name
 
 pointer_type: CARET type_name

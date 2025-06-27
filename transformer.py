@@ -76,15 +76,29 @@ class ToCSharp(Transformer):
         args = None
         if len(parts) > 1:
             args = parts[1]
-        prev = self.in_attribute
-        self.in_attribute = True
         if args:
-            arg_text = ", ".join(args)
+            pieces = []
+            for a in args:
+                if isinstance(a, tuple) and a[0] == 'named':
+                    pieces.append(f"{a[1]} = {a[2]}")
+                else:
+                    pieces.append(str(a))
+            arg_text = ", ".join(pieces)
             result = f"[{name}({arg_text})]"
         else:
             result = f"[{name}]"
-        self.in_attribute = prev
         return result
+
+    @staticmethod
+    def attribute_visit_wrapper(f, data, children, meta):
+        self = f.__self__
+        prev = self.in_attribute
+        self.in_attribute = True
+        res = f(*children)
+        self.in_attribute = prev
+        return res
+
+    attribute.visit_wrapper = attribute_visit_wrapper
 
     def assembly_attr(self, *parts):
         _assembly = parts[0]
@@ -501,9 +515,7 @@ class ToCSharp(Transformer):
         return value
 
     def named_arg(self, name, expr):
-        if self.in_attribute:
-            return f"{name} = {expr}"
-        return expr
+        return ('named', str(name), expr)
 
     def method_decl(self, *parts):
         for p in parts:
@@ -566,7 +578,18 @@ class ToCSharp(Transformer):
     def field_decl(self, *parts):
         is_static = self.curr_static
         self.curr_static = False
-        items = [p for p in parts if p not in ("", "var")]
+        attrs = []
+        items = []
+        for p in parts:
+            if p in ("", "var"):
+                continue
+            if isinstance(p, list):
+                if p and str(p[0]).startswith('['):
+                    attrs.extend(p)
+                    continue
+                items.append(p)
+                continue
+            items.append(p)
         if len(items) == 3:
             names, typ, expr = items
         else:
@@ -580,6 +603,8 @@ class ToCSharp(Transformer):
         self.todo.append(info)
         if self.curr_class:
             self.class_fields[self.curr_class].update(names)
+        if attrs:
+            return info + "\n" + "\n".join(attrs + [impl])
         return info + "\n" + impl
 
     def property_sig(self, name, *parts):
@@ -1145,6 +1170,7 @@ class ToCSharp(Transformer):
         first_args = []
         if parts and isinstance(parts[0], list):
             first_args = parts.pop(0)
+        first_args = [a[2] if isinstance(a, tuple) and a[0]=='named' else a for a in first_args]
         call = str(fn)
         if ' as ' in call and (first_args or parts):
             call = f"({call})"
@@ -1192,24 +1218,26 @@ class ToCSharp(Transformer):
                     if args is None:
                         call += f".{name}"
                     else:
+                        args = [a[2] if isinstance(a, tuple) and a[0]=='named' else a for a in args]
                         call += f".{name}({', '.join(args)})"
                 elif kind == 'index':
                     call += part[1]
             elif isinstance(part, Token) and part.type == 'GENERIC_ARGS':
-                if call.endswith("()"): 
+                if call.endswith("()"):
                     call = call[:-2] + part.value + "()"
                     if i < len(parts) and isinstance(parts[i], list):
                         i += 1
                 else:
                     call += part.value
                     if i < len(parts) and isinstance(parts[i], list):
-                        call += f"({', '.join(parts[i])})"
+                        extra = [a[2] if isinstance(a, tuple) and a[0]=='named' else a for a in parts[i]]
+                        call += f"({', '.join(extra)})"
                         i += 1
             else:
                 name = part
                 arglist = []
                 if i < len(parts) and isinstance(parts[i], list):
-                    arglist = parts[i]
+                    arglist = [a[2] if isinstance(a, tuple) and a[0]=='named' else a for a in parts[i]]
                     i += 1
                 call += f".{name}({', '.join(arglist)})"
         return call
