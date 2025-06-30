@@ -836,6 +836,15 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_example_issue(self):
+        src = Path("tests/ExampleIssue.pas").read_text()
+        expected = Path("tests/ExampleIssue.cs").read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+
+
     def test_safe_print_cp1252(self):
         import io, sys
         from utils import safe_print
