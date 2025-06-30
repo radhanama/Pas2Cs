@@ -263,6 +263,7 @@ literal_string: STRING -> string
 call_expr:   var_ref "(" arg_list? ")" call_postfix* -> call
            | generic_call_base ("(" arg_list? ")")? call_postfix* -> call
            | new_expr "." name_term GENERIC_ARGS? call_args? call_postfix* -> call
+           | array_of_expr prop_call call_postfix* -> call
            | "(" expr ")" "." name_term GENERIC_ARGS? call_args? call_postfix* -> call
            | literal_string "." name_term GENERIC_ARGS? call_args? call_postfix* -> call
            | "inherited"i name_term GENERIC_ARGS? call_args? call_postfix* -> inherited_call_expr
@@ -271,6 +272,7 @@ call_expr:   var_ref "(" arg_list? ")" call_postfix* -> call
 call_lhs:   var_ref "(" arg_list? ")" call_postfix+                 -> call
            | generic_call_base ("(" arg_list? ")")? call_postfix+    -> call
            | new_expr "." name_term GENERIC_ARGS? call_args? call_postfix+ -> call
+           | array_of_expr prop_call call_postfix+ -> call
            | "(" expr ")" "." name_term GENERIC_ARGS? call_args? call_postfix+ -> call
            | literal_string "." name_term GENERIC_ARGS? call_args? call_postfix+ -> call
            | typeof_expr call_postfix+                                 -> call
