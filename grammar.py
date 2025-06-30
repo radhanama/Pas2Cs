@@ -61,7 +61,13 @@ method_attr: "override" | "static" | "abstract" | "virtual" | "reintroduce"i | "
            | "external"i | "forward"i | "platform"i | "deprecated"i | "message"i
            | "implements" dotted_name
 method_kind: METHOD | PROCEDURE | FUNCTION | CONSTRUCTOR | DESTRUCTOR | OPERATOR
-access_modifier: ("strict"i)? ("public"i | "protected"i | "private"i | "published"i)
+access_modifier: "strict"i? ("public"i
+  | "protected"i
+  | "private"i
+  | "published"i
+  | ASSEMBLY
+  | ASSEMBLY ANDKW "protected"i
+  | "protected"i ANDKW ASSEMBLY)
 
 method_sig:    method_name param_block? return_block?            -> m_sig
              | param_block? return_block?                        -> m_sig_no_name
@@ -285,6 +291,8 @@ var_decl_infer: name_list ":=" expr ";"                 -> var_decl_infer
 LT:           "<"
 GT:           ">"
 GENERIC_ARGS: /<[A-Za-z_][^<>]*(?:<[^<>]*>[^<>]*)*>/
+ASSEMBLY.3:  "assembly"i
+ANDKW.3:     "and"i
 OP_SUM:       "+" | "-" | "or" | "xor"i
 OP_MUL:       "*" | "/" | "and" | "mod"i | "div"i
 OP_REL:       "=" | "<>" | "<=" | ">="

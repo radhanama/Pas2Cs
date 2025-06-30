@@ -573,7 +573,7 @@ class ToCSharp(Transformer):
         self.curr_kind = str(token) if token else None
         return ""
 
-    def access_modifier(self, token=None):
+    def access_modifier(self, *tokens):
         return ""
 
     def method_attr(self, token=None):
