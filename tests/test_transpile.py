@@ -309,7 +309,13 @@ class TranspileTests(unittest.TestCase):
         expected = Path('tests/ClassVar.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, ['// TODO: field Log: int -> declare a field'])
+        self.assertEqual(
+            todos,
+            [
+                '// TODO: field Log: int -> declare a field',
+                '// TODO: field Random: System.Random -> declare a field',
+            ],
+        )
 
     def test_new_args(self):
         src = Path('tests/NewArgs.pas').read_text()
