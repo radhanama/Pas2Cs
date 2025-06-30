@@ -39,29 +39,8 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(todos, [])
 
     def test_comments(self):
-        src = Path('tests/Commented.pas').read_text()
-        expected = Path('tests/Commented.cs').read_text().strip()
-        result, todos = transpile(src)
-        self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, [])
-
-    def test_paren_comment(self):
-        src = Path('tests/ParenComment.pas').read_text()
-        expected = Path('tests/ParenComment.cs').read_text().strip()
-        result, todos = transpile(src)
-        self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, [])
-
-    def test_brace_comment(self):
-        src = Path('tests/BraceComment.pas').read_text()
-        expected = Path('tests/BraceComment.cs').read_text().strip()
-        result, todos = transpile(src)
-        self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, [])
-
-    def test_cstyle_comment(self):
-        src = Path('tests/CStyleComment.pas').read_text()
-        expected = Path('tests/CStyleComment.cs').read_text().strip()
+        src = Path('tests/Comments.pas').read_text()
+        expected = Path('tests/Comments.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
@@ -283,16 +262,9 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
-    def test_case_stmt(self):
-        src = Path('tests/CaseStmt.pas').read_text()
-        expected = Path('tests/CaseStmt.cs').read_text().strip()
-        result, todos = transpile(src)
-        self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, [])
-
-    def test_case_upper(self):
-        src = Path('tests/CaseUpper.pas').read_text()
-        expected = Path('tests/CaseUpper.cs').read_text().strip()
+    def test_case_statements(self):
+        src = Path('tests/CaseStatements.pas').read_text()
+        expected = Path('tests/CaseStatements.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
@@ -402,54 +374,13 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
-    def test_try_except_on(self):
-        src = Path('tests/TryExceptOn.pas').read_text()
-        expected = Path('tests/TryExceptOn.cs').read_text().strip()
+    def test_try_blocks(self):
+        src = Path('tests/TryBlocks.pas').read_text()
+        expected = Path('tests/TryBlocks.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
-    def test_try_except_on_type(self):
-        src = Path('tests/TryExceptOnType.pas').read_text()
-        expected = Path('tests/TryExceptOnType.cs').read_text().strip()
-        result, todos = transpile(src)
-        self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, [])
-
-    def test_try_except_on_empty(self):
-        src = Path('tests/TryExceptOnEmpty.pas').read_text()
-        expected = Path('tests/TryExceptOnEmpty.cs').read_text().strip()
-        result, todos = transpile(src)
-        self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, [])
-
-    def test_try_except_empty(self):
-        src = Path('tests/TryExceptEmpty.pas').read_text()
-        expected = Path('tests/TryExceptEmpty.cs').read_text().strip()
-        result, todos = transpile(src)
-        self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, [])
-
-    def test_try_except_empty_semi(self):
-        src = Path('tests/TryExceptEmptySemi.pas').read_text()
-        expected = Path('tests/TryExceptEmptySemi.cs').read_text().strip()
-        result, todos = transpile(src)
-        self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, [])
-
-    def test_try_finally_empty(self):
-        src = Path('tests/TryFinallyEmpty.pas').read_text()
-        expected = Path('tests/TryFinallyEmpty.cs').read_text().strip()
-        result, todos = transpile(src)
-        self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, [])
-
-    def test_if_else_empty(self):
-        src = Path('tests/IfElseEmpty.pas').read_text()
-        expected = Path('tests/IfElseEmpty.cs').read_text().strip()
-        result, todos = transpile(src)
-        self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, [])
 
     def test_with_stmt(self):
         src = Path('tests/WithStmt.pas').read_text()
@@ -680,26 +611,21 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
-    def test_case_else(self):
-        src = Path('tests/CaseElse.pas').read_text()
-        expected = Path('tests/CaseElse.cs').read_text().strip()
-        result, todos = transpile(src)
-        self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, [])
 
-    def test_if_expr(self):
-        src = Path('tests/IfExpr.pas').read_text()
-        expected = Path('tests/IfExpr.cs').read_text().strip()
-        result, todos = transpile(src)
-        self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, [])
 
-    def test_if_expr_no_else(self):
-        src = Path('tests/IfExprNoElse.pas').read_text()
-        expected = Path('tests/IfExprNoElse.cs').read_text().strip()
+
+    def test_if_statements(self):
+        src = Path('tests/IfStatements.pas').read_text()
+        expected = Path('tests/IfStatements.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, [])
+        self.assertEqual(
+            todos,
+            [
+                '// TODO: field ehVazio: bool -> declare a field',
+                '// TODO: field indUltimaPos: int -> declare a field',
+            ],
+        )
 
     def test_hour_check(self):
         src = Path('tests/HourCheck.pas').read_text()
@@ -758,12 +684,6 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
-    def test_if_then_semi(self):
-        src = Path('tests/IfThenSemi.pas').read_text()
-        expected = Path('tests/IfThenSemi.cs').read_text().strip()
-        result, todos = transpile(src)
-        self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, [])
 
     def test_local_const(self):
         src = Path('tests/LocalConst.pas').read_text()

@@ -36,7 +36,7 @@ class NewFeatureTests(unittest.TestCase):
         self.check_pair('VarCallArg', allow_todos=True)
 
     def test_if_or(self):
-        self.check_pair('IfOr', allow_todos=True)
+        self.check_pair('IfStatements', allow_todos=True)
 
     def test_result_call(self):
         self.check_pair('ResultCall')
