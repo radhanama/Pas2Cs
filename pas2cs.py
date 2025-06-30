@@ -43,7 +43,8 @@ def transpile(source: str, manual_translate=None, manual_parse_error=None) -> tu
     # Collapse accidental double semicolons. For lines that consist solely of a
     # semicolon we strip the semicolon but keep the line break so error
     # positions still match the original source.
-    source = re.sub(r'\n\s*;\s*(?=\n)', ';\n', source)
+    source = re.sub(r'(?<!\})\n\s*;\s*(?=\n)', ';\n', source)
+    source = re.sub(r'\}\s*;', '}', source)
     source = re.sub(r';[ \t;]*(?=\n|$)', ';', source)
     source = re.sub(r'^\s*;\s*(?=\n)', '', source, flags=re.MULTILINE)
     source = remove_accents_code(source)
