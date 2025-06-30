@@ -483,14 +483,23 @@ class ToCSharp(Transformer):
             parts.pop(0)
         names = parts.pop(0)
         ptype = None
+        default_val = None
         if parts and not isinstance(parts[0], Token):
             ptype = parts.pop(0)
+        if parts:
+            # skip '=' or ':=' token if present
+            if isinstance(parts[0], Token):
+                parts.pop(0)
+            if parts:
+                default_val = parts.pop(0)
         if ptype is None:
             t = "object"
             info = f"// TODO: parameter {', '.join(names)} missing type"
             self.todo.append(info)
         else:
             t = map_type_ext(str(ptype))
+        if default_val is not None:
+            return [f"{t} {self._safe_name(n)} = {default_val}" for n in names]
         return [f"{t} {self._safe_name(n)}" for n in names]
 
     def param_untyped(self, *parts):
