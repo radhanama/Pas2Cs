@@ -13,6 +13,9 @@ namespace Demo {
         public void Update(object adapter, object ds, string name) {
             (adapter as DB2DataAdapter).Update(ds, name);
         }
+        public void SetText(object ctrl, string valor) {
+            (ctrl as TextBox).Text = valor;
+        }
     }
     
     public partial class IsExample {

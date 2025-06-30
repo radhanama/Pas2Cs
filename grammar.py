@@ -198,7 +198,7 @@ case_label: signed_number DOTDOT signed_number        -> label_range
 call_stmt:   var_ref ("(" arg_list? ")")? call_postfix* ";"?   -> call_stmt
            | generic_call_base ("(" arg_list? ")")? call_postfix* ";"? -> call_stmt
            | new_expr "." name_term ("(" arg_list? ")")? call_postfix* ";"?    -> call_stmt
-           | "(" expr ")" "." name_term ("(" arg_list? ")")? call_postfix* ";"? -> call_stmt
+           | "(" expr ")" prop_call call_postfix* ";"? -> call_stmt
 inherited_stmt: "inherited"i (name_term ("(" arg_list? ")" call_postfix*)?)? ";"? -> inherited
 
 ?expr:       lambda_expr
@@ -275,7 +275,7 @@ call_expr:   var_ref "(" arg_list? ")" call_postfix* -> call
            | generic_call_base ("(" arg_list? ")")? call_postfix* -> call
            | new_expr "." name_term GENERIC_ARGS? call_args? call_postfix* -> call
            | array_of_expr prop_call call_postfix* -> call
-           | "(" expr ")" "." name_term GENERIC_ARGS? call_args? call_postfix* -> call
+           | "(" expr ")" prop_call call_postfix* -> call
            | literal_string "." name_term GENERIC_ARGS? call_args? call_postfix* -> call
            | "inherited"i name_term GENERIC_ARGS? call_args? call_postfix* -> inherited_call_expr
            | typeof_expr call_postfix+                     -> call
@@ -284,7 +284,7 @@ call_lhs:   var_ref "(" arg_list? ")" call_postfix+                 -> call
            | generic_call_base ("(" arg_list? ")")? call_postfix+    -> call
            | new_expr "." name_term GENERIC_ARGS? call_args? call_postfix+ -> call
            | array_of_expr prop_call call_postfix+ -> call
-           | "(" expr ")" "." name_term GENERIC_ARGS? call_args? call_postfix+ -> call
+           | "(" expr ")" prop_call call_postfix* -> call
            | literal_string "." name_term GENERIC_ARGS? call_args? call_postfix+ -> call
            | typeof_expr call_postfix+                                 -> call
 arg_list:    arg ("," arg)*
