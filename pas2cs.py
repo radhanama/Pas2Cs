@@ -38,32 +38,12 @@ def _get_parser() -> Lark:
     return _PARSER
 
 
-def _collapse_semicolon_lines(text: str) -> str:
-    """Move lone semicolons up to the previous line unless it ends with '//'."""
-    lines = text.splitlines()
-    out: list[str] = []
-    for line in lines:
-        if line.strip() == ';' and out:
-            prev = out[-1].rstrip()
-            if '//' in prev or prev.endswith(('}', '*)', '*/')):
-                out.append(line)
-            else:
-                out[-1] = prev + ';'
-                out.append('')
-        else:
-            out.append(line)
-    result = '\n'.join(out)
-    if text.endswith('\n'):
-        result += '\n'
-    return result
-
-
 def transpile(source: str, manual_translate=None, manual_parse_error=None) -> tuple[str, list[str]]:
     source = source.lstrip('\ufeff')
     # Collapse accidental double semicolons. For lines that consist solely of a
     # semicolon we strip the semicolon but keep the line break so error
     # positions still match the original source.
-    source = _collapse_semicolon_lines(source)
+    source = re.sub(r'(?<!\})\n\s*;\s*(?=\n)', ';\n', source)
     source = re.sub(r'\}\s*;', '}', source)
     source = re.sub(r';[ \t;]*(?=\n|$)', ';', source)
     source = remove_accents_code(source)
