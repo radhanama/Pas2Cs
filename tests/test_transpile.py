@@ -704,6 +704,13 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_program_globals(self):
+        src = Path('tests/ProgramGlobals.pas').read_text()
+        expected = Path('tests/ProgramGlobals.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_extra_keywords(self):
         src = Path('tests/ExtraKeywords.pas').read_text()
         expected = Path('tests/ExtraKeywords.cs').read_text().strip()
