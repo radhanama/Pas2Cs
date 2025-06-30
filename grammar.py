@@ -81,6 +81,7 @@ type_spec: type_name "?"?                              -> type_spec
            | tuple_type
            | array_type
            | generic_type
+           | nullable_type
            | dotted_name
 ARRAY_RANGE: /\[(?![^\]]*:=)(?:[^\[\]]|\[[^\]]*\])*\]/
 array_type:  "array"i ARRAY_RANGE? "of"i type_name
@@ -93,6 +94,7 @@ range_type: NUMBER DOTDOT NUMBER
 tuple_type: "tuple"i "of" "(" type_name ("," type_name)* ")"
 
 generic_type: dotted_name GENERIC_ARGS
+nullable_type: NULLABLE type_name
 generic_params: "<" CNAME ("," CNAME)* ">"
 
 property_sig: CNAME property_index? ":" type_spec (READ CNAME)? (WRITE CNAME?)? -> property_sig
@@ -343,6 +345,7 @@ TYPEOF:      "typeof"i
 SEALED:      "sealed"i
 FINAL:       "final"i
 INLINE:      "inline"i
+NULLABLE:    "nullable"i
 CDECL:       "cdecl"i
 STDCALL:     "stdcall"i
 SAFECALL:    "safecall"i
