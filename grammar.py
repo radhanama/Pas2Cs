@@ -245,11 +245,14 @@ generic_call_base: dotted_name GENERIC_ARGS
 call_args: "(" arg_list? ")"                         -> call_args
 prop_call: "." name_term GENERIC_ARGS? call_args?     -> prop_call
 index_postfix: ARRAY_RANGE                           -> index_postfix
+literal_string: STRING -> string
+              | SQ_STRING -> string
 
 call_expr:   var_ref "(" arg_list? ")" call_postfix* -> call
            | generic_call_base ("(" arg_list? ")")? call_postfix* -> call
            | new_expr "." name_term GENERIC_ARGS? call_args? call_postfix* -> call
            | "(" expr ")" "." name_term GENERIC_ARGS? call_args? call_postfix* -> call
+           | literal_string "." name_term GENERIC_ARGS? call_args? call_postfix* -> call
            | "inherited"i name_term GENERIC_ARGS? call_args? call_postfix* -> inherited_call_expr
            | typeof_expr call_postfix+                     -> call
 
@@ -257,6 +260,7 @@ call_lhs:   var_ref "(" arg_list? ")" call_postfix+                 -> call
            | generic_call_base ("(" arg_list? ")")? call_postfix+    -> call
            | new_expr "." name_term GENERIC_ARGS? call_args? call_postfix+ -> call
            | "(" expr ")" "." name_term GENERIC_ARGS? call_args? call_postfix+ -> call
+           | literal_string "." name_term GENERIC_ARGS? call_args? call_postfix+ -> call
            | typeof_expr call_postfix+                                 -> call
 arg_list:    arg ("," arg)*
 arg:         OUT expr                                -> out_arg

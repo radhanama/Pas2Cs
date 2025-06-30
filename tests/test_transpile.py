@@ -739,6 +739,13 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_string_literal_call(self):
+        src = Path('tests/StringLiteralCall.pas').read_text()
+        expected = Path('tests/StringLiteralCall.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_assembly_attr(self):
         src = Path('tests/AssemblyAttr.pas').read_text()
         expected = Path('tests/AssemblyAttr.cs').read_text().strip()

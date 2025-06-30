@@ -1234,14 +1234,15 @@ class ToCSharp(Transformer):
                 call += f"({', '.join(first_args)})"
         else:
             if not first_args:
+                is_literal = call.startswith('"') or call[0].isdigit() or call.startswith('0x') or call.startswith('0b') or call.lower() in {'true','false','null'}
                 if not parts:
                     if call.startswith('typeof(') or call.startswith('new '):
                         pass
                     elif ' as ' in call:
                         pass
-                    else:
+                    elif not is_literal:
                         call += "()"
-                elif '.' not in call and ' as ' not in call and not call.startswith('typeof(') and not call.startswith('new '):
+                elif '.' not in call and ' as ' not in call and not call.startswith('typeof(') and not call.startswith('new ') and not is_literal:
                     call += "()"
             else:
                 call += f"({', '.join(first_args)})"
