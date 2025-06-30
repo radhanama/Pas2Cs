@@ -184,6 +184,13 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_empty_unit(self):
+        src = Path('tests/EmptyUnit.pas').read_text()
+        expected = Path('tests/EmptyUnit.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_ctor_impl_no_name(self):
         src = Path('tests/CtorImplNoName.pas').read_text()
         expected = Path('tests/CtorImplNoName.cs').read_text().strip()
