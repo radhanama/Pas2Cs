@@ -655,6 +655,12 @@ class TranspileTests(unittest.TestCase):
             transpile(src)
         self.assertIn('Parse error', str(cm.exception))
 
+    def test_error_line_numbers(self):
+        src = Path('tests/BadSyntax.pas').read_text()
+        with self.assertRaises(SyntaxError) as cm:
+            transpile(src)
+        self.assertIn('line 15', str(cm.exception))
+
     def test_semicolon_cases(self):
         src = Path('tests/SemicolonCases.pas').read_text()
         expected = Path('tests/SemicolonCases.cs').read_text().strip()
