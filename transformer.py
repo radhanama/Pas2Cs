@@ -955,7 +955,10 @@ class ToCSharp(Transformer):
         return ""
 
     def if_stmt(self, cond, _then=None, then_block=None, _else=None, else_block=None):
-        then_part = then_block if then_block is not None else "{}"
+        if then_block is None or not str(then_block).strip():
+            then_part = "{}"
+        else:
+            then_part = then_block
         else_part = f" else {else_block}" if else_block else ""
         return f"if ({cond}) {then_part}{else_part}"
 
