@@ -325,6 +325,9 @@ class ToCSharp(Transformer):
         self.curr_class = prev
         return ""
 
+    def class_fwd(self, cname, *parts):
+        return self.class_def(cname, *parts, [])
+
     def record_def(self, cname, *parts):
         generics = ''
         if parts and isinstance(parts[0], str) and parts[0].startswith('<'):
