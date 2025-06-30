@@ -68,8 +68,8 @@ method_name: CNAME ("." CNAME)+ GENERIC_ARGS?        -> dotted_method
 param_block: "(" param_list? ")"                     -> params
 return_block: ":" type_spec                           -> rettype
 param_list:  param (";" param)*
-param:       (VAR|OUT|CONST)? name_list ":" type_spec (":=" expr)? -> param
-            | (VAR|OUT|CONST) name_list (":=" expr)? -> param_untyped
+param:       (VAR|OUT|CONST)? name_list ":" type_spec ((OP_REL["="] | ":=") expr)? -> param
+            | (VAR|OUT|CONST) name_list ((OP_REL["="] | ":=") expr)? -> param_untyped
 name_list:   CNAME ("," CNAME)* -> names
 
 type_spec: type_name "?"?                              -> type_spec
