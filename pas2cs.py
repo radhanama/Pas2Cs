@@ -43,6 +43,10 @@ def transpile(source: str, manual_translate=None, manual_parse_error=None) -> tu
     # Collapse accidental double semicolons. For lines that consist solely of a
     # semicolon we strip the semicolon but keep the line break so error
     # positions still match the original source.
+    # Move semicolons on their own line up to the previous line.
+    # When the preceding line ends with a comment, place the semicolon before
+    # the comment so it's not swallowed by the lexer.
+    source = re.sub(r'(?m)(.*?)(//[^\n]*)\n\s*;\s*(?=\n)', r'\1; \2\n', source)
     source = re.sub(r'(?<!\})\n\s*;\s*(?=\n)', ';\n', source)
     source = re.sub(r'\}\s*;', '}', source)
     source = re.sub(r';[ \t;]*(?=\n|$)', ';', source)
