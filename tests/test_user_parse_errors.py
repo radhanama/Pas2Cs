@@ -43,3 +43,6 @@ class NewFeatureTests(unittest.TestCase):
 
     def test_param_no_type(self):
         self.check_pair('ParamNoType', allow_todos=True)
+
+    def test_stray_brace(self):
+        self.check_pair('StrayBrace')
