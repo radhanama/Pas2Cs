@@ -677,6 +677,19 @@ class ToCSharp(Transformer):
     def property_index(self, *args):
         return []
 
+    # Ignore event option nodes
+    def event_raise(self, *args):
+        return None
+
+    def event_attr(self, *args):
+        return None
+
+    def event_full(self, *args):
+        return None
+
+    def event_simple(self, *args):
+        return None
+
     def property_decl(self, *parts):
         sig = parts[-1]
         name, typ, getter, setter = sig
@@ -685,8 +698,13 @@ class ToCSharp(Transformer):
         return impl
 
     def event_decl(self, *parts):
-        name = self._safe_name(parts[-2])
-        typ = map_type_ext(str(parts[-1]))
+        # parts: [attributes?, access_modifier?, name, type_spec, event_end]
+        if len(parts) >= 4:
+            name = self._safe_name(parts[-3])
+            typ = map_type_ext(str(parts[-2]))
+        else:
+            name = self._safe_name(parts[-2])
+            typ = map_type_ext(str(parts[-1]))
         info = f"// TODO: event {name}: {typ} -> implement"
         impl = f"public event {typ} {name};"
         self.todo.append(info)

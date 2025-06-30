@@ -442,6 +442,13 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, ["// TODO: event OnSomething: EventHandler -> implement"])
 
+    def test_event_raise(self):
+        src = Path('tests/EventRaise.pas').read_text()
+        expected = Path('tests/EventRaise.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, ["// TODO: event PropertyChanged: System.ComponentModel.PropertyChangedEventHandler -> implement"])
+
     def test_field_initializer(self):
         src = Path('tests/FieldInit.pas').read_text()
         expected = Path('tests/FieldInit.cs').read_text().strip()
