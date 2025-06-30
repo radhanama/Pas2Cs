@@ -1443,6 +1443,14 @@ class ToCSharp(Transformer):
             cond, true_val, false_val = parts[1], parts[3], parts[5]
         return f"{cond} ? {true_val} : {false_val}"
 
+    def if_expr_short(self, *parts):
+        """Handle inline if expressions without an else branch."""
+        if len(parts) == 2:
+            cond, true_val = parts
+        else:
+            cond, true_val = parts[0], parts[2]
+        return f"({cond} ? {true_val} : null)"
+
     def char_code(self, tok):
         nums = [int(n) for n in tok.value[1:].split('#') if n]
         chars = []

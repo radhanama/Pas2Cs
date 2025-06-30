@@ -208,6 +208,7 @@ inherited_stmt: "inherited"i (name_term ("(" arg_list? ")" call_postfix*)?)? ";"
            | expr OP_SUM ELSE expr                   -> short_or
            | expr OP_MUL THEN expr                   -> short_and
            | "if"i expr THEN expr ELSE expr       -> if_expr
+           | "if"i expr THEN expr                  -> if_expr_short
            | expr (OP_REL|LT|GT) expr                -> binop
            | expr IN set_lit                         -> in_expr
            | expr NOT IN set_lit                     -> not_in_expr
@@ -231,6 +232,7 @@ inherited_stmt: "inherited"i (name_term ("(" arg_list? ")" call_postfix*)?)? ";"
            | new_expr
            | anon_proc_expr
            | "if"i expr THEN expr ELSE expr         -> if_expr
+           | "if"i expr THEN expr                  -> if_expr_short
            | CHAR_CODE                               -> char_code
            | expr CARET                              -> deref
 
