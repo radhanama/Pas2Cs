@@ -77,7 +77,7 @@ method_sig:    method_name param_block? return_block?            -> m_sig
 method_name: CNAME ("." CNAME)+ GENERIC_ARGS?        -> dotted_method
            | CNAME GENERIC_ARGS?                       -> simple_method
 param_block: "(" param_list? ")"                     -> params
-return_block: ":" type_spec                           -> rettype
+return_block: ":" attributes? type_spec               -> rettype
 param_list:  param (";" param)*
 param:       (VAR|OUT|CONST)? name_list ":" type_spec ((OP_REL["="] | ":=") expr)? -> param
             | (VAR|OUT|CONST) name_list ((OP_REL["="] | ":=") expr)? -> param_untyped

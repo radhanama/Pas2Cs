@@ -20,12 +20,9 @@ begin
 end;
 
 class method MultiVars.SplitDecl();
-var  s105_deposito_FGTS  : String
-;
-     s106_base_calc_FGTS   : String // comment on same line
-;
-     s107_total_proventos: String
-;
+var  s105_deposito_FGTS  : String;
+     s106_base_calc_FGTS   : String; // comment on same line
+     s107_total_proventos: String;
 begin
   System.Console.WriteLine(s107_total_proventos);
 end;

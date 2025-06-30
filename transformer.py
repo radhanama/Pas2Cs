@@ -493,7 +493,11 @@ class ToCSharp(Transformer):
     def params(self, items=None):
         return items or []
 
-    def rettype(self, typ):
+    def rettype(self, *parts):
+        if parts:
+            typ = parts[-1]
+        else:
+            typ = None
         return typ
 
     def names(self, *parts):
