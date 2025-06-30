@@ -1,7 +1,7 @@
 # ────────────────────────── Grammar ──────────────────────────
 GRAMMAR = r"""
 ?start:   assembly_attr* (namespace | unit_decl | program_decl | library_decl) interface_section? class_section* ("implementation" uses_clause? class_impl*)? initialization_section? ("end"i ("." | ";"))?
-interface_section: "interface" uses_clause? pre_class_decl*
+interface_section: "interface" uses_clause? assembly_attr* pre_class_decl*
 uses_clause:   "uses" dotted_name ("," dotted_name)* ";"       -> uses
 
 assembly_attr: "[" CNAME ":" dotted_name ("(" arg_list? ")")? "]" ";"?
