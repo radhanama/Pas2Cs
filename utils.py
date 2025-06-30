@@ -121,6 +121,7 @@ KEYWORD_MAP = {
     "flags": "FLAGS",
     "event": "EVENT",
     "operator": "OPERATOR",
+    "delegate": "DELEGATE",
     "packed": "PACKED",
     "tuple": "TUPLE",
     "typeof": "TYPEOF",

@@ -23,6 +23,7 @@ class ToCSharp(Transformer):
         self.class_impls = defaultdict(list)
         self.alias_defs = []
         self.class_order = []
+        self.delegate_defs = []
         self.impl_methods = defaultdict(set)
         self.class_fields = defaultdict(set)
         self.method_attrs = defaultdict(dict)
@@ -140,7 +141,11 @@ class ToCSharp(Transformer):
                 partial = "partial " if kind in ("class", "record") else ""
                 sealed_kw = "sealed " if 'sealed' in mods else ""
                 classes.append(f"{attr_lines}public {sealed_kw}{partial}{kw} {cname}{base} {{\n{body}\n}}")
-        ns_body = "\n\n".join(classes)
+        ns_items = []
+        if self.delegate_defs:
+            ns_items.extend(self.delegate_defs)
+        ns_items.extend(classes)
+        ns_body = "\n\n".join(ns_items)
         using_lines = ""
         if self.usings:
             using_lines = "\n".join(f"using {u};" for u in self.usings.keys())
@@ -403,6 +408,31 @@ class ToCSharp(Transformer):
         val = typ.value if isinstance(typ, Token) else str(typ)
         t = map_type_ext(val)
         self.alias_defs.append(f"using {cname}{generics} = {t};")
+        return ""
+
+    def delegate_def(self, cname, *parts):
+        generics = ''
+        params = []
+        rettype = None
+        for p in parts:
+            if isinstance(p, str) and p.startswith('<'):
+                generics = p
+            elif isinstance(p, list):
+                params = p
+            elif isinstance(p, Token):
+                if p.type == 'CNAME':
+                    # ignore additional tokens
+                    continue
+                else:
+                    rettype = p
+            else:
+                val = str(p)
+                if val not in {'public', 'protected', 'private', 'assembly'}:
+                    rettype = p
+        ret = map_type_ext(str(rettype)) if rettype else 'void'
+        params_cs = ', '.join(params)
+        line = f"public delegate {ret} {cname}{generics}({params_cs});"
+        self.delegate_defs.append(line)
         return ""
 
     def type_def(self, *parts):

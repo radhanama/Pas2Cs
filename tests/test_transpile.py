@@ -539,6 +539,13 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_delegate_def(self):
+        src = Path('tests/DelegateDef.pas').read_text()
+        expected = Path('tests/DelegateDef.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_char_utils(self):
         src = Path('tests/CharUtils.pas').read_text()
         expected = Path('tests/CharUtils.cs').read_text().strip()
