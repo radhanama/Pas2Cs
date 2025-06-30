@@ -890,6 +890,12 @@ class ToCSharp(Transformer):
     def except_empty(self, *_):
         return []
 
+    def case_else(self, _else_tok, *stmts):
+        return list(stmts)
+
+    def case_else_empty(self, _else_tok, _semi=None):
+        return [""]
+
     def finally_clause(self, *stmts):
         return list(stmts)
 
@@ -1032,6 +1038,13 @@ class ToCSharp(Transformer):
         branches = [p for p in parts if isinstance(p, tuple) and p[0] == 'branch']
         else_branch = [p for p in parts if not (isinstance(p, tuple) and p[0] == 'branch')]
         else_branch = [p for p in else_branch if not (isinstance(p, Token) and p.type == 'ELSE')]
+        flat_else = []
+        for eb in else_branch:
+            if isinstance(eb, list):
+                flat_else.extend(eb)
+            else:
+                flat_else.append(eb)
+        else_branch = flat_else
 
         switch_body = []
         for _tag, labels, stmt in branches:
@@ -1051,7 +1064,10 @@ class ToCSharp(Transformer):
 
         if else_branch:
             else_stmts = "\n".join(s for s in else_branch if s.strip())
-            switch_body.append(f"default:\n{{\n{indent(else_stmts)}\nbreak;\n}}")
+            if else_stmts:
+                switch_body.append(f"default:\n{{\n{indent(else_stmts)}\nbreak;\n}}")
+            else:
+                switch_body.append("default:\n{\nbreak;\n}")
 
         body_cs = indent("\n".join(switch_body))
         return f"switch ({expr})\n{{\n{body_cs}\n}}"
