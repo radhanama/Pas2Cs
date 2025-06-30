@@ -21,6 +21,7 @@ namespace Demo {
             result = "";
             return result;
         }
+        [WebMethod]
         public string DescricaoNatRend(object natrend) {
             string result;
             result = "";

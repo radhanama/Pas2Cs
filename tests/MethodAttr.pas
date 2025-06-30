@@ -13,7 +13,7 @@ type
     [WebMethod(EnableSession := true)]
     [ScriptMethod]
     class function SalvarCadastro(natrend, prestserv, data, base_calculo, vl_imposto: String): String;
-    function DescricaoNatRend(natrend: Object): String;
+function DescricaoNatRend(natrend: Object): String;
   end;
 
 implementation
@@ -33,6 +33,7 @@ begin
   Result := '';
 end;
 
+[WebMethod]
 function WebService.DescricaoNatRend(natrend: Object): String;
 begin
   Result := '';

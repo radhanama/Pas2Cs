@@ -187,8 +187,19 @@ class ToCSharp(Transformer):
         return (name.strip(), params.strip(), ret.strip(), static_flag)
 
     def class_impl(self, *parts):
-        # method implementations may be preceded by modifiers we ignore
-        impl = parts[-1]
+        attrs = []
+        if parts and isinstance(parts[0], list):
+            attrs = parts[0]
+            parts = parts[1:]
+        # last element is the processed method implementation (ignored)
+        if attrs and self.curr_impl_class:
+            methods = self.class_impls.get(self.curr_impl_class, [])
+            if methods:
+                method = methods.pop()
+                method = "\n".join(attrs) + "\n" + method
+                methods.append(method)
+                self.class_impls[self.curr_impl_class] = methods
+        self.curr_impl_class = None
         return ""
 
     def interface_section(self, *args):
@@ -726,12 +737,18 @@ class ToCSharp(Transformer):
         return "\n".join(parts)
 
     # ── implementation part ─────────────────────────────────
-    def m_impl(self, head, *parts):
-        if len(parts) == 1:
+    def m_impl(self, *parts):
+        attrs = []
+        if parts and isinstance(parts[0], list):
+            attrs = parts[0]
+            parts = parts[1:]
+        head = parts[0]
+        tail = parts[1:]
+        if len(tail) == 1:
             vars_code = ""
-            body = parts[0]
+            body = tail[0]
         else:
-            vars_code, body = parts
+            vars_code, body = tail
         cls, name, params, rettype = head
         params_cs = params or ""
         ret       = map_type_ext(rettype) if rettype else "void"
@@ -767,12 +784,17 @@ class ToCSharp(Transformer):
         unsafe_kw = "unsafe " if self.curr_unsafe else ""
         method = f"public {modifier}{unsafe_kw}{ret} {name}({params_cs}) {body}"
         key = (name, params_cs, ret, self.curr_static)
-        attrs = self.method_attrs.get(cls, {}).get(key)
+        attrs_all = []
+        iface_attrs = self.method_attrs.get(cls, {}).get(key)
+        if iface_attrs:
+            attrs_all.extend(iface_attrs)
         if attrs:
-            method = "\n".join(attrs) + "\n" + method
+            attrs_all.extend(attrs)
+        if attrs_all:
+            method = "\n".join(attrs_all) + "\n" + method
         self.class_impls[cls].append(method)
         self.impl_methods[cls].add(key)
-        # clear method context after generating its body
+        # clear method context after generating its body (except curr_impl_class)
         self.curr_method = None
         self.curr_params = []
         self.curr_static = False
@@ -780,7 +802,7 @@ class ToCSharp(Transformer):
         self.curr_rettype = None
         self.used_result = False
         self.curr_unsafe = False
-        self.curr_impl_class = None
+        # curr_impl_class will be cleared by class_impl
         return ""
 
     def impl_head(self, name_parts, *rest):
