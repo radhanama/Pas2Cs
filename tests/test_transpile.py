@@ -184,6 +184,13 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_property_reintroduce(self):
+        src = Path('tests/ReintroduceProp.pas').read_text()
+        expected = Path('tests/ReintroduceProp.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_no_implementation(self):
         src = Path('tests/NoImpl.pas').read_text()
         expected = Path('tests/NoImpl.cs').read_text().strip()

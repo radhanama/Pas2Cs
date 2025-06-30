@@ -711,7 +711,13 @@ class ToCSharp(Transformer):
         return None
 
     def property_decl(self, *parts):
-        sig = parts[-1]
+        sig = None
+        for p in parts:
+            if isinstance(p, tuple) and len(p) == 4:
+                sig = p
+                break
+        if sig is None:
+            return ""
         name, typ, getter, setter = sig
         parts_cs = " ".join(p for p in [getter, setter] if p)
         impl = f"public {typ} {name} {{ {parts_cs} }}"
