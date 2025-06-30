@@ -939,6 +939,12 @@ class ToCSharp(Transformer):
     def finally_clause(self, *stmts):
         return list(stmts)
 
+    def else_clause(self, _else_tok, stmt):
+        return stmt
+
+    def else_clause_empty(self, _else_tok):
+        return ""
+
     def on_handler(self, _on, name, typ, _do, stmt):
         return ('on_handler', str(name), typ, stmt)
 
@@ -954,12 +960,17 @@ class ToCSharp(Transformer):
     def finalization_section(self, *stmts):
         return ""
 
-    def if_stmt(self, cond, _then=None, then_block=None, _else=None, else_block=None):
+    def if_stmt(self, cond, _then=None, then_block=None, else_clause=None):
         if then_block is None or not str(then_block).strip():
             then_part = "{}"
         else:
             then_part = then_block
-        else_part = f" else {else_block}" if else_block else ""
+        if else_clause is None:
+            else_part = ""
+        elif not str(else_clause).strip():
+            else_part = " else {}"
+        else:
+            else_part = f" else {else_clause}"
         return f"if ({cond}) {then_part}{else_part}"
 
     def for_stmt(self, var, *parts):
@@ -1042,7 +1053,9 @@ class ToCSharp(Transformer):
 
         for part in parts:
             if isinstance(part, list):
-                if except_clause is None:
+                if part and isinstance(part[0], Token) and getattr(part[0], 'type', None) == 'FINALLY':
+                    finally_clause = part
+                elif except_clause is None:
                     except_clause = part
                 else:
                     finally_clause = part
@@ -1071,9 +1084,12 @@ class ToCSharp(Transformer):
                 else:
                     res += "\ncatch (Exception)\n{}"
 
-        if finally_clause:
-            fin_cs = "\n".join(indent(s,0) for s in finally_clause if isinstance(s,str) and s.strip())
-            res += f"\nfinally\n{{\n{indent(fin_cs)}\n}}"
+        if finally_clause is not None:
+            fin_cs = "\n".join(indent(s,0) for s in finally_clause if isinstance(s, str) and not isinstance(s, Token) and s.strip())
+            if fin_cs:
+                res += f"\nfinally\n{{\n{indent(fin_cs)}\n}}"
+            else:
+                res += "\nfinally\n{\n}"
 
         return res
 

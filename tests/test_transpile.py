@@ -389,6 +389,20 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_try_finally_empty(self):
+        src = Path('tests/TryFinallyEmpty.pas').read_text()
+        expected = Path('tests/TryFinallyEmpty.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_if_else_empty(self):
+        src = Path('tests/IfElseEmpty.pas').read_text()
+        expected = Path('tests/IfElseEmpty.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_with_stmt(self):
         src = Path('tests/WithStmt.pas').read_text()
         expected = Path('tests/WithStmt.cs').read_text().strip()

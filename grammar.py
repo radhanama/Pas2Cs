@@ -165,7 +165,9 @@ locking_stmt: LOCKING expr DO stmt                      -> locking_stmt
 with_stmt: WITH expr DO stmt                           -> with_stmt
 yield_stmt: YIELD expr ";"?                           -> yield_stmt
 empty_stmt: ";"                                      -> empty
-if_stmt:     "if"i expr THEN (stmt | empty_stmt)? (ELSE stmt)?        -> if_stmt
+if_stmt:     "if"i expr THEN (stmt | empty_stmt)? else_clause?        -> if_stmt
+else_clause: ELSE stmt                           -> else_clause
+           | ELSE                                -> else_clause_empty
 for_stmt:    "for"i CNAME (":" type_spec)? ":=" expr (TO | DOWNTO) expr (STEP expr)? ("do"i)? stmt  -> for_stmt
            | "for"i "each"i? CNAME (":" type_spec)? IN expr (INDEX CNAME)? ("do"i)? stmt      -> for_each_stmt
 loop_stmt:   LOOP stmt                                       -> loop_stmt
@@ -174,7 +176,7 @@ while_stmt:  "while"i expr "do"i stmt                    -> while_stmt
 try_stmt:    TRY stmt* except_clause? finally_clause? "end"i ";"? -> try_stmt
 except_clause: EXCEPT (on_handler | stmt)*                       -> except_clause
              | EXCEPT ";"                                   -> except_empty
-finally_clause: FINALLY stmt+
+finally_clause: FINALLY stmt*
 on_handler: ON CNAME ":" type_name DO stmt -> on_handler
           | ON CNAME ":" type_name DO ";" -> on_handler_empty
 
