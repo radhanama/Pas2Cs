@@ -17,6 +17,8 @@ name_part: CNAME
          | ENUM
          | EVENT
          | OPERATOR
+         | CONSTRUCTOR
+         | DESTRUCTOR
          | TUPLE
          | RESULT
 
@@ -154,7 +156,7 @@ block:       "begin" ";"? stmt* "end"i ";"?
            | block
            
 
-assign_stmt: (var_ref | call_lhs) ":=" expr ";"?                     -> assign
+assign_stmt: (inherited_var | var_ref | call_lhs) ":=" expr ";"? -> assign
 op_assign_stmt: (var_ref | call_lhs) ADD_ASSIGN expr ";"?              -> op_assign
               | (var_ref | call_lhs) SUB_ASSIGN expr ";"?              -> op_assign
 return_stmt: RESULT ":=" expr ";"?                      -> result_ret
@@ -203,7 +205,7 @@ call_stmt:   var_ref ("(" arg_list? ")")? call_postfix* ";"?   -> call_stmt
            | generic_call_base ("(" arg_list? ")")? call_postfix* ";"? -> call_stmt
            | new_expr "." name_term ("(" arg_list? ")")? call_postfix* ";"?    -> call_stmt
            | "(" expr ")" prop_call call_postfix* ";"? -> call_stmt
-inherited_stmt: "inherited"i (name_term ("(" arg_list? ")" call_postfix*)?)? ";"? -> inherited
+inherited_stmt: INHERITED (name_term ("(" arg_list? ")" call_postfix*)?)? ";"? -> inherited
 
 ?expr:       lambda_expr
            | NOT expr                                -> not_expr
@@ -281,7 +283,7 @@ call_expr:   var_ref "(" arg_list? ")" call_postfix* -> call
            | array_of_expr prop_call call_postfix* -> call
            | "(" expr ")" prop_call call_postfix* -> call
            | literal_string "." name_term GENERIC_ARGS? call_args? call_postfix* -> call
-           | "inherited"i name_term GENERIC_ARGS? call_args? call_postfix* -> inherited_call_expr
+           | INHERITED name_term GENERIC_ARGS? call_args? call_postfix* -> inherited_call_expr
            | typeof_expr call_postfix+                     -> call
 
 call_lhs:   var_ref "(" arg_list? ")" call_postfix+                 -> call
@@ -299,6 +301,7 @@ arg:         OUT expr                                -> out_arg
            | expr
 
 new_stmt:    new_expr ";"?
+inherited_var: INHERITED name_base (ARRAY_RANGE | "." name_term)* -> inherited_var
 var_ref:     name_base (ARRAY_RANGE | "." name_term)* -> var
            | "(" expr ")" ARRAY_RANGE -> paren_index
 
@@ -325,6 +328,7 @@ PROCEDURE:   "procedure"i
 FUNCTION:    "function"i
 CONSTRUCTOR: "constructor"i
 DESTRUCTOR:  "destructor"i
+INHERITED:   "inherited"i
 VAR:         "var"i
 CLASSVAR.2:  /class\s+var/i
 OUT:         "out"i

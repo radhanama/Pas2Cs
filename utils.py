@@ -141,6 +141,7 @@ KEYWORD_MAP = {
     "program": "PROGRAM",
     "initialization": "INITIALIZATION",
     "finalization": "FINALIZATION",
+    "inherited": "INHERITED",
 }
 
 def set_source(text: str) -> None:
