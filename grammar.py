@@ -21,10 +21,10 @@ name_part: CNAME
          | RESULT
 
 dotted_name: name_part ("." name_part)* -> dotted
-namespace:   "namespace" dotted_name ";"                       -> namespace
-unit_decl:   "unit" dotted_name ";"                             -> namespace
-program_decl: "program"i dotted_name ";"              -> namespace
-library_decl: "library" dotted_name ";"                          -> namespace
+namespace:   "namespace" dotted_name ";"?                      -> namespace
+unit_decl:   "unit" dotted_name ";"?                            -> namespace
+program_decl: "program"i dotted_name ";"?             -> namespace
+library_decl: "library" dotted_name ";"?                         -> namespace
 initialization_section: "initialization" stmt* finalization_section?
 finalization_section: "finalization" stmt*
 
