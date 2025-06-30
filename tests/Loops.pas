@@ -36,6 +36,11 @@ type
     class method Test(arr: Array of Integer);
   end;
 
+  WhileEmptyDemo = public class
+  public
+    class method DoNothing();
+  end;
+
   TypedForEach = public class
   public
     class method Sum(arr: array of Integer): Integer;
@@ -119,6 +124,13 @@ var
 begin
   while (i <= 2) do
     i := i + arr[0];
+end;
+
+class method WhileEmptyDemo.DoNothing();
+var
+  i: Integer := 0;
+begin
+  while i < 3 do;
 end;
 
 class method TypedForEach.Sum(arr: array of Integer): Integer;

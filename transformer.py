@@ -1096,6 +1096,9 @@ class ToCSharp(Transformer):
         return f"while (true) {body}"
 
     def while_stmt(self, cond, body):
+        body_str = str(body).strip()
+        if not body_str:
+            return f"while ({cond});"
         return f"while ({cond}) {body}"
 
     def try_stmt(self, *parts):
