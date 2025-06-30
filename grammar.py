@@ -225,6 +225,8 @@ inherited_stmt: "inherited"i (name_term ("(" arg_list? ")" call_postfix*)?)? ";"
            | BINARY_NUMBER                           -> binary_number
            | STRING                                  -> string
            | SQ_STRING                               -> string
+           | INTERP_STRING                           -> string
+           | INTERP_SQ_STRING                        -> string
            | TRUE                                    -> true
            | FALSE                                   -> false
            | NIL                                     -> null
@@ -265,6 +267,8 @@ prop_call: "." name_term GENERIC_ARGS? call_args?     -> prop_call
 index_postfix: ARRAY_RANGE                           -> index_postfix
 literal_string: STRING -> string
               | SQ_STRING -> string
+              | INTERP_STRING -> string
+              | INTERP_SQ_STRING -> string
 
 call_expr:   var_ref "(" arg_list? ")" call_postfix* -> call
            | generic_call_base ("(" arg_list? ")")? call_postfix* -> call
@@ -339,6 +343,7 @@ TRUE:        "true"i
 FALSE:       "false"i
 NIL:         "nil"i
 SQ_STRING:   /'(?:[^'\n]|'')*'/
+INTERP_SQ_STRING: /\$'(?:[^'\n]|'')*'/
 RESULT:      "result"i
 EXIT:        "exit"i
 RAISE:       "raise"i
@@ -389,6 +394,8 @@ CHAR_CODE:   "#" NUMBER ("#" NUMBER)*
 
 HEX_NUMBER: /\$[0-9A-Fa-f]+/
 BINARY_NUMBER: /%[01]+/
+
+INTERP_STRING: /\$"[^"\n]*"/
 
 %import common.CNAME -> BASE_CNAME
 %import common.WS

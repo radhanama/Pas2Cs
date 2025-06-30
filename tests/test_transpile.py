@@ -87,6 +87,13 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_interpolated_str(self):
+        src = Path('tests/InterpolatedStr.pas').read_text()
+        expected = Path('tests/InterpolatedStr.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_array_var(self):
         src = Path('tests/ArrayVar.pas').read_text()
         expected = Path('tests/ArrayVar.cs').read_text().strip()
