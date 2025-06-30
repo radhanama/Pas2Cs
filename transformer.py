@@ -1220,7 +1220,16 @@ class ToCSharp(Transformer):
 
     def string(self, s):
         s = str(s)
-        if s.startswith("'"):
+        if s.startswith("$'"):
+            inner = s[2:-1].replace("''", "'")
+            inner = inner.replace('\\', '\\\\')
+            inner = inner.replace('"', '\\"')
+            return f'$"{inner}"'
+        elif s.startswith('$"'):
+            inner = s[2:-1]
+            inner = inner.replace('\\', '\\\\').replace('"', '\\"')
+            return f'$"{inner}"'
+        elif s.startswith("'"):
             inner = s[1:-1].replace("''", "'")
             inner = inner.replace('\\', '\\\\')
             inner = inner.replace('"', '\\"')
