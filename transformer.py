@@ -230,6 +230,9 @@ class ToCSharp(Transformer):
         parts = [map_type_ext(p.strip()) for p in inner.split(',')]
         return f"{base}<{', '.join(parts)}>"
 
+    def nullable_type(self, _tok, typ):
+        return str(typ) + "?"
+
     def pointer_type(self, _caret, typ):
         self.curr_unsafe = True
         return map_type_ext(str(typ)) + "*"
