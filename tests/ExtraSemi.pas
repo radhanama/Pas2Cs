@@ -9,7 +9,12 @@ type
 implementation
 
   class method ExtraSemi.Demo();
-  var x: Integer;
+  var
+    x: Integer;
+    y: Integer
+    ;
+    z: String
+    ;
   begin
   x := 1;;
   ;
