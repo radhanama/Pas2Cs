@@ -59,6 +59,7 @@ class_modifier: "class"
 method_attr: "override" | "static" | "abstract" | "virtual" | "reintroduce"i | "overload"i
            | "inline"i | "cdecl"i | "stdcall"i | "safecall"i | "varargs"i
            | "external"i | "forward"i | "platform"i | "deprecated"i | "message"i
+           | "implements" dotted_name
 method_kind: METHOD | PROCEDURE | FUNCTION | CONSTRUCTOR | DESTRUCTOR | OPERATOR
 access_modifier: ("strict"i)? ("public"i | "protected"i | "private"i | "published"i)
 

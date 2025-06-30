@@ -340,7 +340,7 @@ class ToCSharp(Transformer):
         if parts and isinstance(parts[0], str) and parts[0].startswith('<'):
             generics = parts[0]
             parts = parts[1:]
-        if parts and isinstance(parts[0], list):
+        if len(parts) > 1 and isinstance(parts[0], list):
             bases = parts[0]
             sign = parts[1]
         elif len(parts) == 2:
