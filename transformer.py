@@ -490,6 +490,9 @@ class ToCSharp(Transformer):
         generics = rest[0].value if rest else ""
         return str(name) + generics
 
+    def identifier(self, tok):
+        return str(tok)
+
     def params(self, items=None):
         return items or []
 
