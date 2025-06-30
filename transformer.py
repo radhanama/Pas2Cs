@@ -930,9 +930,6 @@ class ToCSharp(Transformer):
         handlers = [h for h in handlers if not isinstance(h, Token)]
         return list(handlers)
 
-    def except_empty(self, *_):
-        return []
-
     def case_else(self, _else_tok, *stmts):
         return list(stmts)
 
