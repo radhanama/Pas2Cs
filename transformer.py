@@ -1313,6 +1313,9 @@ class ToCSharp(Transformer):
                 out.append('.' + self._safe_name(p))
         return ''.join(out)
 
+    def inherited_var(self, _tok, base, *parts):
+        return 'base.' + self.var(base, *parts)
+
     def prop_call(self, name, generics=None, args=None):
         nm = str(name)
         if isinstance(generics, list) and args is None:
@@ -1417,7 +1420,7 @@ class ToCSharp(Transformer):
     def new_stmt(self, expr):
         return expr + ";"
 
-    def inherited(self, name=None, args=None):
+    def inherited(self, _tok=None, name=None, args=None):
         if name is None:
             if self.curr_method:
                 base = self.class_defs.get(self.curr_impl_class, ("", "", [], set()))[1]
@@ -1440,7 +1443,7 @@ class ToCSharp(Transformer):
             return f"base.{name}({arglist});"
         return ""
 
-    def inherited_call_expr(self, name, args=None):
+    def inherited_call_expr(self, _tok, name, args=None):
         arglist = "" if args is None else ", ".join(args)
         if str(name).lower() == "constructor":
             base_name = self.curr_method or "constructor"
