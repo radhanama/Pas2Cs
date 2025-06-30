@@ -30,12 +30,14 @@ finalization_section: "finalization" stmt*
 
 class_section: "type" type_def+                                -> class_section
 type_def:     attributes? class_def
+            | attributes? class_forward
             | attributes? record_def
             | attributes? interface_def
             | attributes? enum_def
             | alias_def
 
 class_def:   CNAME generic_params? "=" ("public"i)? "static"? "partial"? ("sealed"i | "final"i)? "abstract"? "class"i ("sealed"i | "final"i)? CNAME* ("(" type_name ("," type_name)* ")")? class_signature "end"i ";" -> class_def
+class_forward: CNAME generic_params? "=" ("public"i)? "static"? "partial"? ("sealed"i | "final"i)? "abstract"? "class"i ("sealed"i | "final"i)? CNAME* ("(" type_name ("," type_name)* ")")? ";" -> class_fwd
 record_def:  CNAME generic_params? "=" ("public"i)? "packed"i? "record"i ("(" type_name ")")? class_signature "end"i ";" -> record_def
 interface_def: CNAME generic_params? "=" ("public"i)? "interface"i ("(" type_name ("," type_name)* ")")? class_signature "end"i ";" -> interface_def
 enum_def:    CNAME "=" ("public"i)? ("enum"i | "flags"i)? "(" enum_items ")" ("of" type_name)? ";" -> enum_def
