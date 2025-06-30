@@ -262,6 +262,13 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_case_upper(self):
+        src = Path('tests/CaseUpper.pas').read_text()
+        expected = Path('tests/CaseUpper.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_negative_case(self):
         src = Path('tests/NegativeCase.pas').read_text()
         expected = Path('tests/NegativeCase.cs').read_text().strip()

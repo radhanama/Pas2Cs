@@ -136,6 +136,7 @@ KEYWORD_MAP = {
     "threadvar": "THREADVAR",
     "is": "IS",
     "as": "AS",
+    "case": "CASE",
     "program": "PROGRAM",
     "initialization": "INITIALIZATION",
     "finalization": "FINALIZATION",
