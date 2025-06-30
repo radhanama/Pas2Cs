@@ -9,6 +9,7 @@ type
   AsCastCall = public class
   public
     method Update(adapter: Object; ds: Object; name: String);
+    method SetText(ctrl: Object; valor: String);
   end;
 
   IsExample = class
@@ -29,6 +30,11 @@ end;
 method AsCastCall.Update(adapter: Object; ds: Object; name: String);
 begin
   (adapter as DB2DataAdapter).Update(ds, name);
+end;
+
+method AsCastCall.SetText(ctrl: Object; valor: String);
+begin
+  (ctrl as TextBox).Text := valor;
 end;
 
 class method IsExample.Check(o: Object);
