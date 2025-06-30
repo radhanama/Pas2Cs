@@ -10,5 +10,14 @@ namespace Demo {
             catch (Exception E)
             {}
         }
+        public static void DoNothingNoSemi() {
+            try
+            {
+                Console.WriteLine("B");
+            }
+            catch (Exception E)
+            {}
+        }
     }
 }
+

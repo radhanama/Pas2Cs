@@ -179,9 +179,9 @@ try_stmt:    TRY stmt* except_clause? finally_clause? "end"i ";"? -> try_stmt
 except_clause: EXCEPT ";"? (on_handler | on_handler_type | stmt)*                -> except_clause
 finally_clause: FINALLY stmt*
 on_handler: ON CNAME ":" type_name DO stmt -> on_handler
-          | ON CNAME ":" type_name DO ";" -> on_handler_empty
+          | ON CNAME ":" type_name DO ";"? -> on_handler_empty
 on_handler_type: ON type_name DO stmt -> on_handler_type
-               | ON type_name DO ";" -> on_handler_type_empty
+               | ON type_name DO ";"? -> on_handler_type_empty
 
 case_stmt:   "case"i expr "of"i case_branch+ case_else? "end"i ";"? -> case_stmt
 case_else:   ELSE stmt+                           -> case_else
