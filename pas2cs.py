@@ -68,6 +68,11 @@ def transpile(source: str, manual_translate=None, manual_parse_error=None) -> tu
     source = re.sub(r';[ \t;]*(?=\n|$)', ';', source)
     source = remove_accents_code(source)
 
+    # Convert Oxygene dynamic calls using ':' to standard '.' notation
+    source = re.sub(r'(?<=\])\s*:(?=\s*[A-Za-z_]\w*\s*\()', '.', source)
+    source = re.sub(r'(?<=\))\s*:(?=\s*[A-Za-z_]\w*\s*\()', '.', source)
+    source = re.sub(r'(?<!assembly)(?<=\w)\s*:(?=\s*[A-Za-z_]\w*\s*\()', '.', source, flags=re.IGNORECASE)
+
     # Insert placeholder type for untyped lambda parameters
     def _fix_lambda(match):
         params = match.group(1)
