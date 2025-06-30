@@ -13,5 +13,15 @@ namespace N {
                 }
             }
         }
+        public void Empty(int x) {
+            switch (x)
+            {
+                case 1: Console.WriteLine("one"); break;
+                default:
+                {
+                break;
+                }
+            }
+        }
     }
 }

@@ -166,7 +166,9 @@ finally_clause: FINALLY stmt+
 on_handler: ON CNAME ":" type_name DO stmt -> on_handler
           | ON CNAME ":" type_name DO ";" -> on_handler_empty
 
-case_stmt:   "case" expr "of" case_branch+ (ELSE stmt+)? "end"i ";"? -> case_stmt
+case_stmt:   "case" expr "of" case_branch+ case_else? "end"i ";"? -> case_stmt
+case_else:   ELSE stmt+                           -> case_else
+           | ELSE ";"?                          -> case_else_empty
 case_branch: case_label ("," case_label)* ":" stmt ";"?
 signed_number: OP_SUM? NUMBER          -> signed_number
 case_label: signed_number DOTDOT signed_number        -> label_range
