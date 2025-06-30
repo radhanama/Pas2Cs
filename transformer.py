@@ -383,6 +383,12 @@ class ToCSharp(Transformer):
         return ""
 
     def alias_def(self, *parts):
+        if len(parts) == 1 and isinstance(parts[0], list):
+            parts = tuple(parts[0])
+
+        # remove placeholder strings from optional access modifiers
+        parts = [p for p in parts if p != ""]
+
         if len(parts) == 4:
             _acc, cname, generics, typ = parts
         elif len(parts) == 3:

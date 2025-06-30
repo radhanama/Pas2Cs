@@ -41,7 +41,7 @@ class_forward: CNAME generic_params? "=" ("public"i)? "static"? "partial"? ("sea
 record_def:  CNAME generic_params? "=" ("public"i)? "packed"i? "record"i ("(" type_name ")")? class_signature "end"i ";" -> record_def
 interface_def: CNAME generic_params? "=" ("public"i)? "interface"i ("(" type_name ("," type_name)* ")")? class_signature "end"i ";" -> interface_def
 enum_def:    CNAME "=" ("public"i)? ("enum"i | "flags"i)? "(" enum_items ")" ("of" type_name)? ";" -> enum_def
-alias_def:   access_modifier? CNAME generic_params? "=" type_spec ";"     -> alias_def
+alias_def:   access_modifier? CNAME generic_params? "=" access_modifier? type_spec ";"     -> alias_def
 enum_items:  enum_item ("," enum_item)* -> enum_items
 enum_item:   CNAME ("=" NUMBER)?                               -> enum_item
 
