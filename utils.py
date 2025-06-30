@@ -173,6 +173,15 @@ def fix_keyword(tok):
         _LAST_POS = tok.end_pos
         return tok
 
+    if tok.value.lower() in ('enum', 'interface'):
+        pos = tok.end_pos
+        while pos < len(_SRC_TEXT) and _SRC_TEXT[pos].isspace():
+            pos += 1
+        if pos < len(_SRC_TEXT) and _SRC_TEXT[pos] == ':':
+            tok.type = 'CNAME'
+            _LAST_POS = tok.end_pos
+            return tok
+
     token_type = KEYWORD_MAP.get(v)
     if token_type:
         tok.type = token_type
