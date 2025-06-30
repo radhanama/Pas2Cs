@@ -7,5 +7,11 @@ namespace Demo {
             dt_aux = ano_aux + mes_aux;
             System.Console.WriteLine(dt_aux);
         }
+        public static void SplitDecl() {
+            string s105_deposito_FGTS;
+            string s106_base_calc_FGTS;
+            string s107_total_proventos;
+            System.Console.WriteLine(s107_total_proventos);
+        }
     }
 }
