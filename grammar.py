@@ -49,7 +49,7 @@ member_decl: attributes? method_decl_rule
            | access_modifier? name_list ":" type_spec (":=" expr)? ";"      -> field_decl
 
            | attributes? access_modifier? "class"? "property"i property_sig ";"      -> property_decl
-           | attributes? access_modifier? "event"i CNAME ":" type_spec ";"  -> event_decl
+           | attributes? access_modifier? "event"i CNAME ":" type_spec event_end  -> event_decl
            | attributes? access_modifier? "class"? "const"i const_decl+            -> const_block
            | access_modifier                                   -> section
 
@@ -99,6 +99,10 @@ nullable_type: NULLABLE type_name
 generic_params: "<" CNAME ("," CNAME)* ">"
 
 property_sig: CNAME property_index? ":" type_spec (READ CNAME)? (WRITE CNAME?)? -> property_sig
+event_opt: access_modifier? RAISE -> event_raise
+         | method_attr -> event_attr
+event_end: ";" -> event_simple
+         | event_opt (";" event_opt)* ";" -> event_full
 property_index: "[" param_list? "]"
 const_decl: CNAME (":" type_spec)? OP_REL expr ";"
 const_block: "const" const_decl+
