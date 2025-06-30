@@ -382,6 +382,13 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_try_except_on_type(self):
+        src = Path('tests/TryExceptOnType.pas').read_text()
+        expected = Path('tests/TryExceptOnType.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_try_except_on_empty(self):
         src = Path('tests/TryExceptOnEmpty.pas').read_text()
         expected = Path('tests/TryExceptOnEmpty.cs').read_text().strip()
