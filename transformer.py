@@ -954,13 +954,13 @@ class ToCSharp(Transformer):
     def on_handler(self, _on, name, typ, _do, stmt):
         return ('on_handler', str(name), typ, stmt)
 
-    def on_handler_empty(self, _on, name, typ, _do):
+    def on_handler_empty(self, _on, name, typ, _do, _semi=None):
         return ('on_handler', str(name), typ, '')
 
     def on_handler_type(self, _on, typ, _do, stmt):
         return ('on_handler_type', typ, stmt)
 
-    def on_handler_type_empty(self, _on, typ, _do):
+    def on_handler_type_empty(self, _on, typ, _do, _semi=None):
         return ('on_handler_type', typ, '')
 
     def yield_stmt(self, _tok, expr, _semi=None):

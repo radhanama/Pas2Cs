@@ -8,6 +8,7 @@ type
   TryExceptOnEmpty = public class
   public
     class method DoStuff();
+    class method DoNothingNoSemi();
   end;
 
 implementation
@@ -21,4 +22,14 @@ begin
   end;
 end;
 
+class method TryExceptOnEmpty.DoNothingNoSemi();
+begin
+  try
+    Console.WriteLine('B');
+  except
+    on E: Exception do
+  end;
+end;
+
 end.
+
