@@ -8,6 +8,7 @@ type
   TryExceptEmptySemiExample = public class
   public
     class method DoNothing();
+    class method DoCatch();
   end;
 
 implementation
@@ -17,6 +18,15 @@ begin
   try
     Console.WriteLine('A');
   except;
+  end;
+end;
+
+class method TryExceptEmptySemiExample.DoCatch();
+begin
+  try
+    Console.WriteLine('A');
+  except;
+    Console.WriteLine('B');
   end;
 end;
 

@@ -172,8 +172,7 @@ loop_stmt:   LOOP stmt                                       -> loop_stmt
 while_stmt:  "while"i expr "do"i stmt                    -> while_stmt
 
 try_stmt:    TRY stmt* except_clause? finally_clause? "end"i ";"? -> try_stmt
-except_clause: EXCEPT (on_handler | stmt)*                       -> except_clause
-             | EXCEPT ";"                                   -> except_empty
+except_clause: EXCEPT ";"? (on_handler | stmt)*                       -> except_clause
 finally_clause: FINALLY stmt+
 on_handler: ON CNAME ":" type_name DO stmt -> on_handler
           | ON CNAME ":" type_name DO ";" -> on_handler_empty
