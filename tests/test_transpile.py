@@ -675,6 +675,13 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_if_then_semi(self):
+        src = Path('tests/IfThenSemi.pas').read_text()
+        expected = Path('tests/IfThenSemi.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_local_const(self):
         src = Path('tests/LocalConst.pas').read_text()
         expected = Path('tests/LocalConst.cs').read_text().strip()

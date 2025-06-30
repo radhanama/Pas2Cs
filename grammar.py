@@ -158,7 +158,8 @@ using_stmt: USING CNAME (":" type_spec)? ":=" expr DO stmt       -> using_var
 locking_stmt: LOCKING expr DO stmt                      -> locking_stmt
 with_stmt: WITH expr DO stmt                           -> with_stmt
 yield_stmt: YIELD expr ";"?                           -> yield_stmt
-if_stmt:     "if"i expr THEN stmt? (ELSE stmt)?        -> if_stmt
+empty_stmt: ";"                                      -> empty
+if_stmt:     "if"i expr THEN (stmt | empty_stmt)? (ELSE stmt)?        -> if_stmt
 for_stmt:    "for"i CNAME (":" type_spec)? ":=" expr (TO | DOWNTO) expr (STEP expr)? ("do"i)? stmt  -> for_stmt
            | "for"i "each"i? CNAME (":" type_spec)? IN expr (INDEX CNAME)? ("do"i)? stmt      -> for_each_stmt
 loop_stmt:   LOOP stmt                                       -> loop_stmt
