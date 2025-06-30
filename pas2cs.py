@@ -47,6 +47,15 @@ def transpile(source: str, manual_translate=None, manual_parse_error=None) -> tu
     source = re.sub(r';[ \t;]*(?=\n|$)', ';', source)
     source = re.sub(r'^\s*;\s*(?=\n)', '', source, flags=re.MULTILINE)
     source = remove_accents_code(source)
+
+    # Insert placeholder type for untyped lambda parameters
+    def _fix_lambda(match):
+        params = match.group(1)
+        if ':' in params:
+            return match.group(0)
+        return f"({params}: Object)"
+
+    source = re.sub(r'\(([^()]*?)\)\s*(?=->|=>)', _fix_lambda, source)
     set_source(source)
     parser = _get_parser()
     try:

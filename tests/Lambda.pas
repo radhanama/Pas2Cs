@@ -11,7 +11,8 @@ implementation
 method LambdaClass.Run: Boolean;
 begin
   var predicate := (i: Integer) -> i > 0;
-  exit predicate(5);
+  var eq := (a, b) -> a = b;
+  exit predicate(5) and eq(5, 5);
 end;
 
 end.
