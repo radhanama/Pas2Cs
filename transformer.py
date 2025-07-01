@@ -894,11 +894,28 @@ class ToCSharp(Transformer):
             parts = parts[1:]
         head = parts[0]
         tail = parts[1:]
+        comments = []
+        while tail and (
+            (isinstance(tail[0], Token) and tail[0].type.startswith("COMMENT"))
+            or (isinstance(tail[0], str) and tail[0].lstrip().startswith(('/', '#')))
+        ):
+            tok = tail[0]
+            if isinstance(tok, Token):
+                comments.append(self.comment(tok))
+            else:
+                comments.append(tok)
+            tail = tail[1:]
         if len(tail) == 1:
             vars_code = ""
             body = tail[0]
         else:
             vars_code, body = tail
+        if comments:
+            c_text = "\n".join(comments)
+            if vars_code:
+                vars_code = c_text + "\n" + vars_code
+            else:
+                vars_code = c_text
         cls, name, params, rettype = head
         params_cs = params or ""
         ret       = map_type_ext(rettype) if rettype else "void"
