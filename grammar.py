@@ -2,7 +2,7 @@
 GRAMMAR = r"""
 ?start:   assembly_attr* (namespace | unit_decl | program_decl | library_decl) uses_clause? (interface_section | pre_class_decl*)? class_section* ("implementation" uses_clause? class_impl*)? (main_block "." | initialization_section? ("end"i ("." | ";"))?)
 main_block: "begin" stmt* "end"i
-interface_section: "interface" uses_clause? assembly_attr* pre_class_decl*
+interface_section: "interface" uses_clause? pre_class_decl*
 uses_clause:   "uses" dotted_name ("," dotted_name)* ";"       -> uses
 
 assembly_attr: "[" CNAME ":" dotted_name ("(" arg_list? ")")? "]" ";"?
@@ -126,6 +126,7 @@ pre_class_decl: const_block
               | var_section
               | method_decl_rule
               | comment_stmt
+              | assembly_attr
 
 class_impl:  attributes? class_modifier? method_kind method_impl
            | comment_stmt
