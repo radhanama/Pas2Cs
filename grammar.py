@@ -54,6 +54,7 @@ member_decl: attributes? method_decl_rule
            | attributes? access_modifier? (CLASSVAR | VAR) attributes? name_list ":" type_spec (":=" expr)? ";" comment?      -> field_decl
            | attributes? access_modifier? class_modifier attributes? name_list ":" type_spec (":=" expr)? ";" comment?      -> field_decl
            | access_modifier? name_list ":" type_spec (":=" expr)? ";" comment?      -> field_decl
+           | comment_stmt
 
            | attributes? access_modifier? "class"? "property"i property_sig ";" (method_attr ";")*      -> property_decl
            | attributes? access_modifier? "event"i CNAME ":" type_spec event_end  -> event_decl

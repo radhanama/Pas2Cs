@@ -10,6 +10,8 @@ namespace Demo {
     }
     
     public partial class Foo {
+        /* $REGION 'extra' */
+        /* $ENDREGION */
         public int ValueParen() {
             int result;
             /* comment with *** inside
