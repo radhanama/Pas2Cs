@@ -663,6 +663,9 @@ class ToCSharp(Transformer):
     def section(self, token=None):
         return ""
 
+    def var_kwd(self, *args):
+        return ""
+
     def method_kind(self, token=None):
         self.curr_kind = str(token) if token else None
         return ""
