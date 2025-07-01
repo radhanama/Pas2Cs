@@ -2,7 +2,6 @@ import textwrap
 import sys
 import locale
 import unicodedata
-import re
 # ─────────────────── Utility helpers ─────────────────────────
 def indent(code: str, lvl: int = 1) -> str:
     return textwrap.indent(code, "    " * lvl, lambda _: True)
@@ -36,10 +35,7 @@ def remove_accents_code(text: str) -> str:
             else:
                 result.append(remove_accents(ch))
             i += 1
-    text = ''.join(result)
-    comment_between = r'end\s*(\{[^}]*\}|\(\*[\s\S]*?\*\)|/\*[\s\S]*?\*/|//[^\n]*)\s*else'
-    text = re.sub(comment_between, lambda m: 'end else ' + m.group(1), text, flags=re.IGNORECASE)
-    return text
+    return ''.join(result)
 
 def map_type(pas_type: str) -> str:
     """Map basic Pascal type names to their C# equivalents."""
@@ -150,8 +146,6 @@ KEYWORD_MAP = {
 
 def set_source(text: str) -> None:
     """Store source text so fix_keyword can check surrounding characters."""
-    comment_between = r'end\s*(\{[^}]*\}|\(\*[\s\S]*?\*\)|/\*[\s\S]*?\*/|//[^\n]*)\s*else'
-    text = re.sub(comment_between, lambda m: 'end else ' + m.group(1), text, flags=re.IGNORECASE)
     global _SRC_TEXT, _LAST_POS
     _SRC_TEXT = text
     _LAST_POS = 0
