@@ -70,6 +70,20 @@ class ToCSharp(Transformer):
             return '.'.join(escape_cs_keyword(p) for p in parts)
         return escape_cs_keyword(text)
 
+    # ── comments ──────────────────────────────────────────────
+    def comment(self, tok):
+        text = str(tok)
+        if text.startswith('{') and text.endswith('}'):
+            inner = text[1:-1].strip()
+            return f"/* {inner} */"
+        if text.startswith('(*') and text.endswith('*)'):
+            inner = text[2:-2].strip()
+            return f"/* {inner} */"
+        return text
+
+    def comment_stmt(self, comment):
+        return str(comment)
+
     def attributes(self, *items):
         return list(items)
 
@@ -653,7 +667,16 @@ class ToCSharp(Transformer):
     def var_stmt(self, *decls):
         return "\n".join(decls)
 
-    def var_decl(self, names, typ, expr=None):
+    def var_decl(self, names, typ, *parts):
+        expr = None
+        comment = None
+        if len(parts) == 1:
+            if isinstance(parts[0], str) and (parts[0].startswith('//') or parts[0].startswith('/*')):
+                comment = parts[0]
+            else:
+                expr = parts[0]
+        elif len(parts) == 2:
+            expr, comment = parts
         t = map_type_ext(str(typ))
         safe_names = [self._safe_name(n) for n in names]
         decl = f"{t} {', '.join(safe_names)}"
@@ -661,14 +684,20 @@ class ToCSharp(Transformer):
             decl += f" = {expr}"
         for n in safe_names:
             self.curr_locals.add(str(n))
-        return decl + ";"
+        line = decl + ";"
+        if comment:
+            line += " " + str(comment)
+        return line
 
-    def var_decl_infer(self, names, expr):
+    def var_decl_infer(self, names, expr, comment=None):
         safe_names = [self._safe_name(n) for n in names]
         decl = f"var {', '.join(safe_names)} = {expr}"
         for n in safe_names:
             self.curr_locals.add(str(n))
-        return decl + ";"
+        line = decl + ";"
+        if comment:
+            line += " " + str(comment)
+        return line
 
     def field_decl(self, *parts):
         is_static = self.curr_static
@@ -685,6 +714,9 @@ class ToCSharp(Transformer):
                 items.append(p)
                 continue
             items.append(p)
+        comment = None
+        if items and isinstance(items[-1], str) and (items[-1].startswith('//') or items[-1].startswith('/*')):
+            comment = items.pop()
         if len(items) == 3:
             names, typ, expr = items
         else:
@@ -703,6 +735,8 @@ class ToCSharp(Transformer):
             body = "\n".join(attrs + [impl])
         else:
             body = impl
+        if comment:
+            body = body + " " + str(comment)
         if self.emit_comments:
             return info + "\n" + body
         return body
