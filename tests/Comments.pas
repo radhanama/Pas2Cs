@@ -19,6 +19,12 @@ type
     method ValueCStyle: Integer;
   end;
 
+  /// <remarks>
+  /// comment before class
+  /// </remarks>
+  PreComment = class
+  end;
+
 implementation
 
 procedure Commented.SayHello();

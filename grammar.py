@@ -38,6 +38,7 @@ type_def:     attributes? class_def
             | attributes? enum_def
             | alias_def
             | attributes? delegate_def
+            | comment_stmt
 
 class_def:   CNAME generic_params? "=" ("public"i)? "static"? "partial"? ("sealed"i | "final"i)? "abstract"? "class"i ("sealed"i | "final"i)? CNAME* ("(" type_name ("," type_name)* ")")? class_signature "end"i ";" -> class_def
 class_forward: CNAME generic_params? "=" ("public"i)? "static"? "partial"? ("sealed"i | "final"i)? "abstract"? "class"i ("sealed"i | "final"i)? CNAME* ("(" type_name ("," type_name)* ")")? ";" -> class_fwd
@@ -333,7 +334,7 @@ inherited_var: INHERITED name_base (ARRAY_RANGE | "." name_term)* -> inherited_v
 var_ref:     name_base (ARRAY_RANGE | "." name_term)* -> var
            | "(" expr ")" ARRAY_RANGE -> paren_index
 
-var_section: ("var"i | "threadvar"i) (var_decl | var_decl_infer)+
+var_section: ("var"i | "threadvar"i) var_section_item+
 var_section_item: var_decl | var_decl_infer | comment_stmt
 var_decl:    name_list ":" type_spec (":=" expr)? ";" comment?       -> var_decl
 var_decl_infer: name_list ":=" expr ";" comment?                 -> var_decl_infer

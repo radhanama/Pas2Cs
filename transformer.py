@@ -39,6 +39,7 @@ class ToCSharp(Transformer):
         self.assembly_attrs = []
         self.class_attributes = defaultdict(list)
         self.in_attribute = False
+        self.pending_class_comments = []
 
     def _translate_expr_text(self, text: str) -> str:
         """Translate simple Pascal expressions used inside array indexes."""
@@ -145,8 +146,6 @@ class ToCSharp(Transformer):
             kind, base, sign_list, mods = self.class_defs.get(cname, ("class", "", [], set()))
             body_lines = []
             for line in sign_list:
-                if 'region' in line.lower():
-                    continue
                 info = self._parse_sig(line)
                 if info and info in self.impl_methods.get(cname, set()):
                     continue
@@ -174,7 +173,9 @@ class ToCSharp(Transformer):
                     classes.append(f"{attr_lines}public {sealed_kw}{partial}{kw} {cname}{base} {{\n{body}\n}}")
                 else:
                     has_decl = bool(sign_list)
-                    if self.alias_defs or not first_class or (len(self.class_order) > 1 and not has_decl) or self.usings:
+                    if attr_lines:
+                        blank = "\n"
+                    elif self.alias_defs or not first_class or (len(self.class_order) > 1 and not has_decl) or self.usings:
                         blank = "\n\n"
                     else:
                         blank = "\n"
@@ -371,6 +372,9 @@ class ToCSharp(Transformer):
         if sealed:
             mods.add('sealed')
         self._add_type(name_full, "class", base_cs, sign_list, mods)
+        if self.pending_class_comments:
+            self.class_attributes[name_full].extend(self.pending_class_comments)
+            self.pending_class_comments = []
         self.curr_class = prev
         return ""
 
@@ -486,6 +490,9 @@ class ToCSharp(Transformer):
             parts = parts[1:]
         item = parts[-1]
         result = item
+        if isinstance(item, str) and item.strip().startswith(('/', '{', '(')):
+            self.pending_class_comments.append(item)
+            result = ""
         if attrs and self.class_order:
             self.class_attributes[self.class_order[-1]].extend(attrs)
         return result
