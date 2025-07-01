@@ -17,7 +17,7 @@ keeping both languages building in the same .NET solution.
 | ✅ | Handles `begin … end` blocks, `if … then … else`, `for … to … do` |
 | ✅ | Supports `exit …;` and implicit `Result` variables |
 | ✅ | Arithmetic/logic ops (`+ - * / and or`, `= <> <= >=`) |
-| ✅ | Emits **`// TODO:`** comments + stderr warnings for unsupported constructs |
+| ✅ | Emits **comments** + stderr warnings for unsupported constructs |
 | 🔜 | Add `while`, `try/finally`, `record`, generics, properties, etc. |
 
 ---
@@ -52,7 +52,7 @@ Get-ChildItem . -Recurse -Filter *.pas | ForEach-Object {
 }
 ```
 
-> Any **unsupported syntax** is inserted as `// TODO:` so the generated `.cs`
+> Any **unsupported syntax** is inserted as comments so the generated `.cs`
 > still compiles (after you stub or fix the line manually).
 
 ---
@@ -93,7 +93,7 @@ and compiles everything.
    Replace the current string concat with `SyntaxFactory` nodes for perfect
    formatting and easier refactoring.
 
-Each new rule shrinks the `// TODO:` count and lets you delete more
+Each new rule shrinks the comment count and lets you delete more
 legacy `.pas` files.
 
 More in-depth development guidance can be found in

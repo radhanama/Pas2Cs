@@ -17,7 +17,7 @@ def interactive_translate(rule: str, children, line: int) -> str | None:
     snippet = " ".join(str(c) for c in children)
     print(f"Cannot translate '{rule}' at line {line}: {snippet}")
     try:
-        inp = input("Provide translation (leave blank to keep TODO): ")
+        inp = input("Provide translation (leave blank to keep note): ")
     except EOFError:
         inp = ""
     return inp.strip() or None

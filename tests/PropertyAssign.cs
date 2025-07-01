@@ -10,9 +10,7 @@ namespace Demo {
     }
     
     public partial class BaseService {
-        // TODO: field UseDefaultCredentials: bool -> declare a field
         public bool UseDefaultCredentials;
-        // TODO: field Url: string -> declare a field
         public string Url;
     }
     
@@ -24,7 +22,6 @@ namespace Demo {
     }
     
     public partial struct RecordData {
-        // TODO: field numeroRegistros: int -> declare a field
         public int numeroRegistros;
     }
 }

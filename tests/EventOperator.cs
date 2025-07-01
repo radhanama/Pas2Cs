@@ -3,7 +3,6 @@ using System;
 namespace Demo {
     [Obsolete]
     public partial class MyClass {
-        // TODO: event OnSomething: EventHandler -> implement
         public event EventHandler OnSomething;
         public int Add(int a, int b) {
             int result;

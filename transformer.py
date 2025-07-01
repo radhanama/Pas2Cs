@@ -124,7 +124,7 @@ class ToCSharp(Transformer):
                 if info and info in self.impl_methods.get(cname, set()):
                     continue
                 if info:
-                    stub = line.rstrip().rstrip(';') + ' { /* TODO: implement */ }'
+                    stub = line.rstrip().rstrip(';') + ' { /* implement */ }'
                     body_lines.append(stub)
                 else:
                     body_lines.append(line.rstrip())
@@ -551,7 +551,7 @@ class ToCSharp(Transformer):
                 default_val = parts.pop(0)
         if ptype is None:
             t = "object"
-            info = f"// TODO: parameter {', '.join(names)} missing type"
+            info = f"// parameter {', '.join(names)} missing type"
             self.todo.append(info)
         else:
             t = map_type_ext(str(ptype))
@@ -672,7 +672,7 @@ class ToCSharp(Transformer):
             names, typ = items
             expr = None
         t = map_type_ext(str(typ))
-        info = f"// TODO: field {', '.join(names)}: {t} -> declare a field"
+        info = f"// field {', '.join(names)}: {t} -> declare a field"
         init = f" = {expr}" if expr is not None else ""
         static_kw = "static " if is_static else ""
         impl = f"public {static_kw}{t} {', '.join(names)}{init};"
@@ -765,7 +765,7 @@ class ToCSharp(Transformer):
         else:
             name = self._safe_name(parts[-2])
             typ = map_type_ext(str(parts[-1]))
-        info = f"// TODO: event {name}: {typ} -> implement"
+        info = f"// event {name}: {typ} -> implement"
         impl = f"public event {typ} {name};"
         self.todo.append(info)
         return info + "\n" + impl
@@ -790,7 +790,7 @@ class ToCSharp(Transformer):
                 line = f"var {safe_name} = {expr};"
             self.curr_locals.add(str(safe_name))
             return line
-        info = f"// TODO: const {safe_name} -> define a constant"
+        info = f"// const {safe_name} -> define a constant"
         impl = f"public const {t} {safe_name} = {expr};"
         self.todo.append(info)
         return info + "\n" + impl
@@ -968,7 +968,7 @@ class ToCSharp(Transformer):
         return f"lock ({expr}) {body}"
 
     def with_stmt(self, _tok, expr, _do, body):
-        info = "// TODO: with statement"
+        info = "// with statement"
         self.todo.append(info)
         return info
 
@@ -1428,7 +1428,7 @@ class ToCSharp(Transformer):
                     call = f"base.{self.curr_method}({call_args})" if call_args else f"base.{self.curr_method}()"
                     return call + ";"
                 return ""
-            return "// TODO: inherited call"
+            return "// inherited call"
         if str(name).lower() == "constructor":
             base_name = self.curr_method or "constructor"
             arglist = ", ".join(args or [])
@@ -1601,7 +1601,7 @@ class ToCSharp(Transformer):
     # ── catch‑all for unimplemented rules ───────────────────
     def __default__(self, data, children, meta):
         line = getattr(meta, "line", "?")
-        info = f"// TODO: unsupported construct «{data}» at line {line}"
+        info = f"// unsupported construct «{data}» at line {line}"
         self.todo.append(info)
         if self.manual_translate:
             translation = self.manual_translate(data, children, line)

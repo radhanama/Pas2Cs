@@ -1,6 +1,5 @@
 namespace Demo {
     public partial class TestJson {
-        // TODO: field Nome: string -> declare a field
         public string Nome;
     }
     

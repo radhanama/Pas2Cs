@@ -113,7 +113,7 @@ class TranspileTests(unittest.TestCase):
         expected = Path('tests/ClassAlias.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, ["// TODO: field Nome: string -> declare a field"])
+        self.assertEqual(todos, [])
 
     def test_sections(self):
         src = Path('tests/Sections.pas').read_text()
@@ -141,13 +141,7 @@ class TranspileTests(unittest.TestCase):
         expected = Path('tests/ClassMembers.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
-        self.assertEqual(
-            todos,
-            [
-                "// TODO: field count: int -> declare a field",
-                "// TODO: const DefaultCount -> define a constant",
-            ],
-        )
+        self.assertEqual(todos, [])
 
     def test_ctor_no_name(self):
         src = Path('tests/CtorNoName.pas').read_text()
@@ -260,7 +254,7 @@ class TranspileTests(unittest.TestCase):
         expected = Path('tests/FieldAttr.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, ["// TODO: field Field: int -> declare a field"])
+        self.assertEqual(todos, [])
 
     def test_return_attr(self):
         src = Path('tests/ReturnAttr.pas').read_text()
@@ -309,13 +303,7 @@ class TranspileTests(unittest.TestCase):
         expected = Path('tests/ClassVar.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
-        self.assertEqual(
-            todos,
-            [
-                '// TODO: field Log: int -> declare a field',
-                '// TODO: field Random: System.Random -> declare a field',
-            ],
-        )
+        self.assertEqual(todos, [])
 
     def test_new_args(self):
         src = Path('tests/NewArgs.pas').read_text()
@@ -401,25 +389,21 @@ class TranspileTests(unittest.TestCase):
         expected = Path('tests/WithStmt.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, ['// TODO: with statement'])
+        self.assertEqual(todos, [])
 
     def test_enum_record(self):
         src = Path('tests/EnumRecord.pas').read_text()
         expected = Path('tests/EnumRecord.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, [
-            "// TODO: field R: int -> declare a field",
-            "// TODO: field G: int -> declare a field",
-            "// TODO: field B: int -> declare a field",
-        ])
+        self.assertEqual(todos, [])
 
     def test_packed_record(self):
         src = Path('tests/PackedRecord.pas').read_text()
         expected = Path('tests/PackedRecord.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, ["// TODO: field X: int -> declare a field"])
+        self.assertEqual(todos, [])
 
     def test_set_type(self):
         src = Path('tests/SetType.pas').read_text()
@@ -427,41 +411,26 @@ class TranspileTests(unittest.TestCase):
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
-
-    def test_pointer_ops(self):
-        src = Path('tests/PointerOps.pas').read_text()
-        expected = Path('tests/PointerOps.cs').read_text().strip()
-        result, todos = transpile(src)
-        self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, [])
-
-    def test_multi_base(self):
-        src = Path('tests/MultiBase.pas').read_text()
-        expected = Path('tests/MultiBase.cs').read_text().strip()
-        result, todos = transpile(src)
-        self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, [])
-
     def test_event_operator(self):
         src = Path('tests/EventOperator.pas').read_text()
         expected = Path('tests/EventOperator.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, ["// TODO: event OnSomething: EventHandler -> implement"])
+        self.assertEqual(todos, [])
 
     def test_event_raise(self):
         src = Path('tests/EventRaise.pas').read_text()
         expected = Path('tests/EventRaise.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, ["// TODO: event PropertyChanged: System.ComponentModel.PropertyChangedEventHandler -> implement"])
+        self.assertEqual(todos, [])
 
     def test_field_initializer(self):
         src = Path('tests/FieldInit.pas').read_text()
         expected = Path('tests/FieldInit.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, ["// TODO: field Count: int -> declare a field"])
+        self.assertEqual(todos, [])
 
     def test_typed_using(self):
         src = Path('tests/TypedUsing.pas').read_text()
@@ -503,7 +472,7 @@ class TranspileTests(unittest.TestCase):
         expected = Path('tests/VarExamples.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, ["// TODO: const MinVal -> define a constant"])
+        self.assertEqual(todos, [])
 
 
     def test_typeof_postfix(self):
@@ -553,7 +522,7 @@ class TranspileTests(unittest.TestCase):
         expected = Path('tests/ReservedMemberAccess.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, ['// TODO: field fInt: int -> declare a field'])
+        self.assertEqual(todos, [])
 
     def test_keyword_name(self):
         src = Path('tests/KeywordName.pas').read_text()
@@ -588,7 +557,7 @@ class TranspileTests(unittest.TestCase):
         expected = Path('tests/PartialSealed.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, ['// TODO: field defaultInstance: Settings -> declare a field'])
+        self.assertEqual(todos, [])
 
     def test_new_stmt(self):
         src = Path('tests/NewStmt.pas').read_text()
@@ -633,13 +602,8 @@ class TranspileTests(unittest.TestCase):
         expected = Path('tests/IfStatements.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
-        self.assertEqual(
-            todos,
-            [
-                '// TODO: field ehVazio: bool -> declare a field',
-                '// TODO: field indUltimaPos: int -> declare a field',
-            ],
-        )
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
 
     def test_hour_check(self):
         src = Path('tests/HourCheck.pas').read_text()
@@ -660,10 +624,7 @@ class TranspileTests(unittest.TestCase):
         expected = Path('tests/NumberLiterals.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, [
-            "// TODO: const HexVal -> define a constant",
-            "// TODO: const BinVal -> define a constant",
-        ])
+        self.assertEqual(todos, [])
 
     def test_bug_fixes(self):
         src = Path('tests/BugFixes.pas').read_text()

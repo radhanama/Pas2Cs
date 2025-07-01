@@ -30,8 +30,8 @@ To batch convert a directory you can run `./batch_transpile.sh log.txt DIR`.
 1. `pas2cs.py` loads `GRAMMAR` from **grammar.py** and parses the Pascal source
    using the [Lark](https://github.com/lark-parser/lark) LALR parser.
 2. A `ToCSharp` transformer defined in **transformer.py** walks the parse tree
-   and builds a C# string. Unsupported rules add `// TODO:` comments.
-3. `transpile()` returns the generated source and any collected TODO notes.
+   and builds a C# string. Unsupported rules add comments.
+3. `transpile()` returns the generated source and any collected notes.
 
 ## Making Changes
 

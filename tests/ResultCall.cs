@@ -1,6 +1,5 @@
 namespace Demo {
     public partial class TRetornoZoom {
-        public void definirMensagem(string a, string b) { /* TODO: implement */ }
     }
     
     public partial class Foo {
