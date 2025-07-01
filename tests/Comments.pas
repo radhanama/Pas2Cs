@@ -13,7 +13,9 @@ type
   Foo = class
   public
     method ValueParen: Integer;
+    {$REGION 'extra'}
     method ValueBrace: Integer;
+    {$ENDREGION}
     method ValueCStyle: Integer;
   end;
 
