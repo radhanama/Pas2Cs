@@ -415,9 +415,9 @@ STRING: /"[^"\n]*"/
 
 CNAME: /&?[A-Za-z_][A-Za-z_0-9]*\??/
 COMMENT_BRACE: /\{(?s:.*?)\}/
-LINE_COMMENT: /\/\/[^\n]*/
+LINE_COMMENT.4: /\/\/[^\n]*/
 COMMENT_PAREN: /\(\*[\s\S]*?\*\)/
-COMMENT_STAR: /\/\*[\s\S]*?\*\//
+COMMENT_STAR.4: /\/\*[\s\S]*?\*\//
 %ignore WS
 %ignore COMMENT_BRACE
 %ignore LINE_COMMENT
