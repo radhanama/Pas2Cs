@@ -135,7 +135,7 @@ method_impl: attributes? impl_head ";" comment* method_decls? block       -> m_i
 method_decls: (var_section | const_block)+
 impl_head:   method_name param_block? return_block?
 
-block:       "begin" ";"? stmt* "end"i ";"?
+block:       "begin" ";"? stmt* "end"i comment* ";"?
 
 ?stmt:       assign_stmt
            | op_assign_stmt
