@@ -76,7 +76,7 @@ def transpile(source: str, manual_translate=None, manual_parse_error=None) -> tu
             msg = f"Parse error at line {e.line}, column {e.column}:{exp}\n{ctx}"
             raise SyntaxError(msg) from None
         raise
-    gen = ToCSharp(manual_translate=manual_translate)
+    gen = ToCSharp(manual_translate=manual_translate, emit_comments=False)
     body = gen.transform(tree)
     return body, gen.todo
 

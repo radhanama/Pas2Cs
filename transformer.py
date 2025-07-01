@@ -8,9 +8,10 @@ from utils import indent, map_type_ext, escape_cs_keyword
 
 @v_args(inline=True)
 class ToCSharp(Transformer):
-    def __init__(self, manual_translate=None):
+    def __init__(self, manual_translate=None, emit_comments=True):
         super().__init__()
         self.todo = []   # collect unsupported notices
+        self.emit_comments = emit_comments
         self.ns   = "Unnamed"
         self.curr_method = None
         self.curr_params = []
@@ -116,6 +117,7 @@ class ToCSharp(Transformer):
     # ── root rule -------------------------------------------------
     def start(self, ns, *parts):
         classes = []
+        first_class = True
         for cname in self.class_order:
             kind, base, sign_list, mods = self.class_defs.get(cname, ("class", "", [], set()))
             body_lines = []
@@ -124,8 +126,11 @@ class ToCSharp(Transformer):
                 if info and info in self.impl_methods.get(cname, set()):
                     continue
                 if info:
-                    stub = line.rstrip().rstrip(';') + ' { /* implement */ }'
-                    body_lines.append(stub)
+                    if self.emit_comments:
+                        stub = line.rstrip().rstrip(';') + ' { /* implement */ }'
+                        body_lines.append(stub)
+                    else:
+                        continue
                 else:
                     body_lines.append(line.rstrip())
             body_lines.extend(self.class_impls.get(cname, []))
@@ -140,7 +145,16 @@ class ToCSharp(Transformer):
                 kw = "interface" if kind == "interface" else ("struct" if kind == "record" else "class")
                 partial = "partial " if kind in ("class", "record") else ""
                 sealed_kw = "sealed " if 'sealed' in mods else ""
-                classes.append(f"{attr_lines}public {sealed_kw}{partial}{kw} {cname}{base} {{\n{body}\n}}")
+                if body:
+                    classes.append(f"{attr_lines}public {sealed_kw}{partial}{kw} {cname}{base} {{\n{body}\n}}")
+                else:
+                    has_decl = bool(sign_list)
+                    if self.alias_defs or not first_class or (len(self.class_order) > 1 and not has_decl) or self.usings:
+                        blank = "\n\n"
+                    else:
+                        blank = "\n"
+                    classes.append(f"{attr_lines}public {sealed_kw}{partial}{kw} {cname}{base} {{{blank}}}")
+                first_class = False
         ns_items = []
         if self.delegate_defs:
             ns_items.extend(self.delegate_defs)
@@ -183,6 +197,11 @@ class ToCSharp(Transformer):
             return None
         line = line[:-1].strip()
         if "(" not in line:
+            return None
+        # treat lines where '(' appears after an '=' as fields, not methods
+        paren_idx = line.find('(')
+        eq_idx = line.find('=')
+        if eq_idx != -1 and paren_idx > eq_idx:
             return None
         head, params = line.split("(", 1)
         params = params.rstrip(")")
@@ -676,12 +695,17 @@ class ToCSharp(Transformer):
         init = f" = {expr}" if expr is not None else ""
         static_kw = "static " if is_static else ""
         impl = f"public {static_kw}{t} {', '.join(names)}{init};"
-        self.todo.append(info)
+        if self.emit_comments:
+            self.todo.append(info)
         if self.curr_class:
             self.class_fields[self.curr_class].update(names)
         if attrs:
-            return info + "\n" + "\n".join(attrs + [impl])
-        return info + "\n" + impl
+            body = "\n".join(attrs + [impl])
+        else:
+            body = impl
+        if self.emit_comments:
+            return info + "\n" + body
+        return body
 
     def property_sig(self, name, *parts):
         parts = list(parts)
@@ -767,8 +791,10 @@ class ToCSharp(Transformer):
             typ = map_type_ext(str(parts[-1]))
         info = f"// event {name}: {typ} -> implement"
         impl = f"public event {typ} {name};"
-        self.todo.append(info)
-        return info + "\n" + impl
+        if self.emit_comments:
+            self.todo.append(info)
+            return info + "\n" + impl
+        return impl
 
     def const_decl(self, name, *parts):
         parts = list(parts)
@@ -792,8 +818,10 @@ class ToCSharp(Transformer):
             return line
         info = f"// const {safe_name} -> define a constant"
         impl = f"public const {t} {safe_name} = {expr};"
-        self.todo.append(info)
-        return info + "\n" + impl
+        if self.emit_comments:
+            self.todo.append(info)
+            return info + "\n" + impl
+        return impl
 
     def const_block(self, *parts):
         decls = parts[1:] if parts and parts[0] == "" else parts
@@ -969,8 +997,10 @@ class ToCSharp(Transformer):
 
     def with_stmt(self, _tok, expr, _do, body):
         info = "// with statement"
-        self.todo.append(info)
-        return info
+        if self.emit_comments:
+            self.todo.append(info)
+            return info
+        return ""
 
     def except_clause(self, *handlers):
         handlers = [h for h in handlers if not isinstance(h, Token)]
@@ -1607,4 +1637,6 @@ class ToCSharp(Transformer):
             translation = self.manual_translate(data, children, line)
             if translation is not None:
                 return translation
-        return info
+        if self.emit_comments:
+            return info
+        return ""
