@@ -47,4 +47,15 @@ namespace Demo {
             return result;
         }
     }
+    
+    public partial class PadZeros {
+        public static string PreencheComZeros(double n, int t) {
+            string result;
+            string aux;
+            aux = n.ToString;
+            if (Length(aux) > t) aux = Copy(aux, 0, t); // pega as primeiras t posicoes else aux = TSGUutils.Replicar("0", t - Length(aux)) + aux; // preenche com zeros
+            result = aux;
+            return result;
+        }
+    }
 }

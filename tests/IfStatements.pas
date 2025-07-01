@@ -33,6 +33,11 @@ type
     method Check(frowInd: Integer): Boolean;
   end;
 
+  PadZeros = class
+  public
+    class method PreencheComZeros(n: Extended; t: Integer): String;
+  end;
+
 implementation
 
 class method Ternary.Select(flag: Boolean): Integer;
@@ -76,6 +81,17 @@ begin
     result := true
   else
     result := false;
+end;
+
+class method PadZeros.PreencheComZeros(n: Extended; t: Integer): String;
+var aux: String;
+begin
+  aux := n.ToString;
+  if Length(aux) > t then
+    aux := Copy(aux,0,t)   // pega as primeiras t posicoes
+  else
+    aux := TSGUutils.Replicar('0',t-Length(aux)) + aux;   // preenche com zeros
+  result := aux;
 end;
 
 end.

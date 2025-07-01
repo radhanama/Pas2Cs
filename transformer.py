@@ -1003,11 +1003,17 @@ class ToCSharp(Transformer):
         return (cls, name, ", ".join(param_list), self.curr_rettype)
 
     # ── statements ──────────────────────────────────────────
-    def assign(self, var, expr):
-        return f"{var} = {expr};"
+    def assign(self, var, expr, comment=None):
+        line = f"{var} = {expr};"
+        if comment:
+            line += " " + str(comment)
+        return line
 
-    def op_assign(self, var, op, expr):
-        return f"{var} {op} {expr};"
+    def op_assign(self, var, op, expr, comment=None):
+        line = f"{var} {op} {expr};"
+        if comment:
+            line += " " + str(comment)
+        return line
 
     def result_ret(self, _tok, expr):
         self.used_result = True
