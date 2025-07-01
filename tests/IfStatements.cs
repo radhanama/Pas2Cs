@@ -24,6 +24,7 @@ namespace Demo {
         public static void Demo(bool flag) {
             if (flag) {
                 if (flag) {}
+                // no-op
                 {
                     System.Console.WriteLine("Hello");
                 }
@@ -33,7 +34,7 @@ namespace Demo {
     
     public partial class IfElseEmptyExample {
         public static void Check(bool flag) {
-            if (flag) Console.WriteLine("yes"); else {}
+            if (flag) Console.WriteLine("yes"); // nothing
         }
     }
     
