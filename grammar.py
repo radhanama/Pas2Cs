@@ -38,6 +38,7 @@ type_def:     attributes? class_def
             | attributes? enum_def
             | alias_def
             | attributes? delegate_def
+            | comment_stmt
 
 class_def:   CNAME generic_params? "=" ("public"i)? "static"? "partial"? ("sealed"i | "final"i)? "abstract"? "class"i ("sealed"i | "final"i)? CNAME* ("(" type_name ("," type_name)* ")")? class_signature "end"i ";" -> class_def
 class_forward: CNAME generic_params? "=" ("public"i)? "static"? "partial"? ("sealed"i | "final"i)? "abstract"? "class"i ("sealed"i | "final"i)? CNAME* ("(" type_name ("," type_name)* ")")? ";" -> class_fwd

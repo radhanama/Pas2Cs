@@ -34,4 +34,10 @@ namespace Demo {
             return result;
         }
     }
+    
+    /// <remarks>
+    /// comment before class
+    /// </remarks>
+    public partial class PreComment {
+    }
 }
