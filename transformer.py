@@ -658,6 +658,9 @@ class ToCSharp(Transformer):
     def var_section(self, *decls):
         return "\n".join(decls)
 
+    def var_section_item(self, item):
+        return item
+
     def pre_class_decl(self, item):
         return item
 
