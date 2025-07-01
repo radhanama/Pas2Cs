@@ -1456,7 +1456,11 @@ class ToCSharp(Transformer):
         return ""
 
     def new_obj(self, name, args=None):
-        arglist = "" if args is None else ", ".join(args)
+        if args is None:
+            arglist = ""
+        else:
+            clean = [a[2] if isinstance(a, tuple) and a[0] == 'named' else a for a in args]
+            arglist = ", ".join(clean)
         return f"new {name}({arglist})"
 
     def new_obj_noargs(self, name):
