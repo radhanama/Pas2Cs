@@ -1,3 +1,4 @@
+// leading comment
 namespace Demo {
     public partial class Foo {
         public void Test() {

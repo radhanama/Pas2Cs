@@ -9,7 +9,13 @@ from pathlib import Path
 from lark import Lark
 from grammar import GRAMMAR
 from transformer import ToCSharp
-from utils import fix_keyword, set_source, safe_print, remove_accents_code
+from utils import (
+    fix_keyword,
+    set_source,
+    safe_print,
+    remove_accents_code,
+    pascal_comments_to_csharp,
+)
 
 
 def interactive_translate(rule: str, children, line: int) -> str | None:
@@ -78,6 +84,9 @@ def transpile(source: str, manual_translate=None, manual_parse_error=None) -> tu
         raise
     gen = ToCSharp(manual_translate=manual_translate, emit_comments=False)
     body = gen.transform(tree)
+    comments = pascal_comments_to_csharp(source)
+    if comments:
+        body = comments + "\n" + body
     return body, gen.todo
 
 def interactive_parse_error(err, source: str) -> str | None:

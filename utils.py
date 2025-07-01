@@ -2,6 +2,7 @@ import textwrap
 import sys
 import locale
 import unicodedata
+import re
 # ─────────────────── Utility helpers ─────────────────────────
 def indent(code: str, lvl: int = 1) -> str:
     return textwrap.indent(code, "    " * lvl, lambda _: True)
@@ -216,3 +217,64 @@ def safe_print(text: str) -> None:
     enc = sys.stdout.encoding or locale.getpreferredencoding(False)
     sys.stdout.buffer.write(text.encode(enc, errors="replace"))
     sys.stdout.buffer.write(b"\n")
+
+
+REGION_START_RE = re.compile(r"{\s*region\s+(.*?)\s*}", re.IGNORECASE)
+REGION_END_RE = re.compile(r"{\s*endregion\s*}", re.IGNORECASE)
+
+
+def pascal_comments_to_csharp(source: str) -> str:
+    """Return Pascal comments in `source` converted to C# syntax."""
+    parts: list[str] = []
+    i = 0
+    n = len(source)
+    while i < n:
+        ch = source[i]
+        if ch == "'":
+            i += 1
+            while i < n:
+                if source[i] == "'":
+                    if i + 1 < n and source[i + 1] == "'":
+                        i += 2
+                    else:
+                        i += 1
+                        break
+                else:
+                    i += 1
+        elif ch == '/' and i + 1 < n and source[i + 1] == '/':
+            start = i
+            i += 2
+            while i < n and source[i] != '\n':
+                i += 1
+            parts.append(source[start:i].strip())
+        elif ch == '{' and not (i + 1 < n and source[i + 1] == '$'):
+            start = i
+            i += 1
+            while i < n and source[i] != '}':
+                i += 1
+            i += 1
+            text = source[start:i]
+            if REGION_START_RE.fullmatch(text):
+                parts.append('#region ' + text[1:-1].strip().split(None, 1)[1])
+            elif REGION_END_RE.fullmatch(text):
+                parts.append('#endregion')
+            else:
+                parts.append('/* ' + text[1:-1].strip() + ' */')
+        elif ch == '(' and i + 1 < n and source[i + 1] == '*':
+            start = i
+            i += 2
+            while i + 1 < n and not (source[i] == '*' and source[i + 1] == ')'):
+                i += 1
+            i += 2
+            parts.append('/* ' + source[start + 2 : i - 2].strip() + ' */')
+        elif ch == '/' and i + 1 < n and source[i + 1] == '*':
+            start = i
+            i += 2
+            while i + 1 < n and not (source[i] == '*' and source[i + 1] == '/'):
+                i += 1
+            i += 2
+            parts.append('/* ' + source[start + 2 : i - 2].strip() + ' */')
+        else:
+            i += 1
+
+    return "\n".join(parts)

@@ -1,3 +1,11 @@
+#region Hello
+#endregion
+/* comment with *** inside
+     multiple lines */
+/* comment
+    multiple lines */
+/* comment
+     multiple lines */
 using System;
 
 namespace Demo {

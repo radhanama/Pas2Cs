@@ -1,3 +1,4 @@
+// comment on same line
 namespace Demo {
     public partial class MultiVars {
         public static void Demo() {
