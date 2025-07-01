@@ -424,4 +424,5 @@ COMMENT_STAR.4: /\/\*[\s\S]*?\*\//
 %ignore COMMENT_PAREN
 %ignore COMMENT_STAR
 %ignore /\}/
+%ignore /\{/
 """

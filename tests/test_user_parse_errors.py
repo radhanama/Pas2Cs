@@ -46,3 +46,6 @@ class NewFeatureTests(unittest.TestCase):
 
     def test_stray_brace(self):
         self.check_pair('StrayBrace')
+
+    def test_stray_open_brace(self):
+        self.check_pair('StrayOpenBrace')
