@@ -138,7 +138,7 @@ class ToCSharp(Transformer):
         return ""
 
     # ── root rule -------------------------------------------------
-    def start(self, ns, *parts):
+    def start(self, *parts):
         classes = []
         first_class = True
         for cname in self.class_order:
