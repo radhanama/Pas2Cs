@@ -70,6 +70,29 @@ class ToCSharp(Transformer):
             return '.'.join(escape_cs_keyword(p) for p in parts)
         return escape_cs_keyword(text)
 
+    # ── comments ──────────────────────────────────────────────
+    def comment(self, tok):
+        text = str(tok)
+        if text.startswith('{') and text.endswith('}'):
+            inner = text[1:-1].strip()
+            lowered = inner.lower()
+            if lowered.startswith('$region'):
+                return '#region ' + inner[7:].strip()
+            if lowered.startswith('$endregion'):
+                return '#endregion'
+            if lowered.startswith('region'):
+                return '#region ' + inner[6:].strip()
+            if lowered.startswith('endregion'):
+                return '#endregion'
+            return f"/* {inner} */"
+        if text.startswith('(*') and text.endswith('*)'):
+            inner = text[2:-2].strip()
+            return f"/* {inner} */"
+        return text
+
+    def comment_stmt(self, comment):
+        return str(comment)
+
     def attributes(self, *items):
         return list(items)
 
@@ -653,7 +676,16 @@ class ToCSharp(Transformer):
     def var_stmt(self, *decls):
         return "\n".join(decls)
 
-    def var_decl(self, names, typ, expr=None):
+    def var_decl(self, names, typ, *parts):
+        expr = None
+        comment = None
+        if len(parts) == 1:
+            if isinstance(parts[0], str) and (parts[0].startswith('//') or parts[0].startswith('/*')):
+                comment = parts[0]
+            else:
+                expr = parts[0]
+        elif len(parts) == 2:
+            expr, comment = parts
         t = map_type_ext(str(typ))
         safe_names = [self._safe_name(n) for n in names]
         decl = f"{t} {', '.join(safe_names)}"
@@ -661,14 +693,20 @@ class ToCSharp(Transformer):
             decl += f" = {expr}"
         for n in safe_names:
             self.curr_locals.add(str(n))
-        return decl + ";"
+        line = decl + ";"
+        if comment:
+            line += " " + str(comment)
+        return line
 
-    def var_decl_infer(self, names, expr):
+    def var_decl_infer(self, names, expr, comment=None):
         safe_names = [self._safe_name(n) for n in names]
         decl = f"var {', '.join(safe_names)} = {expr}"
         for n in safe_names:
             self.curr_locals.add(str(n))
-        return decl + ";"
+        line = decl + ";"
+        if comment:
+            line += " " + str(comment)
+        return line
 
     def field_decl(self, *parts):
         is_static = self.curr_static
@@ -685,6 +723,9 @@ class ToCSharp(Transformer):
                 items.append(p)
                 continue
             items.append(p)
+        comment = None
+        if items and isinstance(items[-1], str) and (items[-1].startswith('//') or items[-1].startswith('/*')):
+            comment = items.pop()
         if len(items) == 3:
             names, typ, expr = items
         else:
@@ -703,6 +744,8 @@ class ToCSharp(Transformer):
             body = "\n".join(attrs + [impl])
         else:
             body = impl
+        if comment:
+            body = body + " " + str(comment)
         if self.emit_comments:
             return info + "\n" + body
         return body
@@ -1015,10 +1058,23 @@ class ToCSharp(Transformer):
     def finally_clause(self, *stmts):
         return list(stmts)
 
-    def else_clause(self, _else_tok, stmt):
+    def else_clause(self, _else_tok, *parts):
+        comments = []
+        stmt = ""
+        for p in parts:
+            if isinstance(p, str) and (p.startswith("//") or p.startswith("/*")):
+                comments.append(p)
+            else:
+                stmt = p
+        if comments:
+            if stmt:
+                return "\n".join(comments + [str(stmt)])
+            return "\n".join(comments)
         return stmt
 
-    def else_clause_empty(self, _else_tok):
+    def else_clause_empty(self, _else_tok, *comments):
+        if comments:
+            return "\n".join(str(c) for c in comments)
         return ""
 
     def on_handler(self, _on, name, typ, _do, stmt):
@@ -1042,18 +1098,55 @@ class ToCSharp(Transformer):
     def finalization_section(self, *stmts):
         return ""
 
-    def if_stmt(self, cond, _then=None, then_block=None, else_clause=None):
+    def if_stmt(self, cond, *parts):
+        parts = list(parts)
+        if parts and isinstance(parts[0], Token):
+            parts.pop(0)
+
+        comments = []
+        while parts and isinstance(parts[0], str) and (parts[0].startswith("//") or parts[0].startswith("/*")):
+            comments.append(parts.pop(0))
+
+        then_block = None
+        else_clause = None
+        if parts:
+            then_block = parts.pop(0)
+        if parts:
+            else_clause = parts.pop(0)
+
+        if comments:
+            if then_block is not None and str(then_block).strip():
+                then_block = "\n".join(comments + [str(then_block)])
+            else:
+                then_block = "\n".join(comments)
+
         if then_block is None or not str(then_block).strip():
             then_part = "{}"
         else:
             then_part = then_block
-        if else_clause is None:
+
+        comment_only = False
+        comment_text = None
+        if else_clause is not None:
+            text = str(else_clause).strip()
+            if text and (text.startswith("//") or text.startswith("/*")):
+                comment_only = True
+                comment_text = text
+
+        if else_clause is None or comment_only:
             else_part = ""
         elif not str(else_clause).strip():
             else_part = " else {}"
         else:
             else_part = f" else {else_clause}"
-        return f"if ({cond}) {then_part}{else_part}"
+
+        result = f"if ({cond}) {then_part}{else_part}"
+        if comment_only:
+            if result.endswith(";"):
+                result += " " + comment_text
+            else:
+                result += "\n" + comment_text
+        return result
 
     def for_stmt(self, var, *parts):
         parts = list(parts)

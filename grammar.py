@@ -51,9 +51,10 @@ enum_item:   CNAME ("=" NUMBER)?                               -> enum_item
 
 class_signature: member_decl* -> class_sign
 member_decl: attributes? method_decl_rule
-           | attributes? access_modifier? (CLASSVAR | VAR) attributes? name_list ":" type_spec (":=" expr)? ";"      -> field_decl
-           | attributes? access_modifier? class_modifier attributes? name_list ":" type_spec (":=" expr)? ";"      -> field_decl
-           | access_modifier? name_list ":" type_spec (":=" expr)? ";"      -> field_decl
+           | attributes? access_modifier? (CLASSVAR | VAR) attributes? name_list ":" type_spec (":=" expr)? ";" comment?      -> field_decl
+           | attributes? access_modifier? class_modifier attributes? name_list ":" type_spec (":=" expr)? ";" comment?      -> field_decl
+           | access_modifier? name_list ":" type_spec (":=" expr)? ";" comment?      -> field_decl
+           | comment_stmt
 
            | attributes? access_modifier? "class"? "property"i property_sig ";" (method_attr ";")*      -> property_decl
            | attributes? access_modifier? "event"i CNAME ":" type_spec event_end  -> event_decl
@@ -124,8 +125,10 @@ const_block: "const" const_decl+
 pre_class_decl: const_block
               | var_section
               | method_decl_rule
+              | comment_stmt
 
 class_impl:  attributes? class_modifier? method_kind method_impl
+           | comment_stmt
 method_impl: attributes? impl_head ";" method_decls? block               -> m_impl
 method_decls: (var_section | const_block)+
 impl_head:   method_name param_block? return_block?
@@ -153,7 +156,31 @@ block:       "begin" ";"? stmt* "end"i ";"?
            | yield_stmt
            | call_stmt
            | new_stmt
+           | comment_stmt
            | block
+
+?stmt_no_comment: assign_stmt
+                | op_assign_stmt
+                | return_stmt
+                | if_stmt
+                | for_stmt
+                | while_stmt
+                | try_stmt
+                | case_stmt
+                | inherited_stmt
+                | raise_stmt
+                | repeat_stmt
+                | break_stmt
+                | continue_stmt
+                | var_stmt
+                | loop_stmt
+                | using_stmt
+                | locking_stmt
+                | with_stmt
+                | yield_stmt
+                | call_stmt
+                | new_stmt
+                | block
            
 
 assign_stmt: (inherited_var | var_ref | call_lhs) ":=" expr ";"? -> assign
@@ -173,9 +200,10 @@ locking_stmt: LOCKING expr DO stmt                      -> locking_stmt
 with_stmt: WITH expr DO stmt                           -> with_stmt
 yield_stmt: YIELD expr ";"?                           -> yield_stmt
 empty_stmt: ";"                                      -> empty
-if_stmt:     "if"i expr THEN (stmt | empty_stmt)? else_clause?        -> if_stmt
-else_clause: ELSE stmt                           -> else_clause
-           | ELSE                                -> else_clause_empty
+comment_stmt: comment                                -> comment_stmt
+if_stmt:     "if"i expr THEN comment_stmt* (stmt_no_comment | empty_stmt)? else_clause?        -> if_stmt
+else_clause: ELSE comment_stmt* stmt_no_comment                           -> else_clause
+           | ELSE comment_stmt*                                -> else_clause_empty
 for_stmt:    "for"i CNAME (":" type_spec)? ":=" expr (TO | DOWNTO) expr (STEP expr)? ("do"i)? stmt  -> for_stmt
            | "for"i "each"i? CNAME (":" type_spec)? IN expr (INDEX CNAME)? ("do"i)? stmt      -> for_each_stmt
 loop_stmt:   LOOP stmt                                       -> loop_stmt
@@ -306,8 +334,8 @@ var_ref:     name_base (ARRAY_RANGE | "." name_term)* -> var
            | "(" expr ")" ARRAY_RANGE -> paren_index
 
 var_section: ("var"i | "threadvar"i) (var_decl | var_decl_infer)+
-var_decl:    name_list ":" type_spec (":=" expr)? ";"       -> var_decl
-var_decl_infer: name_list ":=" expr ";"                 -> var_decl_infer
+var_decl:    name_list ":" type_spec (":=" expr)? ";" comment?       -> var_decl
+var_decl_infer: name_list ":=" expr ";" comment?                 -> var_decl_infer
 
 LT:           "<"
 GT:           ">"
@@ -419,9 +447,10 @@ LINE_COMMENT.4: /\/\/[^\n]*/
 COMMENT_PAREN: /\(\*[\s\S]*?\*\)/
 COMMENT_STAR.4: /\/\*[\s\S]*?\*\//
 %ignore WS
-%ignore COMMENT_BRACE
-%ignore LINE_COMMENT
-%ignore COMMENT_PAREN
-%ignore COMMENT_STAR
 %ignore /\}/
+
+comment: COMMENT_BRACE
+       | COMMENT_PAREN
+       | COMMENT_STAR
+       | LINE_COMMENT
 """
