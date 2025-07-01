@@ -1081,13 +1081,29 @@ class ToCSharp(Transformer):
             then_part = "{}"
         else:
             then_part = then_block
-        if else_clause is None:
+
+        comment_only = False
+        comment_text = None
+        if else_clause is not None:
+            text = str(else_clause).strip()
+            if text and (text.startswith("//") or text.startswith("/*")):
+                comment_only = True
+                comment_text = text
+
+        if else_clause is None or comment_only:
             else_part = ""
         elif not str(else_clause).strip():
             else_part = " else {}"
         else:
             else_part = f" else {else_clause}"
-        return f"if ({cond}) {then_part}{else_part}"
+
+        result = f"if ({cond}) {then_part}{else_part}"
+        if comment_only:
+            if result.endswith(";"):
+                result += " " + comment_text
+            else:
+                result += "\n" + comment_text
+        return result
 
     def for_stmt(self, var, *parts):
         parts = list(parts)
