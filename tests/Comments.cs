@@ -33,6 +33,11 @@ namespace Demo {
             result = 123;
             return result;
         }
+        public void HeaderLineComment() {
+            // header comment
+            int i;
+            i = 1;
+        }
     }
     
     /// <remarks>

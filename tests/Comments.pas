@@ -16,7 +16,8 @@ type
     {$REGION 'extra'}
     method ValueBrace: Integer;
     {$ENDREGION}
-    method ValueCStyle: Integer;
+  method ValueCStyle: Integer;
+  method HeaderLineComment;
   end;
 
   /// <remarks>
@@ -53,6 +54,13 @@ begin
   /* comment
      multiple lines */
   result := 123;
+end;
+
+method Foo.HeaderLineComment; // header comment
+var
+  i: Integer;
+begin
+  i := 1;
 end;
 
 end.
