@@ -73,8 +73,8 @@ access_modifier: "strict"i? ("public"i
   | "private"i
   | "published"i
   | ASSEMBLY
-  | ASSEMBLY ANDKW "protected"i
-  | "protected"i ANDKW ASSEMBLY)
+  | ASSEMBLY OP_MUL "protected"i
+  | "protected"i OP_MUL ASSEMBLY)
 
 method_sig:    method_name param_block? return_block?            -> m_sig
              | param_block? return_block?                        -> m_sig_no_name
@@ -313,9 +313,8 @@ LT:           "<"
 GT:           ">"
 GENERIC_ARGS: /<[A-Za-z_][^<>]*(?:<[^<>]*>[^<>]*)*>/
 ASSEMBLY.3:  "assembly"i
-ANDKW.3:     "and"i
 OP_SUM:       "+" | "-" | "or" | "xor"i
-OP_MUL:       "*" | "/" | "and" | "mod"i | "div"i
+OP_MUL.2:       "*" | "/" | "and" | "mod"i | "div"i
 OP_REL:       "=" | "<>" | "<=" | ">="
 SHL:          "shl"i
 SHR:          "shr"i
