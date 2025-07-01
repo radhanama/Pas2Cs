@@ -1096,38 +1096,24 @@ class ToCSharp(Transformer):
     def finally_clause(self, *stmts):
         return list(stmts)
 
-    def else_clause(self, *parts):
-        before = []
-        after = []
-        stmt = None
-        seen_else = False
+    def else_clause(self, _else_tok, *parts):
+        comments = []
+        stmt = ""
         for p in parts:
-            if isinstance(p, Token) and p.type == 'ELSE':
-                seen_else = True
-                continue
             if isinstance(p, str) and (p.startswith("//") or p.startswith("/*")):
-                if seen_else:
-                    after.append(p)
-                else:
-                    before.append(p)
+                comments.append(p)
             else:
                 stmt = p
-        return before + after, stmt
+        if comments:
+            if stmt:
+                return "\n".join(comments + [str(stmt)])
+            return "\n".join(comments)
+        return stmt
 
-    def else_clause_empty(self, *parts):
-        before = []
-        after = []
-        seen_else = False
-        for p in parts:
-            if isinstance(p, Token) and p.type == 'ELSE':
-                seen_else = True
-                continue
-            if isinstance(p, str):
-                if seen_else:
-                    after.append(p)
-                else:
-                    before.append(p)
-        return before + after, None
+    def else_clause_empty(self, _else_tok, *comments):
+        if comments:
+            return "\n".join(str(c) for c in comments)
+        return ""
 
     def on_handler(self, _on, name, typ, _do, stmt):
         return ('on_handler', str(name), typ, stmt)
@@ -1163,10 +1149,6 @@ class ToCSharp(Transformer):
         if parts:
             then_block = parts.pop(0)
 
-        pre_else_comments = []
-        while parts and isinstance(parts[0], str) and (parts[0].startswith("//") or parts[0].startswith("/*")):
-            pre_else_comments.append(parts.pop(0))
-
         else_clause = None
         if parts:
             else_clause = parts.pop(0)
@@ -1184,25 +1166,18 @@ class ToCSharp(Transformer):
 
         comment_only = False
         comment_text = None
-        else_comments = list(pre_else_comments)
-        else_stmt = None
         if else_clause is not None:
-            cmt, else_stmt = else_clause
-            else_comments.extend(cmt)
-            text = "\n".join(str(c) for c in else_comments)
-            if else_stmt is None and text:
+            text = str(else_clause).strip()
+            if text and (text.startswith("//") or text.startswith("/*")):
                 comment_only = True
                 comment_text = text
 
         if else_clause is None or comment_only:
             else_part = ""
-        elif else_stmt is None or not str(else_stmt).strip():
+        elif not str(else_clause).strip():
             else_part = " else {}"
         else:
-            block_text = else_stmt
-            if else_comments:
-                block_text = "\n".join(str(c) for c in else_comments + [str(else_stmt)])
-            else_part = f" else {block_text}"
+            else_part = f" else {else_clause}"
 
         result = f"if ({cond}) {then_part}{else_part}"
         if comment_only:

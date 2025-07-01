@@ -5,8 +5,8 @@ namespace Demo {
         public static void Check(bool flag) {
             if (flag) {
                 Console.WriteLine("y");
-            } else /* comment */
-            {
+                /* comment */
+            } else {
                 Console.WriteLine("n");
             }
         }
