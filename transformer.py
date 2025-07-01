@@ -138,15 +138,13 @@ class ToCSharp(Transformer):
         return ""
 
     # ── root rule -------------------------------------------------
-    def start(self, ns, *parts):
+    def start(self, *parts):
         classes = []
         first_class = True
         for cname in self.class_order:
             kind, base, sign_list, mods = self.class_defs.get(cname, ("class", "", [], set()))
             body_lines = []
             for line in sign_list:
-                if 'region' in line.lower():
-                    continue
                 info = self._parse_sig(line)
                 if info and info in self.impl_methods.get(cname, set()):
                     continue

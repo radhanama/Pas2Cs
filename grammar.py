@@ -1,6 +1,6 @@
 # ────────────────────────── Grammar ──────────────────────────
 GRAMMAR = r"""
-?start:   assembly_attr* (namespace | unit_decl | program_decl | library_decl) uses_clause? (interface_section | pre_class_decl*)? class_section* ("implementation" uses_clause? class_impl*)? (main_block "." | initialization_section? ("end"i ("." | ";"))?)
+?start:   comment* assembly_attr* (namespace | unit_decl | program_decl | library_decl) uses_clause? (interface_section | pre_class_decl*)? class_section* ("implementation" uses_clause? class_impl*)? (main_block "." | initialization_section? ("end"i ("." | ";"))?)
 main_block: "begin" stmt* "end"i
 interface_section: "interface" uses_clause? assembly_attr* pre_class_decl*
 uses_clause:   "uses" dotted_name ("," dotted_name)* ";"       -> uses
@@ -333,7 +333,7 @@ inherited_var: INHERITED name_base (ARRAY_RANGE | "." name_term)* -> inherited_v
 var_ref:     name_base (ARRAY_RANGE | "." name_term)* -> var
            | "(" expr ")" ARRAY_RANGE -> paren_index
 
-var_section: ("var"i | "threadvar"i) (var_decl | var_decl_infer)+
+var_section: ("var"i | "threadvar"i) var_section_item+
 var_section_item: var_decl | var_decl_infer | comment_stmt
 var_decl:    name_list ":" type_spec (":=" expr)? ";" comment?       -> var_decl
 var_decl_infer: name_list ":=" expr ";" comment?                 -> var_decl_infer
