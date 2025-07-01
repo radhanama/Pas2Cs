@@ -128,6 +128,7 @@ pre_class_decl: const_block
               | comment_stmt
 
 class_impl:  attributes? class_modifier? method_kind method_impl
+           | comment_stmt
 method_impl: attributes? impl_head ";" method_decls? block               -> m_impl
 method_decls: (var_section | const_block)+
 impl_head:   method_name param_block? return_block?
