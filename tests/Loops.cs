@@ -73,6 +73,13 @@ namespace Demo {
         }
     }
     
+    public partial class WhileNoStmtDemo {
+        public static void Skip() {
+            int i = 0;
+            while (i < 3);
+        }
+    }
+    
     public partial class TypedForEach {
         public static int Sum(int[] arr) {
             int result;

@@ -41,6 +41,11 @@ type
     class method DoNothing();
   end;
 
+  WhileNoStmtDemo = public class
+  public
+    class method Skip();
+  end;
+
   TypedForEach = public class
   public
     class method Sum(arr: array of Integer): Integer;
@@ -131,6 +136,13 @@ var
   i: Integer := 0;
 begin
   while i < 3 do;
+end;
+
+class method WhileNoStmtDemo.Skip();
+var
+  i: Integer := 0;
+begin
+  while i < 3 do
 end;
 
 class method TypedForEach.Sum(arr: array of Integer): Integer;

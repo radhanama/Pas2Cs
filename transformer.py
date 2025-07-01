@@ -1095,9 +1095,8 @@ class ToCSharp(Transformer):
     def loop_stmt(self, _tok, body):
         return f"while (true) {body}"
 
-    def while_stmt(self, cond, body):
-        body_str = str(body).strip()
-        if not body_str:
+    def while_stmt(self, cond, body=None):
+        if body is None or not str(body).strip():
             return f"while ({cond});"
         return f"while ({cond}) {body}"
 

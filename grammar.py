@@ -179,7 +179,7 @@ else_clause: ELSE stmt                           -> else_clause
 for_stmt:    "for"i CNAME (":" type_spec)? ":=" expr (TO | DOWNTO) expr (STEP expr)? ("do"i)? stmt  -> for_stmt
            | "for"i "each"i? CNAME (":" type_spec)? IN expr (INDEX CNAME)? ("do"i)? stmt      -> for_each_stmt
 loop_stmt:   LOOP stmt                                       -> loop_stmt
-while_stmt:  "while"i expr "do"i (stmt | empty_stmt)      -> while_stmt
+while_stmt:  "while"i expr "do"i (stmt | empty_stmt)?   -> while_stmt
 
 try_stmt:    TRY stmt* except_clause? finally_clause? "end"i ";"? -> try_stmt
 except_clause: EXCEPT ";"? (on_handler | on_handler_type | stmt)*                -> except_clause
