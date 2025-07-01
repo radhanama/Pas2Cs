@@ -136,6 +136,8 @@ class ToCSharp(Transformer):
             kind, base, sign_list, mods = self.class_defs.get(cname, ("class", "", [], set()))
             body_lines = []
             for line in sign_list:
+                if 'region' in line.lower():
+                    continue
                 info = self._parse_sig(line)
                 if info and info in self.impl_methods.get(cname, set()):
                     continue
