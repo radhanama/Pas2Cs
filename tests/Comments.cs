@@ -3,13 +3,15 @@ using System;
 namespace Demo {
     public partial class Commented {
         public void SayHello() {
-            /* region Hello */
+            #region Hello
             System.Console.WriteLine("Hello");
-            /* endregion */
+            #endregion
         }
     }
     
     public partial class Foo {
+        #region 'extra'
+        #endregion
         public int ValueParen() {
             int result;
             /* comment with *** inside

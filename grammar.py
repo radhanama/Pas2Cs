@@ -158,6 +158,29 @@ block:       "begin" ";"? stmt* "end"i ";"?
            | new_stmt
            | comment_stmt
            | block
+
+?stmt_no_comment: assign_stmt
+                | op_assign_stmt
+                | return_stmt
+                | if_stmt
+                | for_stmt
+                | while_stmt
+                | try_stmt
+                | case_stmt
+                | inherited_stmt
+                | raise_stmt
+                | repeat_stmt
+                | break_stmt
+                | continue_stmt
+                | var_stmt
+                | loop_stmt
+                | using_stmt
+                | locking_stmt
+                | with_stmt
+                | yield_stmt
+                | call_stmt
+                | new_stmt
+                | block
            
 
 assign_stmt: (inherited_var | var_ref | call_lhs) ":=" expr ";"? -> assign
@@ -178,9 +201,9 @@ with_stmt: WITH expr DO stmt                           -> with_stmt
 yield_stmt: YIELD expr ";"?                           -> yield_stmt
 empty_stmt: ";"                                      -> empty
 comment_stmt: comment                                -> comment_stmt
-if_stmt:     "if"i expr THEN (stmt | empty_stmt)? else_clause?        -> if_stmt
-else_clause: ELSE stmt                           -> else_clause
-           | ELSE                                -> else_clause_empty
+if_stmt:     "if"i expr THEN comment_stmt* (stmt_no_comment | empty_stmt)? else_clause?        -> if_stmt
+else_clause: ELSE comment_stmt* stmt_no_comment                           -> else_clause
+           | ELSE comment_stmt*                                -> else_clause_empty
 for_stmt:    "for"i CNAME (":" type_spec)? ":=" expr (TO | DOWNTO) expr (STEP expr)? ("do"i)? stmt  -> for_stmt
            | "for"i "each"i? CNAME (":" type_spec)? IN expr (INDEX CNAME)? ("do"i)? stmt      -> for_each_stmt
 loop_stmt:   LOOP stmt                                       -> loop_stmt
@@ -310,7 +333,7 @@ inherited_var: INHERITED name_base (ARRAY_RANGE | "." name_term)* -> inherited_v
 var_ref:     name_base (ARRAY_RANGE | "." name_term)* -> var
            | "(" expr ")" ARRAY_RANGE -> paren_index
 
-var_section: ("var"i | "threadvar"i) var_section_item+
+var_section: ("var"i | "threadvar"i) (var_decl | var_decl_infer)+
 var_section_item: var_decl | var_decl_infer | comment_stmt
 var_decl:    name_list ":" type_spec (":=" expr)? ";" comment?       -> var_decl
 var_decl_infer: name_list ":=" expr ";" comment?                 -> var_decl_infer

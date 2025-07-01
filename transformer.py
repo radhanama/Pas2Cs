@@ -75,6 +75,15 @@ class ToCSharp(Transformer):
         text = str(tok)
         if text.startswith('{') and text.endswith('}'):
             inner = text[1:-1].strip()
+            lowered = inner.lower()
+            if lowered.startswith('$region'):
+                return '#region ' + inner[7:].strip()
+            if lowered.startswith('$endregion'):
+                return '#endregion'
+            if lowered.startswith('region'):
+                return '#region ' + inner[6:].strip()
+            if lowered.startswith('endregion'):
+                return '#endregion'
             return f"/* {inner} */"
         if text.startswith('(*') and text.endswith('*)'):
             inner = text[2:-2].strip()
@@ -1054,10 +1063,23 @@ class ToCSharp(Transformer):
     def finally_clause(self, *stmts):
         return list(stmts)
 
-    def else_clause(self, _else_tok, stmt):
+    def else_clause(self, _else_tok, *parts):
+        comments = []
+        stmt = ""
+        for p in parts:
+            if isinstance(p, str) and (p.startswith("//") or p.startswith("/*")):
+                comments.append(p)
+            else:
+                stmt = p
+        if comments:
+            if stmt:
+                return "\n".join(comments + [str(stmt)])
+            return "\n".join(comments)
         return stmt
 
-    def else_clause_empty(self, _else_tok):
+    def else_clause_empty(self, _else_tok, *comments):
+        if comments:
+            return "\n".join(str(c) for c in comments)
         return ""
 
     def on_handler(self, _on, name, typ, _do, stmt):
@@ -1081,7 +1103,28 @@ class ToCSharp(Transformer):
     def finalization_section(self, *stmts):
         return ""
 
-    def if_stmt(self, cond, _then=None, then_block=None, else_clause=None):
+    def if_stmt(self, cond, *parts):
+        parts = list(parts)
+        if parts and isinstance(parts[0], Token):
+            parts.pop(0)
+
+        comments = []
+        while parts and isinstance(parts[0], str) and (parts[0].startswith("//") or parts[0].startswith("/*")):
+            comments.append(parts.pop(0))
+
+        then_block = None
+        else_clause = None
+        if parts:
+            then_block = parts.pop(0)
+        if parts:
+            else_clause = parts.pop(0)
+
+        if comments:
+            if then_block is not None and str(then_block).strip():
+                then_block = "\n".join(comments + [str(then_block)])
+            else:
+                then_block = "\n".join(comments)
+
         if then_block is None or not str(then_block).strip():
             then_part = "{}"
         else:
