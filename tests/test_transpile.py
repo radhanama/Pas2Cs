@@ -52,6 +52,13 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_keyword_prefix(self):
+        src = Path('tests/KeywordPrefix.pas').read_text()
+        expected = Path('tests/KeywordPrefix.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_single_stmt(self):
         src = Path('tests/SingleStmt.pas').read_text()
         expected = Path('tests/SingleStmt.cs').read_text().strip()
