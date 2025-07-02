@@ -828,6 +828,13 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_arg_list_comment(self):
+        src = Path('tests/ArgListComment.pas').read_text()
+        expected = Path('tests/ArgListComment.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
 
 
     def test_safe_print_cp1252(self):

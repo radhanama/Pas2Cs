@@ -662,7 +662,7 @@ class ToCSharp(Transformer):
         return out
 
     def arg_list(self, *args):
-        return list(args)
+        return [a for a in args if a != ""]
 
     def arg(self, value):
         return value
