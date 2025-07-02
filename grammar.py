@@ -186,6 +186,7 @@ block:       "begin" ";"? stmt* "end"i comment* ";"?
                 | call_stmt
                 | new_stmt
                 | block
+
            
 
 assign_stmt: (inherited_var | var_ref | call_lhs) ":=" expr (";" comment?)? -> assign
@@ -234,10 +235,10 @@ case_label: signed_number DOTDOT signed_number        -> label_range
           | dotted_name
           | NIL
 
-call_stmt:   var_ref ("(" arg_list? ")")? call_postfix* ";"?   -> call_stmt
-           | generic_call_base ("(" arg_list? ")")? call_postfix* ";"? -> call_stmt
-           | new_expr "." name_term ("(" arg_list? ")")? call_postfix* ";"?    -> call_stmt
-           | "(" expr_comment* expr ")" prop_call call_postfix* ";"? -> call_stmt
+call_stmt:   var_ref ("(" arg_list? ")")? call_postfix* ";"? comment?   -> call_stmt
+           | generic_call_base ("(" arg_list? ")")? call_postfix* ";"? comment? -> call_stmt
+           | new_expr "." name_term ("(" arg_list? ")")? call_postfix* ";"? comment?    -> call_stmt
+           | "(" expr_comment* expr ")" prop_call call_postfix* ";"? comment? -> call_stmt
 inherited_stmt: INHERITED (name_term ("(" arg_list? ")" call_postfix*)?)? ";"? -> inherited
 
 ?expr:       lambda_expr

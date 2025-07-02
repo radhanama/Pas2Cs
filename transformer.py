@@ -1897,7 +1897,11 @@ class ToCSharp(Transformer):
         return call
 
     def call_stmt(self, fn, *parts):
-        return self.call(fn, *parts) + ";"
+        comment = ""
+        if parts and isinstance(parts[-1], str) and parts[-1].startswith(("//", "/*", "{", "(*", "#")):
+            comment = " " + parts[-1]
+            parts = parts[:-1]
+        return self.call(fn, *parts) + ";" + comment
 
     def new_stmt(self, expr):
         return expr + ";"
