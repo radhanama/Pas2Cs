@@ -30,4 +30,12 @@ begin
     + Math.Round(v4, 2);
 end;
 
+class method ExprComment.TwoLineComments(v1, v2: Double): Double;
+begin
+  result := v1
+    // first
+    // second
+    + v2;
+end;
+
 end.

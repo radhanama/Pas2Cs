@@ -11,5 +11,10 @@ namespace Demo {
             result = Math.Round(v1 + v2, 2) /* extra */ + Math.Round(v3, 2) + Math.Round(v4, 2);
             return result;
         }
+        public static double TwoLineComments(double v1, double v2) {
+            double result;
+            result = v1 /* first */ /* second */ + v2;
+            return result;
+        }
     }
 }
