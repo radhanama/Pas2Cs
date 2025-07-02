@@ -60,4 +60,10 @@ begin
   System.Console.WriteLine('C:\temp\file.txt');
 end;
 
+method BugFixes.OrComment(flag1, flag2, flag3: Boolean);
+begin
+  if (flag1) or (flag2) or (flag3) { or (False) } then
+    System.Console.WriteLine('ok');
+end;
+
 end.

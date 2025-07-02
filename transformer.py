@@ -1417,6 +1417,9 @@ class ToCSharp(Transformer):
     def pos(self, expr):
         return f"{expr}"
 
+    def trailing_comment(self, expr, *comments):
+        return expr
+
     def number(self, n):
         return str(n).replace('_', '').replace(',', '')
 

@@ -244,11 +244,15 @@ inherited_stmt: INHERITED (name_term ("(" arg_list? ")" call_postfix*)?)? ";"? -
            | "+" expr                                -> pos
            | AT var_ref                              -> addr_of
            | expr expr_comment* OP_SUM expr_comment* expr      -> binop
+           | expr expr_comment* ORKW expr_comment* expr        -> binop
+           | expr expr_comment* XOR expr_comment* expr         -> binop
            | expr expr_comment* OP_MUL expr_comment* expr      -> binop
+           | expr expr_comment* ANDKW expr_comment* expr       -> binop
            | expr expr_comment* SHL expr_comment* expr         -> binop
            | expr expr_comment* SHR expr_comment* expr         -> binop
-           | expr expr_comment* OP_SUM expr_comment* ELSE expr_comment* expr -> short_or
-           | expr expr_comment* OP_MUL expr_comment* THEN expr_comment* expr -> short_and
+           | expr expr_comment* ORKW expr_comment* ELSE expr_comment* expr -> short_or
+           | expr expr_comment* ANDKW expr_comment* THEN expr_comment* expr -> short_and
+           | expr expr_comment+                                  -> trailing_comment
            | "if"i expr THEN expr ELSE expr       -> if_expr
            | "if"i expr THEN expr                  -> if_expr_short
            | expr expr_comment* (OP_REL|LT|GT) expr_comment* expr -> binop
@@ -346,8 +350,10 @@ GT:           ">"
 GENERIC_ARGS: /<[A-Za-z_][^<>]*(?:<[^<>]*>[^<>]*)*>/
 ASSEMBLY.3:  "assembly"i
 ANDKW.3:     "and"i
-OP_SUM:       "+" | "-" | "or" | "xor"i
-OP_MUL:       "*" | "/" | "and" | "mod"i | "div"i
+ORKW.3:      "or"i
+XOR.3:       "xor"i
+OP_SUM:       "+" | "-"
+OP_MUL:       "*" | "/" | "mod"i | "div"i
 OP_REL:       "=" | "<>" | "<=" | ">="
 SHL:          "shl"i
 SHR:          "shr"i

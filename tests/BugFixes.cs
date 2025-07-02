@@ -29,5 +29,8 @@ namespace Demo {
         public void SQPath() {
             System.Console.WriteLine("C:\\temp\\file.txt");
         }
+        public void OrComment(bool flag1, bool flag2, bool flag3) {
+            if (flag1 || flag2 || flag3) System.Console.WriteLine("ok");
+        }
     }
 }
