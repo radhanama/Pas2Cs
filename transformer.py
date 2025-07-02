@@ -628,7 +628,23 @@ class ToCSharp(Transformer):
         return typ
 
     def names(self, *parts):
-        return [self._safe_name(p) for p in parts]
+        out = []
+        curr = None
+        comments = []
+        for p in parts:
+            text = str(p)
+            if text.startswith("//") or text.startswith("/*") or text.startswith("{") or text.startswith("(*"):
+                comments.append(text)
+                continue
+            if curr is not None:
+                joined = " ".join(comments) if comments else None
+                out.append((self._safe_name(curr), joined))
+                comments = []
+            curr = p
+        if curr is not None:
+            joined = " ".join(comments) if comments else None
+            out.append((self._safe_name(curr), joined))
+        return out
 
     def param(self, *parts):
         # allow optional 'var'/'out' modifier and default value
@@ -646,15 +662,16 @@ class ToCSharp(Transformer):
                 parts.pop(0)
             if parts:
                 default_val = parts.pop(0)
+        name_vals = [n[0] if isinstance(n, tuple) else n for n in names]
         if ptype is None:
             t = "object"
-            info = f"// parameter {', '.join(names)} missing type"
+            info = f"// parameter {', '.join(name_vals)} missing type"
             self.todo.append(info)
         else:
             t = map_type_ext(str(ptype))
         if default_val is not None:
-            return [f"{t} {self._safe_name(n)} = {default_val}" for n in names]
-        return [f"{t} {self._safe_name(n)}" for n in names]
+            return [f"{t} {self._safe_name(n)} = {default_val}" for n in name_vals]
+        return [f"{t} {self._safe_name(n)}" for n in name_vals]
 
     def param_untyped(self, *parts):
         # variant of param rule when no type is declared
@@ -769,22 +786,72 @@ class ToCSharp(Transformer):
         elif len(parts) == 2:
             expr, comment = parts
         t = map_type_ext(str(typ))
-        safe_names = [self._safe_name(n) for n in names]
-        decl = f"{t} {', '.join(safe_names)}"
+        processed = []
+        has_comments = False
+        for n in names:
+            if isinstance(n, tuple):
+                name, cmt = n
+            else:
+                name, cmt = n, None
+            safe = self._safe_name(name)
+            if cmt:
+                has_comments = True
+            processed.append((safe, cmt))
+        if not has_comments:
+            decl = f"{t} {', '.join(name for name, _ in processed)}"
+        else:
+            indent_str = ' ' * (len(t) + 1)
+            parts_lines = []
+            for i, (name, cmt) in enumerate(processed):
+                seg = name
+                if i < len(processed) - 1:
+                    seg += ","
+                if cmt:
+                    seg += " " + cmt
+                if i == 0:
+                    parts_lines.append(seg)
+                else:
+                    parts_lines.append(indent_str + seg)
+            decl = f"{t} " + "\n".join(parts_lines)
         if expr is not None:
             decl += f" = {expr}"
-        for n in safe_names:
-            self.curr_locals.add(str(n))
+        for name, _ in processed:
+            self.curr_locals.add(str(name))
         line = decl + ";"
         if comment:
             line += " " + str(comment)
         return line
 
     def var_decl_infer(self, names, expr, comment=None):
-        safe_names = [self._safe_name(n) for n in names]
-        decl = f"var {', '.join(safe_names)} = {expr}"
-        for n in safe_names:
-            self.curr_locals.add(str(n))
+        processed = []
+        has_comments = False
+        for n in names:
+            if isinstance(n, tuple):
+                name, cmt = n
+            else:
+                name, cmt = n, None
+            safe = self._safe_name(name)
+            if cmt:
+                has_comments = True
+            processed.append((safe, cmt))
+        if not has_comments:
+            decl = f"var {', '.join(name for name, _ in processed)} = {expr}"
+        else:
+            indent_str = ' ' * 4  # len('var ')
+            parts_lines = []
+            for i, (name, cmt) in enumerate(processed):
+                seg = name
+                if i < len(processed) - 1:
+                    seg += ","
+                if cmt:
+                    seg += " " + cmt
+                if i == 0:
+                    parts_lines.append(seg)
+                else:
+                    parts_lines.append(indent_str + seg)
+            decl = "var " + "\n".join(parts_lines) + f" = {expr}"
+        for name, _ in processed:
+            self.curr_locals.add(str(name))
         line = decl + ";"
         if comment:
             line += " " + str(comment)
@@ -817,15 +884,16 @@ class ToCSharp(Transformer):
         else:
             names, typ = items
             expr = None
+        names_only = [n[0] if isinstance(n, tuple) else n for n in names]
         t = map_type_ext(str(typ))
-        info = f"// field {', '.join(names)}: {t} -> declare a field"
+        info = f"// field {', '.join(names_only)}: {t} -> declare a field"
         init = f" = {expr}" if expr is not None else ""
         static_kw = "static " if is_static else ""
-        impl = f"public {static_kw}{t} {', '.join(names)}{init};"
+        impl = f"public {static_kw}{t} {', '.join(names_only)}{init};"
         if self.emit_comments:
             self.todo.append(info)
         if self.curr_class:
-            self.class_fields[self.curr_class].update(names)
+            self.class_fields[self.curr_class].update(names_only)
         if attrs:
             body = "\n".join(attrs + [impl])
         else:
