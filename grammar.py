@@ -1,8 +1,10 @@
 # ────────────────────────── Grammar ──────────────────────────
 GRAMMAR = r"""
-?start:   comment* assembly_attr* (namespace | unit_decl | program_decl | library_decl) uses_clause? (interface_section | pre_class_decl*)? class_section* ("implementation" uses_clause? class_impl*)? (main_block "." | initialization_section? ("end"i ("." | ";"))?)
+?start:   comment* assembly_attr* ns_header uses_clause? (interface_section | pre_class_decl*)? class_section* ("implementation" uses_clause? class_impl*)? (main_block "." | initialization_section? ("end"i ("." | ";"))?)
 main_block: "begin" stmt* "end"i
-interface_section: "interface" uses_clause? pre_class_decl*
+interface_section: INTERFACE uses_clause? pre_class_decl*
+
+ns_header: (namespace | unit_decl | program_decl | library_decl) comment?
 uses_clause:   "uses" dotted_name ("," dotted_name)* ";"       -> uses
 
 assembly_attr: "[" CNAME ":" dotted_name ("(" arg_list? ")")? "]" ";"?

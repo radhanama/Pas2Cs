@@ -1,4 +1,5 @@
 namespace Demo;
+// comment after namespace
 
 interface
 
