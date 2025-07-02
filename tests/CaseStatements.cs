@@ -39,6 +39,25 @@ namespace N {
             }
             return result;
         }
+        public void CommentBranch(string val) {
+            switch (val)
+            {
+                case 'FIRST':{
+                    {
+                        Console.WriteLine("one");
+                    }
+                break;
+                }
+                case 'SECOND':
+                // after colon comment
+                {
+                    {
+                        Console.WriteLine("two");
+                    }
+                break;
+                }
+            }
+        }
     }
     
     public partial class EnumCase {
