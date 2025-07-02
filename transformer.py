@@ -91,8 +91,9 @@ class ToCSharp(Transformer):
         return text
 
     def expr_comment(self, tok):
-        # Ignore comments embedded within expressions
-        return ""
+        if not self.emit_comments:
+            return ""
+        return self.comment(tok)
 
     def expr_with_comment(self, expr, *_comments):
         return expr
@@ -662,7 +663,26 @@ class ToCSharp(Transformer):
         return out
 
     def arg_list(self, *args):
-        return [a for a in args if a != ""]
+        parts = []
+        arg = None
+        comments = []
+        for item in args:
+            if isinstance(item, str) and item != "" and (
+                item.startswith("//") or item.startswith("/*") or item.startswith("#")
+            ):
+                comments.append(item)
+            else:
+                if arg is not None:
+                    if comments:
+                        arg = f"{arg} {' '.join(comments)}"
+                        comments = []
+                    parts.append(arg)
+                arg = item
+        if arg is not None:
+            if comments:
+                arg = f"{arg} {' '.join(comments)}"
+            parts.append(arg)
+        return parts
 
     def arg(self, value):
         return value
