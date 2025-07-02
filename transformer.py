@@ -91,20 +91,33 @@ class ToCSharp(Transformer):
         return text
 
     def expr_comment(self, tok):
-        # Ignore comments embedded within expressions
-        return ""
+        text = self.comment(tok)
+        if text.startswith("//"):
+            return text + "\n"
+        return text
 
-    def expr_with_comment(self, expr, *_comments):
+    def expr_with_comment(self, expr, *comments):
+        trailing = " ".join(c for c in comments if c)
+        if trailing:
+            return f"{expr} {trailing}".rstrip()
         return expr
 
     def paren_expr(self, *parts):
-        """Return the inner expression, ignoring leading comments."""
         expr = ""
+        comments = []
         for p in parts:
-            if isinstance(p, str) and p == "":
+            if (
+                isinstance(p, str)
+                and not expr
+                and (p.startswith("//") or p.startswith("/*"))
+            ):
+                comments.append(p)
                 continue
             expr = p
             break
+        prefix = " ".join(c for c in comments if c)
+        if prefix:
+            return f"{prefix} ({expr})"
         return expr
 
     def comment_stmt(self, comment):
@@ -1188,19 +1201,24 @@ class ToCSharp(Transformer):
 
     def if_stmt(self, cond, *parts):
         parts = list(parts)
+        cond_comments = []
         pre_comments = []
         post_comments = []
 
+        while parts and isinstance(parts[0], str) and not parts[0].strip():
+            parts.pop(0)
         while (
             parts
             and isinstance(parts[0], str)
             and (parts[0].startswith("//") or parts[0].startswith("/*"))
         ):
-            pre_comments.append(parts.pop(0))
+            cond_comments.append(parts.pop(0))
 
         if parts and isinstance(parts[0], Token):
             parts.pop(0)
 
+        while parts and isinstance(parts[0], str) and not parts[0].strip():
+            parts.pop(0)
         while (
             parts
             and isinstance(parts[0], str)
@@ -1234,6 +1252,8 @@ class ToCSharp(Transformer):
             else:
                 then_block = " ".join(post_comments)
 
+        if cond_comments:
+            cond = f"{cond} {' '.join(cond_comments)}"
         if then_block is None or not str(then_block).strip():
             then_part = "{}"
         else:
@@ -1512,9 +1532,20 @@ class ToCSharp(Transformer):
 
     # ── expressions ─────────────────────────────────────────
     def binop(self, *parts):
-        # Filter out empty strings from inline comments
-        cleaned = [p for p in parts if not (isinstance(p, str) and p == "")]
-        left, op, right = cleaned[0], cleaned[1], cleaned[2]
+        parts = list(parts)
+        left = parts.pop(0)
+        pre_op_comments = []
+        while parts and isinstance(parts[0], str) and (
+            parts[0].startswith("//") or parts[0].startswith("/*")
+        ):
+            pre_op_comments.append(parts.pop(0))
+        op = parts.pop(0)
+        post_op_comments = []
+        while parts and isinstance(parts[0], str) and (
+            parts[0].startswith("//") or parts[0].startswith("/*")
+        ):
+            post_op_comments.append(parts.pop(0))
+        right = parts.pop(0)
         op_map = {
             "and": "&&",
             "or": "||",
@@ -1528,7 +1559,21 @@ class ToCSharp(Transformer):
             "shr": ">>",
             "xor": "^",
         }
-        return f"{left} {op_map.get(op, op)} {right}"
+        op_txt = op_map.get(op, op)
+        result = str(left)
+        if pre_op_comments:
+            comment_text = " ".join(pre_op_comments)
+            if comment_text.endswith("\n"):
+                comment_text = comment_text.rstrip() + "\n"
+            result += " " + comment_text
+        if result.endswith("\n"):
+            result += "    " + op_txt
+        else:
+            result += f" {op_txt}"
+        if post_op_comments:
+            result += " " + " ".join(post_op_comments)
+        result += f" {right}"
+        return result
 
     def short_or(self, left, _or, _else, right):
         return self.binop(left, "or else", right)
