@@ -1317,7 +1317,7 @@ class ToCSharp(Transformer):
             parts.pop(0)
         seq = parts.pop(0)
         idx_var = None
-        if parts and isinstance(parts[0], Token) and parts[0].type == "INDEX":
+        if len(parts) >= 2 and isinstance(parts[0], Token) and isinstance(parts[1], Token) and parts[0].type == "CNAME" and parts[0].value.lower() == "index":
             parts.pop(0)
             idx_var = parts.pop(0)
         if parts and isinstance(parts[0], Token) and parts[0].type == "DO":

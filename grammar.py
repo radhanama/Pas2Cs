@@ -210,7 +210,7 @@ if_stmt:     "if"i expr expr_comment* comment_stmt* THEN comment_stmt* (stmt_no_
 else_clause: ELSE comment_stmt* stmt_no_comment comment_stmt*                           -> else_clause
            | ELSE comment_stmt*                                -> else_clause_empty
 for_stmt:    "for"i CNAME (":" type_spec)? ":=" expr (TO | DOWNTO) expr (STEP expr)? ("do"i)? stmt  -> for_stmt
-           | "for"i "each"i? CNAME (":" type_spec)? IN expr (INDEX CNAME)? ("do"i)? stmt      -> for_each_stmt
+           | "for"i "each"i? CNAME (":" type_spec)? IN expr (CNAME CNAME)? ("do"i)? stmt      -> for_each_stmt
 loop_stmt:   LOOP stmt                                       -> loop_stmt
 while_stmt:  "while"i expr "do"i (stmt | empty_stmt)?   -> while_stmt
 
@@ -409,7 +409,6 @@ WRITE:       "write"i
 USING:       "using"i
 LOCKING:     "locking"i
 YIELD:       "yield"i
-INDEX:       "index"i
 IS:          "is"i
 AS:          "as"i
 PROGRAM:     "program"i
