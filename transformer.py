@@ -290,6 +290,10 @@ class ToCSharp(Transformer):
         self.ns = str(name)
         return ""
 
+    def ns_header(self, ns, comment=None):
+        # Namespace already processed; ignore optional comment
+        return ""
+
     def dotted(self, *parts):
         pieces = [p.value if isinstance(p, Token) else str(p) for p in parts]
         return ".".join(pieces)
