@@ -10,7 +10,8 @@ type
     method SimpleCase(x: Integer);
     method WithElse(x: Integer);
     method Empty(x: Integer);
-    method UpperCase(val: String): String;
+  method UpperCase(val: String): String;
+  method CommentBranch(val: String);
   end;
 
   EnumCase = public class
@@ -58,6 +59,20 @@ begin
   Case val of
     'S': result := 'one';
     'B': result := 'two';
+  end;
+end;
+
+method TTest.CommentBranch(val: String);
+begin
+  case val of
+    'FIRST':
+    begin
+      Console.WriteLine('one');
+    end;
+    'SECOND': // after colon comment
+    begin
+      Console.WriteLine('two');
+    end;
   end;
 end;
 

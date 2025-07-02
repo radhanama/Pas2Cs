@@ -1348,7 +1348,12 @@ class ToCSharp(Transformer):
         else_branch = flat_else
 
         switch_body = []
-        for _tag, labels, stmt in branches:
+        for branch in branches:
+            if len(branch) == 4:
+                _tag, labels, comments, stmt = branch
+            else:
+                _tag, labels, stmt = branch
+                comments = []
             patterns = []
             for label in labels:
                 if isinstance(label, tuple) and label[0] == 'range':
@@ -1357,6 +1362,8 @@ class ToCSharp(Transformer):
                 else:
                     patterns.append(str(label))
             case_line = "case " + " or ".join(patterns) + ":"
+            if comments:
+                case_line += "\n" + "\n".join(comments) + "\n"
             if '\n' in stmt or not stmt.strip().endswith(';'):
                 body = f"{{\n{indent(stmt)}\nbreak;\n}}"
             else:
@@ -1375,8 +1382,14 @@ class ToCSharp(Transformer):
 
     def case_branch(self, *parts):
         stmt = parts[-1]
-        labels = parts[:-1]
-        return ('branch', labels, stmt)
+        comments = []
+        labels = []
+        for p in parts[:-1]:
+            if isinstance(p, str) and p.strip().startswith(('//', '/*', '{', '(*')):
+                comments.append(p)
+            else:
+                labels.append(p)
+        return ('branch', labels, comments, stmt)
 
     def case_label(self, tok):
         if isinstance(tok, Token):
