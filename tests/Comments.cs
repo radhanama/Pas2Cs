@@ -10,8 +10,6 @@ namespace Demo {
     }
     
     public partial class Foo {
-        #region 'extra'
-        #endregion
         public int ValueParen() {
             int result;
             /* comment with *** inside
