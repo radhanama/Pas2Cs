@@ -9,3 +9,4 @@
   pip install lark-parser
   ```
 - During development, run only the test(s) relevant to your change. Run the full test suite with `pytest -q` before committing to verify nothing broke.
+- Comments emitted in generated C# should use block style `/* */` instead of line style `//`.

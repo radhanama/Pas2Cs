@@ -88,15 +88,13 @@ class ToCSharp(Transformer):
         if text.startswith("(*") and text.endswith("*)"):
             inner = text[2:-2].strip()
             return f"/* {inner} */"
+        if text.startswith("//") and not text.startswith("///"):
+            inner = text[2:].strip()
+            return f"/* {inner} */"
         return text
 
     def expr_comment(self, tok):
         text = self.comment(tok)
-        if text.startswith("//"):
-            # Convert line comments within expressions to block comments to
-            # avoid commenting out the rest of the line in the generated code
-            inner = text[2:].strip()
-            return f"/* {inner} */"
         return text
 
     def expr_with_comment(self, expr, *_comments):

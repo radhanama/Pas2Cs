@@ -5,9 +5,9 @@ namespace Demo {
         public void Test(char val) {
             switch (val)
             {
-                //A
+                /* A */
                 case 'A': Console.WriteLine("a"); break;
-                //B
+                /* B */
                 case 'B': Console.WriteLine("b"); break;
             }
         }

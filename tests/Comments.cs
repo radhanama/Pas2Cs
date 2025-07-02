@@ -32,7 +32,7 @@ namespace Demo {
             return result;
         }
         public void HeaderLineComment() {
-            // header comment
+            /* header comment */
             int i;
             i = 1;
         }

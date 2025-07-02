@@ -9,7 +9,7 @@ namespace Demo {
         }
         public static void SplitDecl() {
             string s105_deposito_FGTS;
-            string s106_base_calc_FGTS; // comment on same line
+            string s106_base_calc_FGTS; /* comment on same line */
             string s107_total_proventos;
             System.Console.WriteLine(s107_total_proventos);
         }
