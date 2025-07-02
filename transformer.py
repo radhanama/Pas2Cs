@@ -1542,46 +1542,42 @@ class ToCSharp(Transformer):
         return res
 
     def case_stmt(self, expr, *parts):
-        branches = [p for p in parts if isinstance(p, tuple) and p[0] == "branch"]
-        else_branch = [
-            p for p in parts if not (isinstance(p, tuple) and p[0] == "branch")
-        ]
-        else_branch = [
-            p for p in else_branch if not (isinstance(p, Token) and p.type == "ELSE")
-        ]
-        flat_else = []
-        for eb in else_branch:
-            if isinstance(eb, list):
-                flat_else.extend(eb)
-            else:
-                flat_else.append(eb)
-        else_branch = flat_else
+        parts = list(parts)
+        else_branch = []
+        if parts and isinstance(parts[-1], list):
+            else_branch = parts.pop()
 
         switch_body = []
-        for _tag, labels, pre_comments, post_comments, stmt in branches:
-            patterns = []
-            for label in labels:
-                if isinstance(label, tuple) and label[0] == "range":
-                    start, end = label[1], label[2]
-                    patterns.append(f">= {start} and <= {end}")
-                else:
-                    patterns.append(str(label))
-            for c in pre_comments:
-                switch_body.append(c)
-            case_line = "case " + " or ".join(patterns) + ":"
-            is_multiline = "\n" in stmt or not stmt.strip().endswith(";")
-            if is_multiline:
-                body = f"{{\n{indent(stmt)}\nbreak;\n}}"
-            else:
-                body = f" {stmt} break;"
-
-            if not post_comments and (not is_multiline or body.startswith("{")):
-                switch_body.append(case_line + body)
-            else:
-                switch_body.append(case_line)
-                for c in post_comments:
+        for part in parts:
+            if isinstance(part, tuple) and part[0] == "branch":
+                _tag, labels, pre_comments, post_comments, trailing, stmt = part
+                patterns = []
+                for label in labels:
+                    if isinstance(label, tuple) and label[0] == "range":
+                        start, end = label[1], label[2]
+                        patterns.append(f">= {start} and <= {end}")
+                    else:
+                        patterns.append(str(label))
+                for c in pre_comments:
                     switch_body.append(c)
-                switch_body.append(body)
+                case_line = "case " + " or ".join(patterns) + ":"
+                is_multiline = "\n" in stmt or not stmt.strip().endswith(";")
+                if is_multiline:
+                    body = f"{{\n{indent(stmt)}\nbreak;\n}}"
+                else:
+                    body = f" {stmt} break;"
+
+                if not post_comments and (not is_multiline or body.startswith("{")):
+                    switch_body.append(case_line + body)
+                else:
+                    switch_body.append(case_line)
+                    for c in post_comments:
+                        switch_body.append(c)
+                    switch_body.append(body)
+                for c in trailing:
+                    switch_body.append(c)
+            elif isinstance(part, str):
+                switch_body.append(part)
 
         if else_branch:
             else_stmts = "\n".join(s for s in else_branch if s.strip())
@@ -1594,12 +1590,29 @@ class ToCSharp(Transformer):
         return f"switch ({expr})\n{{\n{body_cs}\n}}"
 
     def case_branch(self, *parts):
-        stmt = parts[-1]
+        parts = list(parts)
+        if parts and isinstance(parts[-1], Token) and str(parts[-1]) == ";":
+            parts.pop()
+
+        trailing_comments = []
+        def _is_comment(s):
+            s = s.strip()
+            if s.startswith("//") or s.startswith("/*") or s.startswith("(*"):
+                return True
+            if s.startswith("{") and s.endswith("}") and "\n" not in s:
+                return True
+            return False
+
+        while parts and isinstance(parts[-1], str) and _is_comment(parts[-1]):
+            trailing_comments.insert(0, parts.pop())
+
+        stmt = parts.pop()
+
         pre_comments = []
         post_comments = []
         labels = []
         seen_label = False
-        for p in parts[:-1]:
+        for p in parts:
             if isinstance(p, str) and p.strip().startswith(("//", "/*", "{", "(*")):
                 if seen_label:
                     post_comments.append(p)
@@ -1608,7 +1621,8 @@ class ToCSharp(Transformer):
             else:
                 labels.append(p)
                 seen_label = True
-        return ("branch", labels, pre_comments, post_comments, stmt)
+
+        return ("branch", labels, pre_comments, post_comments, trailing_comments, stmt)
 
     def case_label(self, tok):
         if isinstance(tok, Token):
