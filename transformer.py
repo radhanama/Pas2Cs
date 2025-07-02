@@ -1186,11 +1186,17 @@ class ToCSharp(Transformer):
             line += " " + str(comment)
         return line
 
-    def exit_ret(self, _tok, expr=None):
-        return f"return{(' ' + expr) if expr else ''};"
+    def exit_ret(self, _tok, expr=None, comment=None):
+        line = f"return{(' ' + expr) if expr else ''};"
+        if comment:
+            line += " " + str(comment)
+        return line
 
-    def raise_stmt(self, _tok, expr=None):
-        return f"throw{(' ' + expr) if expr else ''};"
+    def raise_stmt(self, _tok, expr=None, comment=None):
+        line = f"throw{(' ' + expr) if expr else ''};"
+        if comment:
+            line += " " + str(comment)
+        return line
 
     def repeat_stmt(self, *parts):
         cond = parts[-1]

@@ -62,7 +62,7 @@ namespace N {
             switch (x)
             {
                 case 1:{
-                    Console.WriteLine("one"); // trailing
+                    Console.WriteLine("one"); /* trailing */
                 break;
                 }
                 case 2: Console.WriteLine("two"); break;
