@@ -255,6 +255,13 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_uses_before_namespace(self):
+        src = Path('tests/UsesBeforeNamespace.pas').read_text()
+        expected = Path('tests/UsesBeforeNamespace.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_ctor_impl_no_name(self):
         src = Path('tests/CtorImplNoName.pas').read_text()
         expected = Path('tests/CtorImplNoName.cs').read_text().strip()
