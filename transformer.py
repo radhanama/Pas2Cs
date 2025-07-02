@@ -91,8 +91,11 @@ class ToCSharp(Transformer):
         return text
 
     def expr_comment(self, tok):
-        # Ignore comments embedded within expressions
-        return ""
+        text = str(tok)
+        if text.startswith("//"):
+            inner = text[2:].strip()
+            return f"/* {inner} */"
+        return self.comment(tok)
 
     def expr_with_comment(self, expr, *_comments):
         return expr
@@ -101,7 +104,9 @@ class ToCSharp(Transformer):
         """Return the inner expression, ignoring leading comments."""
         expr = ""
         for p in parts:
-            if isinstance(p, str) and p == "":
+            if isinstance(p, str) and (
+                p == "" or p.lstrip().startswith(("//", "/*", "#"))
+            ):
                 continue
             expr = p
             break
@@ -662,7 +667,26 @@ class ToCSharp(Transformer):
         return out
 
     def arg_list(self, *args):
-        return list(args)
+        parts = []
+        arg = None
+        comments = []
+        for item in args:
+            if isinstance(item, str) and item != "" and (
+                item.startswith("//") or item.startswith("/*") or item.startswith("#")
+            ):
+                comments.append(item)
+            else:
+                if arg is not None:
+                    if comments:
+                        arg = f"{arg} {' '.join(comments)}"
+                        comments = []
+                    parts.append(arg)
+                arg = item
+        if arg is not None:
+            if comments:
+                arg = f"{arg} {' '.join(comments)}"
+            parts.append(arg)
+        return parts
 
     def arg(self, value):
         return value
@@ -1512,8 +1536,15 @@ class ToCSharp(Transformer):
 
     # ── expressions ─────────────────────────────────────────
     def binop(self, *parts):
-        # Filter out empty strings from inline comments
-        cleaned = [p for p in parts if not (isinstance(p, str) and p == "")]
+        # Filter out comments or empty strings that may appear between terms
+        cleaned = [
+            p
+            for p in parts
+            if not (
+                isinstance(p, str)
+                and (p == "" or p.lstrip().startswith(("//", "/*", "#")))
+            )
+        ]
         left, op, right = cleaned[0], cleaned[1], cleaned[2]
         op_map = {
             "and": "&&",

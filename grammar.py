@@ -334,7 +334,7 @@ call_lhs:   var_ref "(" arg_list? ")" call_postfix+                 -> call
            | "(" expr_comment* expr ")" prop_call call_postfix* -> call
            | literal_string "." name_term GENERIC_ARGS? call_args? call_postfix+ -> call
            | typeof_expr call_postfix+                                 -> call
-arg_list:    arg ("," arg)*
+arg_list:    arg ("," expr_comment* arg)* expr_comment*
 arg:         OUT expr                                -> out_arg
            | VAR expr                                -> var_arg
            | CONST expr                              -> const_arg
