@@ -223,7 +223,7 @@ on_handler_type: ON type_name DO stmt -> on_handler_type
 case_stmt:   "case"i expr "of"i case_branch+ case_else? "end"i ";"? -> case_stmt
 case_else:   ELSE stmt+                           -> case_else
            | ELSE ";"?                          -> case_else_empty
-case_branch: case_label ("," case_label)* ":" stmt ";"?
+case_branch: comment_stmt* case_label ("," case_label)* ":" stmt ";"?
 signed_number: OP_SUM? NUMBER          -> signed_number
 case_label: signed_number DOTDOT signed_number        -> label_range
           | signed_number
