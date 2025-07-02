@@ -58,6 +58,18 @@ namespace N {
                 }
             }
         }
+        public void NegativeCase(int x) {
+            switch (x)
+            {
+                case -1: Console.WriteLine("minus one"); break;
+                case -2:{
+                    {
+                        Console.WriteLine("minus two");
+                    }
+                break;
+                }
+            }
+        }
     }
     
     public partial class EnumCase {

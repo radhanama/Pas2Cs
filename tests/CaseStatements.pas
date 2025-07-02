@@ -76,4 +76,15 @@ begin
   end;
 end;
 
+method TTest.NegativeCase(x: Integer);
+begin
+  case x of
+    -1: Console.WriteLine('minus one');
+    -2:
+    begin
+      Console.WriteLine('minus two');
+    end;
+  end;
+end;
+
 end.

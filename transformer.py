@@ -1282,6 +1282,13 @@ class ToCSharp(Transformer):
         parts = [cond, *parts]
         while parts and parts[0] == "":
             parts.pop(0)
+        # drop comments before the condition
+        while (
+            parts
+            and isinstance(parts[0], str)
+            and (parts[0].startswith("//") or parts[0].startswith("/*"))
+        ):
+            parts.pop(0)
         if parts:
             cond = parts.pop(0)
         else:
