@@ -226,7 +226,7 @@ case_stmt:   "case"i expr "of"i case_branch+ case_else? "end"i ";"? -> case_stmt
 case_else:   ELSE stmt+                           -> case_else
            | ELSE ";"?                          -> case_else_empty
 case_branch: comment_stmt* case_label ("," case_label)* ":" comment_stmt* stmt_no_comment ";"?
-signed_number: OP_SUM? NUMBER          -> signed_number
+signed_number: MINUS? NUMBER          -> signed_number
 case_label: signed_number DOTDOT signed_number        -> label_range
           | signed_number
           | SQ_STRING
@@ -356,6 +356,7 @@ GT:           ">"
 GENERIC_ARGS: /<[A-Za-z_][^<>]*(?:<[^<>]*>[^<>]*)*>/
 ASSEMBLY.3:  "assembly"i
 ANDKW.3:     "and"i
+%declare MINUS
 OP_SUM:       "+" | "-" | "or" | "xor"i
 OP_MUL:       "*" | "/" | "and" | "mod"i | "div"i
 OP_REL:       "=" | "<>" | "<=" | ">="
