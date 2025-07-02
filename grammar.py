@@ -246,6 +246,9 @@ inherited_stmt: INHERITED (name_term ("(" arg_list? ")" call_postfix*)?)? ";"? -
            | "+" expr                                -> pos
            | AT var_ref                              -> addr_of
            | expr expr_comment* OP_SUM expr_comment* expr      -> binop
+           | expr expr_comment+ OP_SUM expr_comment* expr      -> binop
+           | expr expr_comment* op_sum expr_comment* expr      -> binop
+           | expr expr_comment+ op_sum expr_comment* expr      -> binop
            | expr expr_comment* OP_MUL expr_comment* expr      -> binop
            | expr expr_comment* SHL expr_comment* expr         -> binop
            | expr expr_comment* SHR expr_comment* expr         -> binop
@@ -296,6 +299,10 @@ new_expr: "new" type_spec "(" arg_list? ")"         -> new_obj
 
 array_of_expr: "array"i "of"i type_name "(" arg_list? ")" -> array_of_expr
 typeof_expr: TYPEOF "(" expr_comment* expr ")"                        -> typeof_expr
+
+op_sum: "+"      -> plus
+       | "-"      -> minus
+       | OP_SUM
 
 generic_call_base: dotted_name GENERIC_ARGS
 

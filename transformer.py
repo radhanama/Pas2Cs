@@ -1545,6 +1545,12 @@ class ToCSharp(Transformer):
     def pos(self, expr):
         return f"{expr}"
 
+    def plus(self):
+        return "+"
+
+    def minus(self):
+        return "-"
+
     def number(self, n):
         return str(n).replace("_", "").replace(",", "")
 
