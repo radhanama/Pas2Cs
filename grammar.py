@@ -91,7 +91,7 @@ param_list:  param (";" param)*
 param:       (VAR|OUT|CONST)? name_list ":" type_spec ((OP_REL["="] | ":=") expr)? -> param
             | (VAR|OUT|CONST) name_list ((OP_REL["="] | ":=") expr)? -> param_untyped
 
-name_list:   (CNAME | ENUM | INTERFACE) ("," (CNAME | ENUM | INTERFACE))* -> names
+name_list:   (CNAME | ENUM | INTERFACE) comment* ("," comment* (CNAME | ENUM | INTERFACE) comment*)* -> names
 
 type_spec: type_name "?"?                              -> type_spec
 
