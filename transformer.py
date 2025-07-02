@@ -96,6 +96,16 @@ class ToCSharp(Transformer):
     def expr_with_comment(self, expr, *_comments):
         return expr
 
+    def paren_expr(self, *parts):
+        """Return the inner expression, ignoring leading comments."""
+        expr = ''
+        for p in parts:
+            if isinstance(p, str) and p == '':
+                continue
+            expr = p
+            break
+        return expr
+
     def comment_stmt(self, comment):
         return str(comment)
 
