@@ -9,6 +9,7 @@ type
   public
     class method Check(cc: Integer);
     class method CheckMulti(flag1, flag2, flag3: Integer);
+    class method CheckLeading(flag: Boolean);
   end;
 
 implementation
@@ -23,6 +24,12 @@ class method ExprComment.CheckMulti(flag1, flag2, flag3: Integer);
 begin
   if (flag1 = 1) or (flag2 = 2) or (flag3 = 3) { or (flag3 = 4) } then
     Console.WriteLine('z');
+end;
+
+class method ExprComment.CheckLeading(flag: Boolean);
+begin
+  if { prefix } flag then
+    Console.WriteLine('p');
 end;
 
 end.
