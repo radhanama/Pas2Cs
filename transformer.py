@@ -1287,9 +1287,22 @@ class ToCSharp(Transformer):
 
     def if_stmt(self, cond, *parts):
         parts = list(parts)
+        cond_lead = []
         cond_comments = []
         pre_comments = []
         post_comments = []
+
+        if isinstance(cond, str) and (
+            cond.startswith("//") or cond.startswith("/*")
+        ) and parts:
+            rest = ""
+            if cond.startswith("/*") and "*/" in cond:
+                rest = cond.split("*/", 1)[1].strip()
+            elif cond.startswith("//"):
+                rest = cond[2:].strip()
+            if not rest:
+                cond_lead.append(cond)
+                cond = parts.pop(0)
 
         while parts and isinstance(parts[0], str) and not parts[0].strip():
             parts.pop(0)
@@ -1299,8 +1312,8 @@ class ToCSharp(Transformer):
             and (parts[0].startswith("//") or parts[0].startswith("/*"))
         ):
             cond_comments.append(parts.pop(0))
-        if cond_comments:
-            cond = f"{cond} " + " ".join(cond_comments)
+        if cond_lead or cond_comments:
+            cond = " ".join(cond_lead + [str(cond)] + cond_comments)
 
         if parts and isinstance(parts[0], Token):
             parts.pop(0)

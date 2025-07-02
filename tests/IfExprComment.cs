@@ -11,8 +11,5 @@ namespace Demo {
         public static void CheckLine(bool flag1, bool flag2) {
             if (flag1 /* comment */ || flag2) Console.WriteLine("x");
         }
-        public static void CheckLeading(bool flag) {
-            if (flag) Console.WriteLine("p");
-        }
     }
 }
