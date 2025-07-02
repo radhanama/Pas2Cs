@@ -424,6 +424,20 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_raise_comment(self):
+        src = Path('tests/RaiseComment.pas').read_text()
+        expected = Path('tests/RaiseComment.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_exit_comment(self):
+        src = Path('tests/ExitComment.pas').read_text()
+        expected = Path('tests/ExitComment.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
 
     def test_using_stmt(self):
         src = Path('tests/UsingStmt.pas').read_text()
