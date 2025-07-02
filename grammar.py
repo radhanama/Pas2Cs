@@ -235,7 +235,7 @@ case_label: signed_number DOTDOT signed_number        -> label_range
 call_stmt:   var_ref ("(" arg_list? ")")? call_postfix* ";"?   -> call_stmt
            | generic_call_base ("(" arg_list? ")")? call_postfix* ";"? -> call_stmt
            | new_expr "." name_term ("(" arg_list? ")")? call_postfix* ";"?    -> call_stmt
-           | "(" expr ")" prop_call call_postfix* ";"? -> call_stmt
+           | "(" expr_comment* expr ")" prop_call call_postfix* ";"? -> call_stmt
 inherited_stmt: INHERITED (name_term ("(" arg_list? ")" call_postfix*)?)? ";"? -> inherited
 
 ?expr:       lambda_expr
@@ -257,7 +257,7 @@ inherited_stmt: INHERITED (name_term ("(" arg_list? ")" call_postfix*)?)? ";"? -
            | expr expr_comment* IS expr_comment* NOT expr_comment* type_spec -> is_not_inst
            | expr expr_comment* IS expr_comment* type_spec     -> is_inst
            | expr expr_comment* AS expr_comment* type_spec     -> as_cast
-           | "(" expr ")"
+           | "(" expr_comment* expr ")" -> paren_expr
            | NUMBER                                  -> number
            | HEX_NUMBER                              -> hex_number
            | BINARY_NUMBER                           -> binary_number
@@ -293,7 +293,7 @@ new_expr: "new" type_spec "(" arg_list? ")"         -> new_obj
         | "new" type_spec                           -> new_obj_noargs
 
 array_of_expr: "array"i "of"i type_name "(" arg_list? ")" -> array_of_expr
-typeof_expr: TYPEOF "(" expr ")"                        -> typeof_expr
+typeof_expr: TYPEOF "(" expr_comment* expr ")"                        -> typeof_expr
 
 generic_call_base: dotted_name GENERIC_ARGS
 
@@ -313,7 +313,7 @@ call_expr:   var_ref "(" arg_list? ")" call_postfix* -> call
            | generic_call_base ("(" arg_list? ")")? call_postfix* -> call
            | new_expr "." name_term GENERIC_ARGS? call_args? call_postfix* -> call
            | array_of_expr prop_call call_postfix* -> call
-           | "(" expr ")" prop_call call_postfix* -> call
+           | "(" expr_comment* expr ")" prop_call call_postfix* -> call
            | literal_string "." name_term GENERIC_ARGS? call_args? call_postfix* -> call
            | INHERITED name_term GENERIC_ARGS? call_args? call_postfix* -> inherited_call_expr
            | typeof_expr call_postfix+                     -> call
@@ -322,7 +322,7 @@ call_lhs:   var_ref "(" arg_list? ")" call_postfix+                 -> call
            | generic_call_base ("(" arg_list? ")")? call_postfix+    -> call
            | new_expr "." name_term GENERIC_ARGS? call_args? call_postfix+ -> call
            | array_of_expr prop_call call_postfix+ -> call
-           | "(" expr ")" prop_call call_postfix* -> call
+           | "(" expr_comment* expr ")" prop_call call_postfix* -> call
            | literal_string "." name_term GENERIC_ARGS? call_args? call_postfix+ -> call
            | typeof_expr call_postfix+                                 -> call
 arg_list:    arg ("," arg)*
@@ -335,7 +335,7 @@ arg:         OUT expr                                -> out_arg
 new_stmt:    new_expr ";"?
 inherited_var: INHERITED name_base (ARRAY_RANGE | "." name_term)* -> inherited_var
 var_ref:     name_base (ARRAY_RANGE | "." name_term)* -> var
-           | "(" expr ")" ARRAY_RANGE -> paren_index
+           | "(" expr_comment* expr ")" ARRAY_RANGE -> paren_index
 
 var_section: ("var"i | "threadvar"i) var_section_item+
 var_section_item: var_decl | var_decl_infer | comment_stmt
