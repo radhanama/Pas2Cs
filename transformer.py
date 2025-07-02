@@ -91,25 +91,32 @@ class ToCSharp(Transformer):
         return text
 
     def expr_comment(self, tok):
-        text = str(tok)
+        text = self.comment(tok)
         if text.startswith("//"):
+            # Convert line comments within expressions to block comments to
+            # avoid commenting out the rest of the line in the generated code
             inner = text[2:].strip()
             return f"/* {inner} */"
-        return self.comment(tok)
+        return text
 
     def expr_with_comment(self, expr, *_comments):
+        comments = [c for c in _comments if c]
+        if comments:
+            return expr + " " + " ".join(comments)
         return expr
 
     def paren_expr(self, *parts):
-        """Return the inner expression, ignoring leading comments."""
+        """Return the inner expression, preserving leading comments."""
+        comments = []
         expr = ""
         for p in parts:
-            if isinstance(p, str) and (
-                p == "" or p.lstrip().startswith(("//", "/*", "#"))
-            ):
+            if isinstance(p, str) and (p == "" or p.startswith("//") or p.startswith("/*")):
+                comments.append(p)
                 continue
             expr = p
             break
+        if comments:
+            return " ".join(comments + [str(expr)])
         return expr
 
     def comment_stmt(self, comment):
@@ -1279,26 +1286,27 @@ class ToCSharp(Transformer):
         return ""
 
     def if_stmt(self, cond, *parts):
-        parts = [cond, *parts]
-        while parts and parts[0] == "":
-            parts.pop(0)
-        if parts:
-            cond = parts.pop(0)
-        else:
-            cond = ""
+        parts = list(parts)
+        cond_comments = []
         pre_comments = []
         post_comments = []
 
+        while parts and isinstance(parts[0], str) and not parts[0].strip():
+            parts.pop(0)
         while (
             parts
             and isinstance(parts[0], str)
             and (parts[0].startswith("//") or parts[0].startswith("/*"))
         ):
-            pre_comments.append(parts.pop(0))
+            cond_comments.append(parts.pop(0))
+        if cond_comments:
+            cond = f"{cond} " + " ".join(cond_comments)
 
         if parts and isinstance(parts[0], Token):
             parts.pop(0)
 
+        while parts and isinstance(parts[0], str) and not parts[0].strip():
+            parts.pop(0)
         while (
             parts
             and isinstance(parts[0], str)
@@ -1610,16 +1618,7 @@ class ToCSharp(Transformer):
 
     # ── expressions ─────────────────────────────────────────
     def binop(self, *parts):
-        # Filter out comments or empty strings that may appear between terms
-        cleaned = [
-            p
-            for p in parts
-            if not (
-                isinstance(p, str)
-                and (p == "" or p.lstrip().startswith(("//", "/*", "#")))
-            )
-        ]
-        left, op, right = cleaned[0], cleaned[1], cleaned[2]
+        cleaned = [p for p in parts if not (isinstance(p, str) and p == "")]
         op_map = {
             "and": "&&",
             "or": "||",
@@ -1633,7 +1632,26 @@ class ToCSharp(Transformer):
             "shr": ">>",
             "xor": "^",
         }
-        return f"{left} {op_map.get(op, op)} {right}"
+        left_parts = []
+        right_parts = []
+        op_token = None
+        for p in cleaned:
+            if op_token is None:
+                t = str(p).lower()
+                if isinstance(p, Token) and p.type.startswith("OP_"):
+                    op_token = str(p)
+                elif t in op_map:
+                    op_token = t
+                elif t in {"=", "<>", "<", ">", "<=", ">=", "+", "-", "*", "/", "%", "<<", ">>", "^"}:
+                    op_token = t
+                else:
+                    left_parts.append(str(p))
+            else:
+                right_parts.append(str(p))
+        op = op_map.get(str(op_token), op_token)
+        left = " ".join(left_parts).strip()
+        right = " ".join(right_parts).strip()
+        return f"{left} {op} {right}"
 
     def short_or(self, left, _or, _else, right):
         return self.binop(left, "or else", right)
