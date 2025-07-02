@@ -226,7 +226,8 @@ case_stmt:   "case"i expr "of"i case_branch+ case_else? "end"i ";"? -> case_stmt
 case_else:   ELSE stmt+                           -> case_else
            | ELSE ";"?                          -> case_else_empty
 case_branch: comment_stmt* case_label ("," case_label)* ":" comment_stmt* stmt_no_comment ";"?
-signed_number: OP_SUM? NUMBER          -> signed_number
+signed_number: SIGNED_NUMBER
+             | OP_SUM? NUMBER          -> signed_number
 case_label: signed_number DOTDOT signed_number        -> label_range
           | signed_number
           | SQ_STRING
@@ -263,6 +264,7 @@ inherited_stmt: INHERITED (name_term ("(" arg_list? ")" call_postfix*)?)? ";"? -
            | expr expr_comment* IS expr_comment* type_spec     -> is_inst
            | expr expr_comment* AS expr_comment* type_spec     -> as_cast
            | "(" expr_comment* expr ")" -> paren_expr
+           | SIGNED_NUMBER                           -> number
            | NUMBER                                  -> number
            | HEX_NUMBER                              -> hex_number
            | BINARY_NUMBER                           -> binary_number
@@ -357,6 +359,7 @@ GENERIC_ARGS: /<[A-Za-z_][^<>]*(?:<[^<>]*>[^<>]*)*>/
 ASSEMBLY.3:  "assembly"i
 ANDKW.3:     "and"i
 OP_SUM:       "+" | "-" | "or" | "xor"i
+SIGNED_NUMBER: /(?<![A-Za-z0-9_\)\]])[+-][0-9]+([_,][0-9]+)*(\.[0-9]+([_,][0-9]+)*)?/
 OP_MUL:       "*" | "/" | "and" | "mod"i | "div"i
 OP_REL:       "=" | "<>" | "<=" | ">="
 SHL:          "shl"i
