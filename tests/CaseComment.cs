@@ -15,8 +15,8 @@ namespace Demo {
             switch (val)
             {
                 case 'A': Console.WriteLine("a"); break;
-                //    'B':
-                //      Console.WriteLine('b');
+                /* 'B': */
+                /* Console.WriteLine('b'); */
                 case 'C': Console.WriteLine("c"); break;
             }
         }
