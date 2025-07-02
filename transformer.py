@@ -77,10 +77,8 @@ class ToCSharp(Transformer):
         if text.startswith('{') and text.endswith('}'):
             inner = text[1:-1].strip()
             lowered = inner.lower()
-            if lowered.startswith('$region'):
-                return '#region ' + inner[7:].strip()
-            if lowered.startswith('$endregion'):
-                return '#endregion'
+            if lowered.startswith('$region') or lowered.startswith('$endregion'):
+                return ''
             if lowered.startswith('region'):
                 return '#region ' + inner[6:].strip()
             if lowered.startswith('endregion'):
