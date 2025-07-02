@@ -189,7 +189,7 @@ block:       "begin" ";"? stmt* "end"i comment* ";"?
 assign_stmt: (inherited_var | var_ref | call_lhs) ":=" expr ";"? comment? -> assign
 op_assign_stmt: (var_ref | call_lhs) ADD_ASSIGN expr ";"? comment?              -> op_assign
               | (var_ref | call_lhs) SUB_ASSIGN expr ";"? comment?              -> op_assign
-return_stmt: RESULT ":=" expr ";"?                      -> result_ret
+return_stmt: RESULT ":=" expr ";"? comment?             -> result_ret
            | EXIT expr? ";"?                            -> exit_ret
 raise_stmt: RAISE expr? ";"?                           -> raise_stmt
 repeat_stmt: "repeat"i stmt* "until"i expr ";"?         -> repeat_stmt

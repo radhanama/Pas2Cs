@@ -1037,9 +1037,12 @@ class ToCSharp(Transformer):
             line += " " + str(comment)
         return line
 
-    def result_ret(self, _tok, expr):
+    def result_ret(self, _tok, expr, comment=None):
         self.used_result = True
-        return f"result = {expr};"
+        line = f"result = {expr};"
+        if comment:
+            line += " " + str(comment)
+        return line
 
     def exit_ret(self, _tok, expr=None):
         return f"return{(' ' + expr) if expr else ''};"
@@ -1185,7 +1188,14 @@ class ToCSharp(Transformer):
         else:
             else_part = f" else {else_clause}"
 
-        result = f"if ({cond}) {then_part}{else_part}"
+        result = f"if ({cond}) {then_part}"
+        if else_part:
+            last_line = str(then_part).split("\n")[-1]
+            if "//" in last_line or "/*" in last_line:
+                result += "\n" + else_part.lstrip()
+            else:
+                result += else_part
+        
         if comment_only:
             if result.endswith(";"):
                 result += " " + comment_text
