@@ -1,27 +1,17 @@
 namespace Demo;
 
-interface
-
-uses System;
-
 type
-  IfComment = class
+  IfComment = public class
   public
-    class method Check(flag: Boolean);
+    class method Demo(x: Integer);
   end;
 
 implementation
 
-class method IfComment.Check(flag: Boolean);
+class method IfComment.Demo(x: Integer);
 begin
-  if flag then
-  begin
-    Console.WriteLine('y');
-  end {comment}
-  else
-  begin
-    Console.WriteLine('n');
-  end;
+  if (x = 1) or (x = 2) { or (x = 3) or (x = 4)} then
+    System.Console.WriteLine('Yes');
 end;
 
 end.

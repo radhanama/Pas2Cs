@@ -346,13 +346,13 @@ GT:           ">"
 GENERIC_ARGS: /<[A-Za-z_][^<>]*(?:<[^<>]*>[^<>]*)*>/
 ASSEMBLY.3:  "assembly"i
 ANDKW.3:     "and"i
-OP_SUM:       "+" | "-" | "or" | "xor"i
-OP_MUL:       "*" | "/" | "and" | "mod"i | "div"i
+OP_SUM.2:     "+" | "-" | "or" | "xor"i
+OP_MUL.2:     "*" | "/" | "and" | "mod"i | "div"i
 OP_REL:       "=" | "<>" | "<=" | ">="
 SHL:          "shl"i
 SHR:          "shr"i
-ADD_ASSIGN.2:  "+="
-SUB_ASSIGN.2:  "-="
+ADD_ASSIGN.3:  "+="
+SUB_ASSIGN.3:  "-="
 
 NOT:         "not"i
 METHOD:      "method"i
