@@ -1279,7 +1279,13 @@ class ToCSharp(Transformer):
         return ""
 
     def if_stmt(self, cond, *parts):
-        parts = list(parts)
+        parts = [cond, *parts]
+        while parts and parts[0] == "":
+            parts.pop(0)
+        if parts:
+            cond = parts.pop(0)
+        else:
+            cond = ""
         pre_comments = []
         post_comments = []
 
