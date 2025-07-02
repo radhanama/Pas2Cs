@@ -1136,10 +1136,14 @@ class ToCSharp(Transformer):
 
     def if_stmt(self, cond, *parts):
         parts = list(parts)
+        comments = []
+
+        while parts and isinstance(parts[0], str) and (parts[0].startswith("//") or parts[0].startswith("/*")):
+            comments.append(parts.pop(0))
+
         if parts and isinstance(parts[0], Token):
             parts.pop(0)
 
-        comments = []
         while parts and isinstance(parts[0], str) and (parts[0].startswith("//") or parts[0].startswith("/*")):
             comments.append(parts.pop(0))
 
