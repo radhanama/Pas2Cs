@@ -24,7 +24,7 @@ namespace Demo {
         public static void Demo(bool flag) {
             if (flag) {
                 if (flag) {}
-                // no-op
+                /* no-op */
                 {
                     System.Console.WriteLine("Hello");
                 }
@@ -34,7 +34,7 @@ namespace Demo {
     
     public partial class IfElseEmptyExample {
         public static void Check(bool flag) {
-            if (flag) Console.WriteLine("yes"); // nothing
+            if (flag) Console.WriteLine("yes"); /* nothing */
         }
     }
     
@@ -53,8 +53,8 @@ namespace Demo {
             string result;
             string aux;
             aux = n.ToString;
-            if (Length(aux) > t) aux = Copy(aux, 0, t); // pega as primeiras t posicoes
-            else aux = TSGUutils.Replicar("0", t - Length(aux)) + aux; // preenche com zeros
+            if (Length(aux) > t) aux = Copy(aux, 0, t); /* pega as primeiras t posicoes */
+            else aux = TSGUutils.Replicar("0", t - Length(aux)) + aux; /* preenche com zeros */
             result = aux;
             return result;
         }

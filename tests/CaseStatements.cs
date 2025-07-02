@@ -49,7 +49,7 @@ namespace N {
                 break;
                 }
                 case 'SECOND':
-                // after colon comment
+                /* after colon comment */
                 {
                     {
                         Console.WriteLine("two");
