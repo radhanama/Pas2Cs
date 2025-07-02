@@ -243,20 +243,20 @@ inherited_stmt: INHERITED (name_term ("(" arg_list? ")" call_postfix*)?)? ";"? -
            | "-" expr                                -> neg
            | "+" expr                                -> pos
            | AT var_ref                              -> addr_of
-           | expr OP_SUM   expr                      -> binop
-           | expr OP_MUL   expr                      -> binop
-           | expr SHL expr                          -> binop
-           | expr SHR expr                          -> binop
-           | expr OP_SUM ELSE expr                   -> short_or
-           | expr OP_MUL THEN expr                   -> short_and
+           | expr expr_comment* OP_SUM expr_comment* expr      -> binop
+           | expr expr_comment* OP_MUL expr_comment* expr      -> binop
+           | expr expr_comment* SHL expr_comment* expr         -> binop
+           | expr expr_comment* SHR expr_comment* expr         -> binop
+           | expr expr_comment* OP_SUM expr_comment* ELSE expr_comment* expr -> short_or
+           | expr expr_comment* OP_MUL expr_comment* THEN expr_comment* expr -> short_and
            | "if"i expr THEN expr ELSE expr       -> if_expr
            | "if"i expr THEN expr                  -> if_expr_short
-           | expr (OP_REL|LT|GT) expr                -> binop
-           | expr IN set_lit                         -> in_expr
-           | expr NOT IN set_lit                     -> not_in_expr
-           | expr IS NOT type_spec                   -> is_not_inst
-           | expr IS type_spec                       -> is_inst
-           | expr AS type_spec                       -> as_cast
+           | expr expr_comment* (OP_REL|LT|GT) expr_comment* expr -> binop
+           | expr expr_comment* IN expr_comment* set_lit       -> in_expr
+           | expr expr_comment* NOT expr_comment* IN expr_comment* set_lit -> not_in_expr
+           | expr expr_comment* IS expr_comment* NOT expr_comment* type_spec -> is_not_inst
+           | expr expr_comment* IS expr_comment* type_spec     -> is_inst
+           | expr expr_comment* AS expr_comment* type_spec     -> as_cast
            | "(" expr ")"
            | NUMBER                                  -> number
            | HEX_NUMBER                              -> hex_number
@@ -453,8 +453,13 @@ COMMENT_STAR.4: /\/\*[\s\S]*?\*\//
 %ignore WS
 %ignore /\}/
 
-comment: COMMENT_BRACE
+comment.2: COMMENT_BRACE
        | COMMENT_PAREN
        | COMMENT_STAR
        | LINE_COMMENT
+
+expr_comment.1: COMMENT_BRACE
+            | COMMENT_PAREN
+            | COMMENT_STAR
+            | LINE_COMMENT
 """

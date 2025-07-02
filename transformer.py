@@ -89,6 +89,10 @@ class ToCSharp(Transformer):
             return f"/* {inner} */"
         return text
 
+    def expr_comment(self, tok):
+        # Ignore comments embedded within expressions
+        return ''
+
     def comment_stmt(self, comment):
         return str(comment)
 
@@ -1375,7 +1379,10 @@ class ToCSharp(Transformer):
         return ""
 
     # ── expressions ─────────────────────────────────────────
-    def binop(self, left, op, right):
+    def binop(self, *parts):
+        # Filter out empty strings from inline comments
+        cleaned = [p for p in parts if not (isinstance(p, str) and p == '')]
+        left, op, right = cleaned[0], cleaned[1], cleaned[2]
         op_map = {
             "and": "&&",
             "or": "||",

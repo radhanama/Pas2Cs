@@ -59,6 +59,13 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_expr_comment(self):
+        src = Path('tests/ExprComment.pas').read_text()
+        expected = Path('tests/ExprComment.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_file_header(self):
         src = Path('tests/FileHeader.pas').read_text()
         expected = Path('tests/FileHeader.cs').read_text().strip()
