@@ -340,6 +340,13 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_case_end_comment(self):
+        src = Path('tests/CaseEndComment.pas').read_text()
+        expected = Path('tests/CaseEndComment.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_large_case_range(self):
         src = Path('tests/LargeCaseRange.pas').read_text()
         expected = Path('tests/LargeCaseRange.cs').read_text().strip()

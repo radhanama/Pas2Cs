@@ -1544,46 +1544,42 @@ class ToCSharp(Transformer):
         return res
 
     def case_stmt(self, expr, *parts):
-        branches = [p for p in parts if isinstance(p, tuple) and p[0] == "branch"]
-        else_branch = [
-            p for p in parts if not (isinstance(p, tuple) and p[0] == "branch")
-        ]
-        else_branch = [
-            p for p in else_branch if not (isinstance(p, Token) and p.type == "ELSE")
-        ]
-        flat_else = []
-        for eb in else_branch:
-            if isinstance(eb, list):
-                flat_else.extend(eb)
-            else:
-                flat_else.append(eb)
-        else_branch = flat_else
-
         switch_body = []
-        for _tag, labels, pre_comments, post_comments, stmt in branches:
-            patterns = []
-            for label in labels:
-                if isinstance(label, tuple) and label[0] == "range":
-                    start, end = label[1], label[2]
-                    patterns.append(f">= {start} and <= {end}")
-                else:
-                    patterns.append(str(label))
-            for c in pre_comments:
-                switch_body.append(c)
-            case_line = "case " + " or ".join(patterns) + ":"
-            is_multiline = "\n" in stmt or not stmt.strip().endswith(";")
-            if is_multiline:
-                body = f"{{\n{indent(stmt)}\nbreak;\n}}"
-            else:
-                body = f" {stmt} break;"
-
-            if not post_comments and (not is_multiline or body.startswith("{")):
-                switch_body.append(case_line + body)
-            else:
-                switch_body.append(case_line)
-                for c in post_comments:
+        else_branch = []
+        for item in parts:
+            if isinstance(item, tuple) and item[0] == "branch":
+                _tag, labels, pre_comments, post_comments, stmt = item
+                patterns = []
+                for label in labels:
+                    if isinstance(label, tuple) and label[0] == "range":
+                        start, end = label[1], label[2]
+                        patterns.append(f">= {start} and <= {end}")
+                    else:
+                        patterns.append(str(label))
+                for c in pre_comments:
                     switch_body.append(c)
-                switch_body.append(body)
+                case_line = "case " + " or ".join(patterns) + ":"
+                is_multiline = "\n" in stmt or not stmt.strip().endswith(";")
+                if is_multiline:
+                    body = f"{{\n{indent(stmt)}\nbreak;\n}}"
+                else:
+                    body = f" {stmt} break;"
+
+                if not post_comments and (not is_multiline or body.startswith("{")):
+                    switch_body.append(case_line + body)
+                else:
+                    switch_body.append(case_line)
+                    for c in post_comments:
+                        switch_body.append(c)
+                    switch_body.append(body)
+            elif isinstance(item, list):
+                else_branch.extend(item)
+            elif isinstance(item, str) and item.strip().startswith(("//", "/*", "{", "(*")):
+                switch_body.append(item)
+            elif isinstance(item, Token) and item.type == "ELSE":
+                continue
+            else:
+                else_branch.append(item)
 
         if else_branch:
             else_stmts = "\n".join(s for s in else_branch if s.strip())
