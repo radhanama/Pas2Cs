@@ -58,6 +58,16 @@ namespace N {
                 }
             }
         }
+        public void TrailingComment(int x) {
+            switch (x)
+            {
+                case 1:{
+                    Console.WriteLine("one"); // trailing
+                break;
+                }
+                case 2: Console.WriteLine("two"); break;
+            }
+        }
     }
     
     public partial class EnumCase {

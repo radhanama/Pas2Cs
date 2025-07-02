@@ -12,6 +12,7 @@ type
     method Empty(x: Integer);
   method UpperCase(val: String): String;
   method CommentBranch(val: String);
+  method TrailingComment(x: Integer);
   end;
 
   EnumCase = public class
@@ -73,6 +74,14 @@ begin
     begin
       Console.WriteLine('two');
     end;
+  end;
+end;
+
+method TTest.TrailingComment(x: Integer);
+begin
+  case x of
+    1: Console.WriteLine('one'); // trailing
+    2: Console.WriteLine('two');
   end;
 end;
 

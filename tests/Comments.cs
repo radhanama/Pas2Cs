@@ -4,8 +4,7 @@ namespace Demo {
     public partial class Commented {
         public void SayHello() {
             #region Hello
-            System.Console.WriteLine("Hello");
-            #endregion
+            System.Console.WriteLine("Hello"); #endregion
         }
     }
     

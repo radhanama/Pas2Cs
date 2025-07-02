@@ -6,8 +6,10 @@ namespace Demo {
             switch (val)
             {
                 //A
-                case 'A': Console.WriteLine("a"); break;
-                //B
+                case 'A':{
+                    Console.WriteLine("a"); //B
+                break;
+                }
                 case 'B': Console.WriteLine("b"); break;
             }
         }
