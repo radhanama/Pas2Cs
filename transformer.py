@@ -6,13 +6,14 @@ from collections import defaultdict, OrderedDict
 from lark import Transformer, v_args, Token
 from utils import indent, map_type_ext, escape_cs_keyword
 
+
 @v_args(inline=True)
 class ToCSharp(Transformer):
     def __init__(self, manual_translate=None, emit_comments=True):
         super().__init__()
-        self.todo = []   # collect unsupported notices
+        self.todo = []  # collect unsupported notices
         self.emit_comments = emit_comments
-        self.ns   = "Unnamed"
+        self.ns = "Unnamed"
         self.curr_method = None
         self.curr_params = []
         self.curr_kind = None
@@ -44,17 +45,17 @@ class ToCSharp(Transformer):
     def _translate_expr_text(self, text: str) -> str:
         """Translate simple Pascal expressions used inside array indexes."""
         text = text.replace("'", '"')
-        text = text.replace('<>', '!=')
+        text = text.replace("<>", "!=")
         # Replace standalone equality
-        text = re.sub(r'(?<![<>=:])=(?![=])', '==', text)
+        text = re.sub(r"(?<![<>=:])=(?![=])", "==", text)
         op_map = {
-            r'\bdiv\b': '/',
-            r'\bmod\b': '%',
-            r'\band\b': '&&',
-            r'\bor\b': '||',
-            r'\bshl\b': '<<',
-            r'\bshr\b': '>>',
-            r'\bxor\b': '^',
+            r"\bdiv\b": "/",
+            r"\bmod\b": "%",
+            r"\band\b": "&&",
+            r"\bor\b": "||",
+            r"\bshl\b": "<<",
+            r"\bshr\b": ">>",
+            r"\bxor\b": "^",
         }
         for pat, repl in op_map.items():
             text = re.sub(pat, repl, text)
@@ -62,45 +63,45 @@ class ToCSharp(Transformer):
 
     def _safe_name(self, name):
         text = str(name)
-        if text.lower() == 'self':
-            return 'this'
-        if text.lower().startswith('self.'):
-            return 'this.' + '.'.join(escape_cs_keyword(p) for p in text.split('.')[1:])
-        if '.' in text:
-            parts = text.split('.')
-            return '.'.join(escape_cs_keyword(p) for p in parts)
+        if text.lower() == "self":
+            return "this"
+        if text.lower().startswith("self."):
+            return "this." + ".".join(escape_cs_keyword(p) for p in text.split(".")[1:])
+        if "." in text:
+            parts = text.split(".")
+            return ".".join(escape_cs_keyword(p) for p in parts)
         return escape_cs_keyword(text)
 
     # ── comments ──────────────────────────────────────────────
     def comment(self, tok):
         text = str(tok)
-        if text.startswith('{') and text.endswith('}'):
+        if text.startswith("{") and text.endswith("}"):
             inner = text[1:-1].strip()
             lowered = inner.lower()
-            if lowered.startswith('$region') or lowered.startswith('$endregion'):
-                return ''
-            if lowered.startswith('region'):
-                return '#region ' + inner[6:].strip()
-            if lowered.startswith('endregion'):
-                return '#endregion'
+            if lowered.startswith("$region") or lowered.startswith("$endregion"):
+                return ""
+            if lowered.startswith("region"):
+                return "#region " + inner[6:].strip()
+            if lowered.startswith("endregion"):
+                return "#endregion"
             return f"/* {inner} */"
-        if text.startswith('(*') and text.endswith('*)'):
+        if text.startswith("(*") and text.endswith("*)"):
             inner = text[2:-2].strip()
             return f"/* {inner} */"
         return text
 
     def expr_comment(self, tok):
         # Ignore comments embedded within expressions
-        return ''
+        return ""
 
     def expr_with_comment(self, expr, *_comments):
         return expr
 
     def paren_expr(self, *parts):
         """Return the inner expression, ignoring leading comments."""
-        expr = ''
+        expr = ""
         for p in parts:
-            if isinstance(p, str) and p == '':
+            if isinstance(p, str) and p == "":
                 continue
             expr = p
             break
@@ -120,7 +121,7 @@ class ToCSharp(Transformer):
         if args:
             pieces = []
             for a in args:
-                if isinstance(a, tuple) and a[0] == 'named':
+                if isinstance(a, tuple) and a[0] == "named":
                     pieces.append(f"{a[1]} = {a[2]}")
                 else:
                     pieces.append(str(a))
@@ -158,7 +159,9 @@ class ToCSharp(Transformer):
         classes = []
         first_class = True
         for cname in self.class_order:
-            kind, base, sign_list, mods = self.class_defs.get(cname, ("class", "", [], set()))
+            kind, base, sign_list, mods = self.class_defs.get(
+                cname, ("class", "", [], set())
+            )
             body_lines = []
             for line in sign_list:
                 info = self._parse_sig(line)
@@ -166,7 +169,7 @@ class ToCSharp(Transformer):
                     continue
                 if info:
                     if self.emit_comments:
-                        stub = line.rstrip().rstrip(';') + ' { /* implement */ }'
+                        stub = line.rstrip().rstrip(";") + " { /* implement */ }"
                         body_lines.append(stub)
                     else:
                         continue
@@ -179,22 +182,37 @@ class ToCSharp(Transformer):
             attr_lines = "\n".join(attrs) + "\n" if attrs else ""
             if kind == "enum":
                 enum_body = ",\n".join(sign_list)
-                classes.append(f"{attr_lines}public enum {cname} {{\n{indent(enum_body)}\n}}")
+                classes.append(
+                    f"{attr_lines}public enum {cname} {{\n{indent(enum_body)}\n}}"
+                )
             else:
-                kw = "interface" if kind == "interface" else ("struct" if kind == "record" else "class")
+                kw = (
+                    "interface"
+                    if kind == "interface"
+                    else ("struct" if kind == "record" else "class")
+                )
                 partial = "partial " if kind in ("class", "record") else ""
-                sealed_kw = "sealed " if 'sealed' in mods else ""
+                sealed_kw = "sealed " if "sealed" in mods else ""
                 if body:
-                    classes.append(f"{attr_lines}public {sealed_kw}{partial}{kw} {cname}{base} {{\n{body}\n}}")
+                    classes.append(
+                        f"{attr_lines}public {sealed_kw}{partial}{kw} {cname}{base} {{\n{body}\n}}"
+                    )
                 else:
                     has_decl = bool(sign_list)
                     if attr_lines:
                         blank = "\n"
-                    elif self.alias_defs or not first_class or (len(self.class_order) > 1 and not has_decl) or self.usings:
+                    elif (
+                        self.alias_defs
+                        or not first_class
+                        or (len(self.class_order) > 1 and not has_decl)
+                        or self.usings
+                    ):
                         blank = "\n\n"
                     else:
                         blank = "\n"
-                    classes.append(f"{attr_lines}public {sealed_kw}{partial}{kw} {cname}{base} {{{blank}}}")
+                    classes.append(
+                        f"{attr_lines}public {sealed_kw}{partial}{kw} {cname}{base} {{{blank}}}"
+                    )
                 first_class = False
         ns_items = []
         if self.delegate_defs:
@@ -229,19 +247,19 @@ class ToCSharp(Transformer):
                 line = line.split("]", 1)[1].strip()
         if not line.startswith("public"):
             return None
-        line = line[len("public"):].strip()
+        line = line[len("public") :].strip()
         static_flag = False
         if line.startswith("static"):
             static_flag = True
-            line = line[len("static"):].strip()
+            line = line[len("static") :].strip()
         if not line.endswith(";"):
             return None
         line = line[:-1].strip()
         if "(" not in line:
             return None
         # treat lines where '(' appears after an '=' as fields, not methods
-        paren_idx = line.find('(')
-        eq_idx = line.find('=')
+        paren_idx = line.find("(")
+        eq_idx = line.find("=")
         if eq_idx != -1 and paren_idx > eq_idx:
             return None
         head, params = line.split("(", 1)
@@ -303,7 +321,7 @@ class ToCSharp(Transformer):
 
     def generic_type(self, base, args):
         inner = args[1:-1]
-        parts = [map_type_ext(p.strip()) for p in inner.split(',')]
+        parts = [map_type_ext(p.strip()) for p in inner.split(",")]
         return f"{base}<{', '.join(parts)}>"
 
     def nullable_type(self, _tok, typ):
@@ -331,18 +349,18 @@ class ToCSharp(Transformer):
         i = 0
         while i < len(rest):
             t = rest[i]
-            if isinstance(t, Token) and t.type == ',':
+            if isinstance(t, Token) and t.type == ",":
                 i += 1
                 continue
             types.append(map_type_ext(str(t)))
             i += 1
-        inner = ', '.join(types)
+        inner = ", ".join(types)
         return f"System.ValueTuple<{inner}>"
 
     def generic_params(self, *names):
         # grammar only yields the parameter identifiers
         cleaned = [str(n) for n in names]
-        return '<' + ', '.join(cleaned) + '>'
+        return "<" + ", ".join(cleaned) + ">"
 
     def _add_type(self, cname, kind, base, sign_list, mods=None):
         cname_str = str(cname)
@@ -351,8 +369,8 @@ class ToCSharp(Transformer):
             self.class_order.append(cname_str)
         # capture method attributes from interface declarations
         for line in sign_list:
-            if '[' in line:
-                parts = line.split('\n')
+            if "[" in line:
+                parts = line.split("\n")
                 attrs = [p.strip() for p in parts[:-1] if p.strip()]
                 decl = parts[-1].strip()
                 info = self._parse_sig(decl)
@@ -360,18 +378,22 @@ class ToCSharp(Transformer):
                     self.method_attrs[cname_str][info] = attrs
 
     def class_def(self, cname, *parts):
-        generics = ''
-        if parts and isinstance(parts[0], str) and parts[0].startswith('<'):
+        generics = ""
+        if parts and isinstance(parts[0], str) and parts[0].startswith("<"):
             generics = parts[0]
             parts = parts[1:]
         sealed = False
-        if parts and isinstance(parts[0], Token) and parts[0].type in {'SEALED','FINAL'}:
+        if (
+            parts
+            and isinstance(parts[0], Token)
+            and parts[0].type in {"SEALED", "FINAL"}
+        ):
             sealed = True
             parts = parts[1:]
         # detect modifiers like "sealed" appearing as identifiers
-        while parts and isinstance(parts[0], Token) and parts[0].type == 'CNAME':
+        while parts and isinstance(parts[0], Token) and parts[0].type == "CNAME":
             val = str(parts[0]).lower()
-            if val in {'sealed', 'final'}:
+            if val in {"sealed", "final"}:
                 sealed = True
             parts = parts[1:]
         sign = parts[-1]
@@ -385,7 +407,7 @@ class ToCSharp(Transformer):
         name_full = str(cname) + generics
         mods = set()
         if sealed:
-            mods.add('sealed')
+            mods.add("sealed")
         self._add_type(name_full, "class", base_cs, sign_list, mods)
         if self.pending_class_comments:
             self.class_attributes[name_full].extend(self.pending_class_comments)
@@ -397,11 +419,11 @@ class ToCSharp(Transformer):
         return self.class_def(cname, *parts, [])
 
     def record_def(self, cname, *parts):
-        generics = ''
-        if parts and isinstance(parts[0], str) and parts[0].startswith('<'):
+        generics = ""
+        if parts and isinstance(parts[0], str) and parts[0].startswith("<"):
             generics = parts[0]
             parts = parts[1:]
-        if parts and isinstance(parts[0], Token) and parts[0].type == 'PACKED':
+        if parts and isinstance(parts[0], Token) and parts[0].type == "PACKED":
             parts = parts[1:]
         if len(parts) == 2:
             base, sign = parts
@@ -418,8 +440,8 @@ class ToCSharp(Transformer):
         return ""
 
     def interface_def(self, cname, *parts):
-        generics = ''
-        if parts and isinstance(parts[0], str) and parts[0].startswith('<'):
+        generics = ""
+        if parts and isinstance(parts[0], str) and parts[0].startswith("<"):
             generics = parts[0]
             parts = parts[1:]
         if len(parts) > 1 and isinstance(parts[0], list):
@@ -460,40 +482,40 @@ class ToCSharp(Transformer):
         if len(parts) == 4:
             _acc, cname, generics, typ = parts
         elif len(parts) == 3:
-            if isinstance(parts[1], str) and parts[1].startswith('<'):
+            if isinstance(parts[1], str) and parts[1].startswith("<"):
                 cname, generics, typ = parts
             else:
                 _acc, cname, typ = parts
-                generics = ''
+                generics = ""
         else:
             cname, typ = parts
-            generics = ''
+            generics = ""
         val = typ.value if isinstance(typ, Token) else str(typ)
         t = map_type_ext(val)
         self.alias_defs.append(f"using {cname}{generics} = {t};")
         return ""
 
     def delegate_def(self, cname, *parts):
-        generics = ''
+        generics = ""
         params = []
         rettype = None
         for p in parts:
-            if isinstance(p, str) and p.startswith('<'):
+            if isinstance(p, str) and p.startswith("<"):
                 generics = p
             elif isinstance(p, list):
                 params = p
             elif isinstance(p, Token):
-                if p.type == 'CNAME':
+                if p.type == "CNAME":
                     # ignore additional tokens
                     continue
                 else:
                     rettype = p
             else:
                 val = str(p)
-                if val not in {'public', 'protected', 'private', 'assembly'}:
+                if val not in {"public", "protected", "private", "assembly"}:
                     rettype = p
-        ret = map_type_ext(str(rettype)) if rettype else 'void'
-        params_cs = ', '.join(params)
+        ret = map_type_ext(str(rettype)) if rettype else "void"
+        params_cs = ", ".join(params)
         line = f"public delegate {ret} {cname}{generics}({params_cs});"
         self.delegate_defs.append(line)
         return ""
@@ -505,7 +527,7 @@ class ToCSharp(Transformer):
             parts = parts[1:]
         item = parts[-1]
         result = item
-        if isinstance(item, str) and item.strip().startswith(('/', '{', '(')):
+        if isinstance(item, str) and item.strip().startswith(("/", "{", "(")):
             self.pending_class_comments.append(item)
             result = ""
         if attrs and self.class_order:
@@ -572,9 +594,9 @@ class ToCSharp(Transformer):
         generics = ""
         for tok in rest:
             if isinstance(tok, Token):
-                if tok.type == 'GENERIC_ARGS':
+                if tok.type == "GENERIC_ARGS":
                     generics = tok.value
-                elif tok.value != '.':
+                elif tok.value != ".":
                     parts.append(str(tok))
             else:
                 parts.append(str(tok))
@@ -651,7 +673,7 @@ class ToCSharp(Transformer):
         return value
 
     def named_arg(self, name, expr):
-        return ('named', str(name), expr)
+        return ("named", str(name), expr)
 
     def method_decl(self, *parts):
         for p in parts:
@@ -710,7 +732,9 @@ class ToCSharp(Transformer):
         expr = None
         comment = None
         if len(parts) == 1:
-            if isinstance(parts[0], str) and (parts[0].startswith('//') or parts[0].startswith('/*')):
+            if isinstance(parts[0], str) and (
+                parts[0].startswith("//") or parts[0].startswith("/*")
+            ):
                 comment = parts[0]
             else:
                 expr = parts[0]
@@ -747,14 +771,18 @@ class ToCSharp(Transformer):
             if p in ("", "var"):
                 continue
             if isinstance(p, list):
-                if p and str(p[0]).startswith('['):
+                if p and str(p[0]).startswith("["):
                     attrs.extend(p)
                     continue
                 items.append(p)
                 continue
             items.append(p)
         comment = None
-        if items and isinstance(items[-1], str) and (items[-1].startswith('//') or items[-1].startswith('/*')):
+        if (
+            items
+            and isinstance(items[-1], str)
+            and (items[-1].startswith("//") or items[-1].startswith("/*"))
+        ):
             comment = items.pop()
         if len(items) == 3:
             names, typ, expr = items
@@ -793,11 +821,11 @@ class ToCSharp(Transformer):
         while i < len(parts):
             token = parts[i]
             tval = str(token).lower()
-            if tval == 'read':
+            if tval == "read":
                 has_read = True
-                if i + 1 < len(parts) and isinstance(parts[i+1], Token):
-                    field_name = self._safe_name(parts[i+1])
-                    if re.match(r'(?i)^(get_|set_)', field_name):
+                if i + 1 < len(parts) and isinstance(parts[i + 1], Token):
+                    field_name = self._safe_name(parts[i + 1])
+                    if re.match(r"(?i)^(get_|set_)", field_name):
                         read_val = f"get => {field_name}();"
                     else:
                         read_val = f"get => {field_name};"
@@ -805,11 +833,11 @@ class ToCSharp(Transformer):
                 else:
                     read_val = "get;"
                     i += 1
-            elif tval == 'write':
+            elif tval == "write":
                 has_write = True
-                if i + 1 < len(parts) and isinstance(parts[i+1], Token):
-                    field_name = self._safe_name(parts[i+1])
-                    if re.match(r'(?i)^(get_|set_)', field_name):
+                if i + 1 < len(parts) and isinstance(parts[i + 1], Token):
+                    field_name = self._safe_name(parts[i + 1])
+                    if re.match(r"(?i)^(get_|set_)", field_name):
                         write_val = f"set => {field_name}(value);"
                     else:
                         write_val = f"set => {field_name} = value;"
@@ -872,15 +900,15 @@ class ToCSharp(Transformer):
     def const_decl(self, name, *parts):
         parts = list(parts)
         typ = None
-        if parts and isinstance(parts[0], Token) and parts[0].type == 'OP_REL':
+        if parts and isinstance(parts[0], Token) and parts[0].type == "OP_REL":
             parts.pop(0)
         else:
             if parts:
                 typ = parts.pop(0)
-            if parts and isinstance(parts[0], Token) and parts[0].type == 'OP_REL':
+            if parts and isinstance(parts[0], Token) and parts[0].type == "OP_REL":
                 parts.pop(0)
         expr = parts[0] if parts else None
-        t = map_type_ext(str(typ)) if typ else 'var'
+        t = map_type_ext(str(typ)) if typ else "var"
         safe_name = self._safe_name(name)
         if self.curr_method:
             if typ:
@@ -915,7 +943,7 @@ class ToCSharp(Transformer):
         comments = []
         while tail and (
             (isinstance(tail[0], Token) and tail[0].type.startswith("COMMENT"))
-            or (isinstance(tail[0], str) and tail[0].lstrip().startswith(('/', '#')))
+            or (isinstance(tail[0], str) and tail[0].lstrip().startswith(("/", "#")))
         ):
             tok = tail[0]
             if isinstance(tok, Token):
@@ -936,11 +964,11 @@ class ToCSharp(Transformer):
                 vars_code = c_text
         cls, name, params, rettype = head
         params_cs = params or ""
-        ret       = map_type_ext(rettype) if rettype else "void"
+        ret = map_type_ext(rettype) if rettype else "void"
         inner = textwrap.dedent(body[2:-2]).strip()
 
         if rettype:
-            lines = [ln.strip() for ln in inner.split('\n') if ln.strip()]
+            lines = [ln.strip() for ln in inner.split("\n") if ln.strip()]
             has_ret = bool(lines) and lines[-1].startswith("return ")
             if self.used_result:
                 result_decl = f"{map_type_ext(rettype)} result;"
@@ -1134,16 +1162,16 @@ class ToCSharp(Transformer):
         return ""
 
     def on_handler(self, _on, name, typ, _do, stmt):
-        return ('on_handler', str(name), typ, stmt)
+        return ("on_handler", str(name), typ, stmt)
 
     def on_handler_empty(self, _on, name, typ, _do, _semi=None):
-        return ('on_handler', str(name), typ, '')
+        return ("on_handler", str(name), typ, "")
 
     def on_handler_type(self, _on, typ, _do, stmt):
-        return ('on_handler_type', typ, stmt)
+        return ("on_handler_type", typ, stmt)
 
     def on_handler_type_empty(self, _on, typ, _do, _semi=None):
-        return ('on_handler_type', typ, '')
+        return ("on_handler_type", typ, "")
 
     def yield_stmt(self, _tok, expr, _semi=None):
         return f"yield return {expr};"
@@ -1159,20 +1187,32 @@ class ToCSharp(Transformer):
         pre_comments = []
         post_comments = []
 
-        while parts and isinstance(parts[0], str) and (parts[0].startswith("//") or parts[0].startswith("/*")):
+        while (
+            parts
+            and isinstance(parts[0], str)
+            and (parts[0].startswith("//") or parts[0].startswith("/*"))
+        ):
             pre_comments.append(parts.pop(0))
 
         if parts and isinstance(parts[0], Token):
             parts.pop(0)
 
-        while parts and isinstance(parts[0], str) and (parts[0].startswith("//") or parts[0].startswith("/*")):
+        while (
+            parts
+            and isinstance(parts[0], str)
+            and (parts[0].startswith("//") or parts[0].startswith("/*"))
+        ):
             pre_comments.append(parts.pop(0))
 
         then_block = None
         if parts:
             then_block = parts.pop(0)
 
-        while parts and isinstance(parts[0], str) and (parts[0].startswith("//") or parts[0].startswith("/*")):
+        while (
+            parts
+            and isinstance(parts[0], str)
+            and (parts[0].startswith("//") or parts[0].startswith("/*"))
+        ):
             post_comments.append(parts.pop(0))
 
         else_clause = None
@@ -1217,7 +1257,7 @@ class ToCSharp(Transformer):
                 result += "\n" + else_part.lstrip()
             else:
                 result += else_part
-        
+
         if comment_only:
             if result.endswith(";"):
                 result += " " + comment_text
@@ -1228,14 +1268,18 @@ class ToCSharp(Transformer):
     def for_stmt(self, var, *parts):
         parts = list(parts)
         typ = None
-        if len(parts) > 3 and isinstance(parts[1], Token) and parts[1].type in {'TO','DOWNTO'}:
+        if (
+            len(parts) > 3
+            and isinstance(parts[1], Token)
+            and parts[1].type in {"TO", "DOWNTO"}
+        ):
             start, direction, stop = parts[0], parts[1], parts[2]
             rest = parts[3:]
         else:
             typ, start, direction, stop = parts[0], parts[1], parts[2], parts[3]
             rest = parts[4:]
         step = None
-        if rest and isinstance(rest[0], Token) and rest[0].type == 'STEP':
+        if rest and isinstance(rest[0], Token) and rest[0].type == "STEP":
             step = rest[1]
             body = rest[2]
         else:
@@ -1245,7 +1289,7 @@ class ToCSharp(Transformer):
         else:
             dir_tok = str(direction)
         safe_var = self._safe_name(var)
-        if dir_tok == 'DOWNTO':
+        if dir_tok == "DOWNTO":
             cond = f"{safe_var} >= {stop}"
             step_code = step or "1"
             inc = f"{safe_var} -= {step_code}" if step else f"{safe_var}--"
@@ -1263,16 +1307,16 @@ class ToCSharp(Transformer):
     def for_each_stmt(self, var, *parts):
         parts = list(parts)
         typ = None
-        if parts and getattr(parts[0], 'type', None) != 'IN' and str(parts[0]) != 'in':
+        if parts and getattr(parts[0], "type", None) != "IN" and str(parts[0]) != "in":
             typ = parts.pop(0)
-        if parts and isinstance(parts[0], Token) and parts[0].type == 'IN':
+        if parts and isinstance(parts[0], Token) and parts[0].type == "IN":
             parts.pop(0)
         seq = parts.pop(0)
         idx_var = None
-        if parts and isinstance(parts[0], Token) and parts[0].type == 'INDEX':
+        if parts and isinstance(parts[0], Token) and parts[0].type == "INDEX":
             parts.pop(0)
             idx_var = parts.pop(0)
-        if parts and isinstance(parts[0], Token) and parts[0].type == 'DO':
+        if parts and isinstance(parts[0], Token) and parts[0].type == "DO":
             parts.pop(0)
         body = parts[0]
 
@@ -1284,7 +1328,7 @@ class ToCSharp(Transformer):
 
         safe_idx = self._safe_name(idx_var)
         body_cs = str(body)
-        if body_cs.strip().startswith('{'):
+        if body_cs.strip().startswith("{"):
             inner = body_cs.strip()[1:-1].strip()
         else:
             inner = body_cs.strip()
@@ -1307,7 +1351,11 @@ class ToCSharp(Transformer):
 
         for part in parts:
             if isinstance(part, list):
-                if part and isinstance(part[0], Token) and getattr(part[0], 'type', None) == 'FINALLY':
+                if (
+                    part
+                    and isinstance(part[0], Token)
+                    and getattr(part[0], "type", None) == "FINALLY"
+                ):
                     finally_clause = part
                 elif except_clause is None:
                     except_clause = part
@@ -1316,37 +1364,55 @@ class ToCSharp(Transformer):
             elif not isinstance(part, Token):
                 body_stmts.append(part)
 
-        body_cs = "\n".join(indent(s,0) for s in body_stmts if isinstance(s,str) and s.strip())
+        body_cs = "\n".join(
+            indent(s, 0) for s in body_stmts if isinstance(s, str) and s.strip()
+        )
         res = f"try\n{{\n{indent(body_cs)}\n}}"
 
         if except_clause is not None:
             generic_body = []
             for handler in except_clause:
-                if isinstance(handler, tuple) and handler[0] == 'on_handler':
+                if isinstance(handler, tuple) and handler[0] == "on_handler":
                     _tag, name, typ, stmt = handler
                     if stmt.strip():
-                        catch_body = stmt if stmt.strip().startswith('{') else f"{{\n{indent(stmt)}\n}}"
+                        catch_body = (
+                            stmt
+                            if stmt.strip().startswith("{")
+                            else f"{{\n{indent(stmt)}\n}}"
+                        )
                     else:
                         catch_body = "{}"
                     res += f"\ncatch ({map_type_ext(str(typ))} {name})\n{catch_body}"
-                elif isinstance(handler, tuple) and handler[0] == 'on_handler_type':
+                elif isinstance(handler, tuple) and handler[0] == "on_handler_type":
                     _tag, typ, stmt = handler
                     if stmt.strip():
-                        catch_body = stmt if stmt.strip().startswith('{') else f"{{\n{indent(stmt)}\n}}"
+                        catch_body = (
+                            stmt
+                            if stmt.strip().startswith("{")
+                            else f"{{\n{indent(stmt)}\n}}"
+                        )
                     else:
                         catch_body = "{}"
                     res += f"\ncatch ({map_type_ext(str(typ))})\n{catch_body}"
                 else:
                     generic_body.append(handler)
             if generic_body or not except_clause:
-                exc_cs = "\n".join(indent(s,0) for s in generic_body if isinstance(s,str) and s.strip())
+                exc_cs = "\n".join(
+                    indent(s, 0)
+                    for s in generic_body
+                    if isinstance(s, str) and s.strip()
+                )
                 if exc_cs:
                     res += f"\ncatch (Exception)\n{{\n{indent(exc_cs)}\n}}"
                 else:
                     res += "\ncatch (Exception)\n{}"
 
         if finally_clause is not None:
-            fin_cs = "\n".join(indent(s,0) for s in finally_clause if isinstance(s, str) and not isinstance(s, Token) and s.strip())
+            fin_cs = "\n".join(
+                indent(s, 0)
+                for s in finally_clause
+                if isinstance(s, str) and not isinstance(s, Token) and s.strip()
+            )
             if fin_cs:
                 res += f"\nfinally\n{{\n{indent(fin_cs)}\n}}"
             else:
@@ -1355,9 +1421,13 @@ class ToCSharp(Transformer):
         return res
 
     def case_stmt(self, expr, *parts):
-        branches = [p for p in parts if isinstance(p, tuple) and p[0] == 'branch']
-        else_branch = [p for p in parts if not (isinstance(p, tuple) and p[0] == 'branch')]
-        else_branch = [p for p in else_branch if not (isinstance(p, Token) and p.type == 'ELSE')]
+        branches = [p for p in parts if isinstance(p, tuple) and p[0] == "branch"]
+        else_branch = [
+            p for p in parts if not (isinstance(p, tuple) and p[0] == "branch")
+        ]
+        else_branch = [
+            p for p in else_branch if not (isinstance(p, Token) and p.type == "ELSE")
+        ]
         flat_else = []
         for eb in else_branch:
             if isinstance(eb, list):
@@ -1367,24 +1437,30 @@ class ToCSharp(Transformer):
         else_branch = flat_else
 
         switch_body = []
-        for _tag, labels, stmt, comments in branches:
-            for c in comments:
-                switch_body.append(c)
+        for _tag, labels, pre_comments, post_comments, stmt in branches:
             patterns = []
             for label in labels:
-                if isinstance(label, tuple) and label[0] == 'range':
+                if isinstance(label, tuple) and label[0] == "range":
                     start, end = label[1], label[2]
                     patterns.append(f">= {start} and <= {end}")
                 else:
                     patterns.append(str(label))
+            for c in pre_comments:
+                switch_body.append(c)
             case_line = "case " + " or ".join(patterns) + ":"
-            if comments:
-                case_line += "\n" + "\n".join(comments) + "\n"
-            if '\n' in stmt or not stmt.strip().endswith(';'):
+            is_multiline = "\n" in stmt or not stmt.strip().endswith(";")
+            if is_multiline:
                 body = f"{{\n{indent(stmt)}\nbreak;\n}}"
             else:
                 body = f" {stmt} break;"
-            switch_body.append(f"{case_line}{body}")
+
+            if not post_comments and (not is_multiline or body.startswith("{")):
+                switch_body.append(case_line + body)
+            else:
+                switch_body.append(case_line)
+                for c in post_comments:
+                    switch_body.append(c)
+                switch_body.append(body)
 
         if else_branch:
             else_stmts = "\n".join(s for s in else_branch if s.strip())
@@ -1398,14 +1474,20 @@ class ToCSharp(Transformer):
 
     def case_branch(self, *parts):
         stmt = parts[-1]
-        comments = []
+        pre_comments = []
+        post_comments = []
         labels = []
+        seen_label = False
         for p in parts[:-1]:
-            if isinstance(p, str) and p.strip().startswith(('//', '/*', '{', '(*')):
-                comments.append(p)
+            if isinstance(p, str) and p.strip().startswith(("//", "/*", "{", "(*")):
+                if seen_label:
+                    post_comments.append(p)
+                else:
+                    pre_comments.append(p)
             else:
                 labels.append(p)
-        return ('branch', labels, comments, stmt)
+                seen_label = True
+        return ("branch", labels, pre_comments, post_comments, stmt)
 
     def case_label(self, tok):
         if isinstance(tok, Token):
@@ -1413,7 +1495,7 @@ class ToCSharp(Transformer):
         return str(tok)
 
     def label_range(self, start, _dd, end):
-        return ('range', int(str(start)), int(str(end)))
+        return ("range", int(str(start)), int(str(end)))
 
     def block(self, *stmts):
         body = "\n".join(indent(s, 0) for s in stmts if s.strip())
@@ -1427,7 +1509,7 @@ class ToCSharp(Transformer):
     # ── expressions ─────────────────────────────────────────
     def binop(self, *parts):
         # Filter out empty strings from inline comments
-        cleaned = [p for p in parts if not (isinstance(p, str) and p == '')]
+        cleaned = [p for p in parts if not (isinstance(p, str) and p == "")]
         left, op, right = cleaned[0], cleaned[1], cleaned[2]
         op_map = {
             "and": "&&",
@@ -1460,44 +1542,44 @@ class ToCSharp(Transformer):
         return f"{expr}"
 
     def number(self, n):
-        return str(n).replace('_', '').replace(',', '')
+        return str(n).replace("_", "").replace(",", "")
 
     def signed_number(self, *parts):
         if len(parts) == 2:
             sign, num = parts
             sign = str(sign)
         else:
-            sign, num = '', parts[0]
-        val = int(str(num).replace('_', '').replace(',', ''))
-        if sign == '-':
+            sign, num = "", parts[0]
+        val = int(str(num).replace("_", "").replace(",", ""))
+        if sign == "-":
             val = -val
         return val
 
     def hex_number(self, tok):
-        return '0x' + tok.value[1:]
+        return "0x" + tok.value[1:]
 
     def binary_number(self, tok):
-        return '0b' + tok.value[1:]
+        return "0b" + tok.value[1:]
 
     def string(self, s):
         s = str(s)
         if s.startswith("$'"):
             inner = s[2:-1].replace("''", "'")
-            inner = inner.replace('\\', '\\\\')
+            inner = inner.replace("\\", "\\\\")
             inner = inner.replace('"', '\\"')
             return f'$"{inner}"'
         elif s.startswith('$"'):
             inner = s[2:-1]
-            inner = inner.replace('\\', '\\\\').replace('"', '\\"')
+            inner = inner.replace("\\", "\\\\").replace('"', '\\"')
             return f'$"{inner}"'
         elif s.startswith("'"):
             inner = s[1:-1].replace("''", "'")
-            inner = inner.replace('\\', '\\\\')
+            inner = inner.replace("\\", "\\\\")
             inner = inner.replace('"', '\\"')
             return f'"{inner}"'
         else:
             inner = s[1:-1]
-            inner = inner.replace('\\', '\\\\').replace('"', '\\"')
+            inner = inner.replace("\\", "\\\\").replace('"', '\\"')
             return f'"{inner}"'
 
     def true(self, _):
@@ -1514,19 +1596,19 @@ class ToCSharp(Transformer):
         for p in parts:
             if isinstance(p, Token):
                 text = p.value
-                if p.type == 'ARRAY_RANGE':
+                if p.type == "ARRAY_RANGE":
                     inner = text[1:-1]
                     inner = self._translate_expr_text(inner)
                     text = f"[{inner}]"
-                elif p.type == 'CNAME':
+                elif p.type == "CNAME":
                     text = self._safe_name(text)
                 out.append(text)
             else:
-                out.append('.' + self._safe_name(p))
-        return ''.join(out)
+                out.append("." + self._safe_name(p))
+        return "".join(out)
 
     def inherited_var(self, _tok, base, *parts):
-        return 'base.' + self.var(base, *parts)
+        return "base." + self.var(base, *parts)
 
     def prop_call(self, name, generics=None, args=None):
         nm = str(name)
@@ -1536,14 +1618,14 @@ class ToCSharp(Transformer):
         if generics is not None:
             nm += generics.value
         if args is None:
-            return ('prop', nm, None)
+            return ("prop", nm, None)
         else:
-            return ('prop', nm, list(args))
+            return ("prop", nm, list(args))
 
     def index_postfix(self, tok):
         inner = tok.value[1:-1]
         inner = self._translate_expr_text(inner)
-        return ('index', f"[{inner}]")
+        return ("index", f"[{inner}]")
 
     def call_args(self, args=None):
         return [] if args is None else list(args)
@@ -1553,25 +1635,34 @@ class ToCSharp(Transformer):
         first_args = []
         if parts and isinstance(parts[0], list):
             first_args = parts.pop(0)
-        first_args = [a[2] if isinstance(a, tuple) and a[0]=='named' else a for a in first_args]
+        first_args = [
+            a[2] if isinstance(a, tuple) and a[0] == "named" else a for a in first_args
+        ]
         call = str(fn)
-        if ' as ' in call and (first_args or parts):
+        if " as " in call and (first_args or parts):
             call = f"({call})"
-        if len(first_args) == 1 and '.' not in call:
-            name = call.split('.')[-1]
-            clean = name[1:] if name.startswith('@') else name
-            simple_casts = {'integer', 'string', 'boolean', 'double', 'datetime', 'object'}
+        if len(first_args) == 1 and "." not in call:
+            name = call.split(".")[-1]
+            clean = name[1:] if name.startswith("@") else name
+            simple_casts = {
+                "integer",
+                "string",
+                "boolean",
+                "double",
+                "datetime",
+                "object",
+            }
             lower = clean.lower()
             if lower in simple_casts:
                 typ = map_type_ext(clean)
                 expr = first_args[0]
-                need_paren = any(ch in expr for ch in ' +-*/%<>=')
+                need_paren = any(ch in expr for ch in " +-*/%<>=")
                 if need_paren:
                     expr = f"({expr})"
                 cast_expr = f"({typ}){expr}"
                 call = f"({cast_expr})" if parts else cast_expr
 
-            elif lower == 'round':
+            elif lower == "round":
                 inner = first_args[0]
                 round_expr = f"Math.Round({inner})"
                 call = f"({round_expr})" if parts else round_expr
@@ -1579,15 +1670,27 @@ class ToCSharp(Transformer):
                 call += f"({', '.join(first_args)})"
         else:
             if not first_args:
-                is_literal = call.startswith('"') or call[0].isdigit() or call.startswith('0x') or call.startswith('0b') or call.lower() in {'true','false','null'}
+                is_literal = (
+                    call.startswith('"')
+                    or call[0].isdigit()
+                    or call.startswith("0x")
+                    or call.startswith("0b")
+                    or call.lower() in {"true", "false", "null"}
+                )
                 if not parts:
-                    if call.startswith('typeof(') or call.startswith('new '):
+                    if call.startswith("typeof(") or call.startswith("new "):
                         pass
-                    elif ' as ' in call:
+                    elif " as " in call:
                         pass
                     elif not is_literal:
                         call += "()"
-                elif '.' not in call and ' as ' not in call and not call.startswith('typeof(') and not call.startswith('new ') and not is_literal:
+                elif (
+                    "." not in call
+                    and " as " not in call
+                    and not call.startswith("typeof(")
+                    and not call.startswith("new ")
+                    and not is_literal
+                ):
                     call += "()"
             else:
                 call += f"({', '.join(first_args)})"
@@ -1597,16 +1700,19 @@ class ToCSharp(Transformer):
             i += 1
             if isinstance(part, tuple):
                 kind = part[0]
-                if kind == 'prop':
+                if kind == "prop":
                     name, args = part[1], part[2]
                     if args is None:
                         call += f".{name}"
                     else:
-                        args = [a[2] if isinstance(a, tuple) and a[0]=='named' else a for a in args]
+                        args = [
+                            a[2] if isinstance(a, tuple) and a[0] == "named" else a
+                            for a in args
+                        ]
                         call += f".{name}({', '.join(args)})"
-                elif kind == 'index':
+                elif kind == "index":
                     call += part[1]
-            elif isinstance(part, Token) and part.type == 'GENERIC_ARGS':
+            elif isinstance(part, Token) and part.type == "GENERIC_ARGS":
                 if call.endswith("()"):
                     call = call[:-2] + part.value + "()"
                     if i < len(parts) and isinstance(parts[i], list):
@@ -1614,14 +1720,20 @@ class ToCSharp(Transformer):
                 else:
                     call += part.value
                     if i < len(parts) and isinstance(parts[i], list):
-                        extra = [a[2] if isinstance(a, tuple) and a[0]=='named' else a for a in parts[i]]
+                        extra = [
+                            a[2] if isinstance(a, tuple) and a[0] == "named" else a
+                            for a in parts[i]
+                        ]
                         call += f"({', '.join(extra)})"
                         i += 1
             else:
                 name = part
                 arglist = []
                 if i < len(parts) and isinstance(parts[i], list):
-                    arglist = [a[2] if isinstance(a, tuple) and a[0]=='named' else a for a in parts[i]]
+                    arglist = [
+                        a[2] if isinstance(a, tuple) and a[0] == "named" else a
+                        for a in parts[i]
+                    ]
                     i += 1
                 call += f".{name}({', '.join(arglist)})"
         return call
@@ -1638,7 +1750,11 @@ class ToCSharp(Transformer):
                 base = self.class_defs.get(self.curr_impl_class, ("", "", [], set()))[1]
                 if base.strip():
                     call_args = ", ".join(self.curr_params)
-                    call = f"base.{self.curr_method}({call_args})" if call_args else f"base.{self.curr_method}()"
+                    call = (
+                        f"base.{self.curr_method}({call_args})"
+                        if call_args
+                        else f"base.{self.curr_method}()"
+                    )
                     return call + ";"
                 return ""
             return "// inherited call"
@@ -1672,7 +1788,9 @@ class ToCSharp(Transformer):
         if args is None:
             arglist = ""
         else:
-            clean = [a[2] if isinstance(a, tuple) and a[0] == 'named' else a for a in args]
+            clean = [
+                a[2] if isinstance(a, tuple) and a[0] == "named" else a for a in args
+            ]
             arglist = ", ".join(clean)
         return f"new {name}({arglist})"
 
@@ -1758,22 +1876,23 @@ class ToCSharp(Transformer):
         return f"({cond} ? {true_val} : null)"
 
     def char_code(self, tok):
-        nums = [int(n) for n in tok.value[1:].split('#') if n]
+        nums = [int(n) for n in tok.value[1:].split("#") if n]
         chars = []
         for val in nums:
             if val == 10:
-                chars.append('\\n')
+                chars.append("\\n")
             elif val == 13:
-                chars.append('\\r')
+                chars.append("\\r")
             else:
                 chars.append(f"\\x{val:02X}")
-        inner = ''.join(chars)
+        inner = "".join(chars)
         return f'"{inner}"'
 
     def generic_call_base(self, base, args):
         from utils import map_type
+
         inner = args[1:-1]
-        types = [map_type(t.strip()) for t in inner.split(',')]
+        types = [map_type(t.strip()) for t in inner.split(",")]
         return f"{base}<{', '.join(types)}>"
 
     def set_lit(self, *elems):
@@ -1782,6 +1901,7 @@ class ToCSharp(Transformer):
 
     def array_of_expr(self, typ, args=None):
         from utils import map_type_ext
+
         if args is None:
             arglist = ""
         else:
