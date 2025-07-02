@@ -93,6 +93,9 @@ class ToCSharp(Transformer):
         # Ignore comments embedded within expressions
         return ''
 
+    def expr_with_comment(self, expr, *_comments):
+        return expr
+
     def comment_stmt(self, comment):
         return str(comment)
 
