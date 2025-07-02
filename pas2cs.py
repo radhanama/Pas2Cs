@@ -38,7 +38,7 @@ def _get_parser() -> Lark:
     return _PARSER
 
 
-def transpile(source: str, manual_translate=None, manual_parse_error=None, keep_comments: bool = False) -> tuple[str, list[str]]:
+def transpile(source: str, manual_translate=None, manual_parse_error=None) -> tuple[str, list[str]]:
     source = source.lstrip('\ufeff')
     # Collapse accidental double semicolons. For lines that consist solely of a
     # semicolon we strip the semicolon but keep the line break so error
@@ -76,7 +76,7 @@ def transpile(source: str, manual_translate=None, manual_parse_error=None, keep_
             msg = f"Parse error at line {e.line}, column {e.column}:{exp}\n{ctx}"
             raise SyntaxError(msg) from None
         raise
-    gen = ToCSharp(manual_translate=manual_translate, emit_comments=keep_comments)
+    gen = ToCSharp(manual_translate=manual_translate, emit_comments=False)
     body = gen.transform(tree)
     return body, gen.todo
 

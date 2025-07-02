@@ -831,7 +831,7 @@ class TranspileTests(unittest.TestCase):
     def test_arg_list_comment(self):
         src = Path('tests/ArgListComment.pas').read_text()
         expected = Path('tests/ArgListComment.cs').read_text().strip()
-        result, todos = transpile(src, keep_comments=True)
+        result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
