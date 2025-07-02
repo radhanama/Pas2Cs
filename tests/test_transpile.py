@@ -101,6 +101,13 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_if_comment(self):
+        src = Path('tests/IfComment.pas').read_text()
+        expected = Path('tests/IfComment.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_generics(self):
         src = Path('tests/Generics.pas').read_text()
         expected = Path('tests/Generics.cs').read_text().strip()
