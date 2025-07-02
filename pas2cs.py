@@ -51,6 +51,18 @@ def transpile(source: str, manual_translate=None, manual_parse_error=None) -> tu
     source = re.sub(r';[ \t;]*(?=\n|$)', ';', source)
     source = remove_accents_code(source)
 
+    def _remove_inline_comments(text: str) -> str:
+        pattern = re.compile(r"(?<=\S)[ \t]*\{[^{}]*\}[ \t]*(?=\S)")
+        lines = []
+        for line in text.splitlines():
+            if "'" in line or '"' in line:
+                lines.append(line)
+            else:
+                lines.append(pattern.sub(" ", line))
+        return "\n".join(lines)
+
+    source = _remove_inline_comments(source)
+
     # Insert placeholder type for untyped lambda parameters
     def _fix_lambda(match):
         params = match.group(1)

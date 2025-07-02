@@ -59,6 +59,13 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_expr_inline_comment(self):
+        src = Path('tests/ExprInlineComment.pas').read_text()
+        expected = Path('tests/ExprInlineComment.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_file_header(self):
         src = Path('tests/FileHeader.pas').read_text()
         expected = Path('tests/FileHeader.cs').read_text().strip()
@@ -111,6 +118,13 @@ class TranspileTests(unittest.TestCase):
     def test_index_assign(self):
         src = Path('tests/IndexAssign.pas').read_text()
         expected = Path('tests/IndexAssign.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
+    def test_if_comment(self):
+        src = Path('tests/IfComment.pas').read_text()
+        expected = Path('tests/IfComment.cs').read_text().strip()
         result, todos = transpile(src)
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
