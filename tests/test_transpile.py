@@ -59,6 +59,13 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_if_trailing_comment(self):
+        src = Path('tests/IfTrailingComment.pas').read_text()
+        expected = Path('tests/IfTrailingComment.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_if_expr_comment(self):
         src = Path('tests/IfExprComment.pas').read_text()
         expected = Path('tests/IfExprComment.cs').read_text().strip()

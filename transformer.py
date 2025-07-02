@@ -1146,30 +1146,39 @@ class ToCSharp(Transformer):
 
     def if_stmt(self, cond, *parts):
         parts = list(parts)
-        comments = []
+        pre_comments = []
+        post_comments = []
 
         while parts and isinstance(parts[0], str) and (parts[0].startswith("//") or parts[0].startswith("/*")):
-            comments.append(parts.pop(0))
+            pre_comments.append(parts.pop(0))
 
         if parts and isinstance(parts[0], Token):
             parts.pop(0)
 
         while parts and isinstance(parts[0], str) and (parts[0].startswith("//") or parts[0].startswith("/*")):
-            comments.append(parts.pop(0))
+            pre_comments.append(parts.pop(0))
 
         then_block = None
         if parts:
             then_block = parts.pop(0)
 
+        while parts and isinstance(parts[0], str) and (parts[0].startswith("//") or parts[0].startswith("/*")):
+            post_comments.append(parts.pop(0))
+
         else_clause = None
         if parts:
             else_clause = parts.pop(0)
 
-        if comments:
+        if pre_comments:
             if then_block is not None and str(then_block).strip():
-                then_block = "\n".join(comments + [str(then_block)])
+                then_block = "\n".join(pre_comments + [str(then_block)])
             else:
-                then_block = "\n".join(comments)
+                then_block = "\n".join(pre_comments)
+        if post_comments:
+            if then_block is not None and str(then_block).strip():
+                then_block = str(then_block).rstrip() + " " + " ".join(post_comments)
+            else:
+                then_block = " ".join(post_comments)
 
         if then_block is None or not str(then_block).strip():
             then_part = "{}"
