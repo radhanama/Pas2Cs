@@ -79,6 +79,39 @@ Add this snippet to your `.csproj` to regenerate C# before each build:
 Now `dotnet build` or Visual Studio’s **Build** button transparently converts
 and compiles everything.
 
+### Fixing identifier casing
+
+Oxygene source is case-insensitive but C# is not. After transpilation you can
+run the optional `CaseFixer` utility to update the casing of identifiers by
+querying an OmniSharp server. Build the tool with `dotnet build` and execute it
+on the root of your generated C# files:
+
+```bash
+dotnet run --project CaseFixer.csproj ./MyProject --backup --threads 4
+# preview changes without modifying files
+dotnet run --project CaseFixer.csproj ./MyProject --dry-run
+```
+
+The tool rewrites the files in place (optionally keeping `.bak` backups) so your
+C# code matches the canonical casing known to Roslyn.
+
+### Installing OmniSharp
+
+`CaseFixer` expects an OmniSharp HTTP server listening on port `2000`.
+Run the provided script to download and unpack a local copy:
+
+```bash
+./install_omnisharp.sh
+```
+
+Start the server from your solution root:
+
+```bash
+~/.omnisharp/OmniSharp -s .
+```
+
+Then execute `CaseFixer` on your generated files.
+
 ---
 
 ## 🏗️  Extending

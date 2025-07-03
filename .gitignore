@@ -5,3 +5,10 @@ Pas2CsCS/PascalScanner.cs
 Pas2CsCS.Tests/bin/
 Pas2CsCS.Tests/obj/
 __pycache__/
+
+# dotnet artifacts
+bin/
+obj/
+CaseFixer.Tests/bin/
+CaseFixer.Tests/obj/
+
