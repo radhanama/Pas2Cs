@@ -2077,14 +2077,15 @@ class ToCSharp(Transformer):
                 kind = part[0]
                 if kind == "prop":
                     name, args = part[1], part[2]
+                    safe_name = self._safe_name(name)
                     if args is None:
-                        call += f".{name}"
+                        call += f".{safe_name}"
                     else:
                         args = [
                             a[2] if isinstance(a, tuple) and a[0] == "named" else a
                             for a in args
                         ]
-                        call += f".{name}({', '.join(args)})"
+                        call += f".{safe_name}({', '.join(args)})"
                 elif kind == "index":
                     call += part[1]
             elif isinstance(part, Token) and part.type == "GENERIC_ARGS":
