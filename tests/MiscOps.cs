@@ -7,7 +7,7 @@ namespace Demo {
             if (ds.Tables[0].Rows.Count > 10000) {
                 log.Error("QUERY COM LINHAS ACIMA DO NORMAL");
                 log.Error("QUERY STRING:" + sql);
-                log.Error("LINHAS DA QUERY: \"" + ds.Tables[0].Rows.Count.ToString + "\"");
+                log.Error("LINHAS DA QUERY: \"" + ds.Tables[0].Rows.Count.ToString() + "\"");
             }
         }
     }

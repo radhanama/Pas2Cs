@@ -1980,7 +1980,10 @@ class ToCSharp(Transformer):
                 out.append(text)
             else:
                 out.append("." + self._safe_name(p))
-        return "".join(out)
+        result = "".join(out)
+        if result.lower().endswith(".tostring"):
+            result = result[: -len(".tostring")] + ".ToString()"
+        return result
 
     def inherited_var(self, _tok, base, *parts):
         return "base." + self.var(base, *parts)
@@ -2014,6 +2017,8 @@ class ToCSharp(Transformer):
             a[2] if isinstance(a, tuple) and a[0] == "named" else a for a in first_args
         ]
         call = str(fn)
+        if first_args and call.lower().endswith('.tostring()'):
+            call = call[:-2]
         if " as " in call and (first_args or parts):
             call = f"({call})"
         if len(first_args) == 1 and "." not in call:
@@ -2079,13 +2084,20 @@ class ToCSharp(Transformer):
                     name, args = part[1], part[2]
                     safe_name = self._safe_name(name)
                     if args is None:
-                        call += f".{safe_name}"
+                        if safe_name.lower() == "tostring":
+                            call += ".ToString()"
+                        else:
+                            call += f".{safe_name}"
                     else:
                         args = [
                             a[2] if isinstance(a, tuple) and a[0] == "named" else a
                             for a in args
                         ]
-                        call += f".{safe_name}({', '.join(args)})"
+                        if safe_name.lower() == "tostring":
+                            safe = "ToString"
+                        else:
+                            safe = safe_name
+                        call += f".{safe}({', '.join(args)})"
                 elif kind == "index":
                     call += part[1]
             elif isinstance(part, Token) and part.type == "GENERIC_ARGS":
