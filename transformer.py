@@ -60,6 +60,24 @@ class ToCSharp(Transformer):
         lines.extend(stack)
         return lines
 
+    def _remove_empty_regions(self, lines):
+        """Remove region blocks that contain no code or comments."""
+        result = []
+        i = 0
+        n = len(lines)
+        while i < n:
+            line = lines[i]
+            if line.strip().startswith('#region'):
+                j = i + 1
+                while j < n and lines[j].strip() == '':
+                    j += 1
+                if j < n and lines[j].strip().startswith('#endregion'):
+                    i = j + 1
+                    continue
+            result.append(line)
+            i += 1
+        return result
+
     def _append_comment(self, line: str, comment: str) -> str:
         """Append comment to a line, placing region directives on their own line."""
         if not comment:
@@ -250,6 +268,7 @@ class ToCSharp(Transformer):
                 else:
                     body_lines.append(method)
             body_lines = self._close_open_regions(body_lines)
+            body_lines = self._remove_empty_regions(body_lines)
             body = "\n".join(body_lines).rstrip()
             body = indent(body) if body else ""
             attrs = self.class_attributes.get(cname, [])
@@ -295,6 +314,7 @@ class ToCSharp(Transformer):
         ns_body = "\n\n".join(ns_items)
         ns_body_lines = ns_body.split('\n') if ns_body else []
         ns_body_lines = self._close_open_regions(ns_body_lines)
+        ns_body_lines = self._remove_empty_regions(ns_body_lines)
         ns_body = "\n".join(ns_body_lines)
         using_lines = ""
         if self.usings:
