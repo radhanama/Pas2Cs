@@ -1454,7 +1454,10 @@ class ToCSharp(Transformer):
         post_comments = []
 
         if isinstance(cond, str) and (
-            cond.startswith("//") or cond.startswith("/*")
+            cond.startswith("//")
+            or cond.startswith("/*")
+            or cond.startswith("#region")
+            or cond.startswith("#endregion")
         ) and parts:
             rest = ""
             if cond.startswith("/*") and "*/" in cond:
@@ -1470,7 +1473,12 @@ class ToCSharp(Transformer):
         while (
             parts
             and isinstance(parts[0], str)
-            and (parts[0].startswith("//") or parts[0].startswith("/*"))
+            and (
+                parts[0].startswith("//")
+                or parts[0].startswith("/*")
+                or parts[0].startswith("#region")
+                or parts[0].startswith("#endregion")
+            )
         ):
             cond_comments.append(parts.pop(0))
         if cond_lead or cond_comments:
@@ -1484,7 +1492,12 @@ class ToCSharp(Transformer):
         while (
             parts
             and isinstance(parts[0], str)
-            and (parts[0].startswith("//") or parts[0].startswith("/*"))
+            and (
+                parts[0].startswith("//")
+                or parts[0].startswith("/*")
+                or parts[0].startswith("#region")
+                or parts[0].startswith("#endregion")
+            )
         ):
             pre_comments.append(parts.pop(0))
 
@@ -1495,7 +1508,12 @@ class ToCSharp(Transformer):
         while (
             parts
             and isinstance(parts[0], str)
-            and (parts[0].startswith("//") or parts[0].startswith("/*"))
+            and (
+                parts[0].startswith("//")
+                or parts[0].startswith("/*")
+                or parts[0].startswith("#region")
+                or parts[0].startswith("#endregion")
+            )
         ):
             post_comments.append(parts.pop(0))
 
@@ -1528,7 +1546,12 @@ class ToCSharp(Transformer):
         comment_text = None
         if else_clause is not None:
             text = str(else_clause).strip()
-            if text and (text.startswith("//") or text.startswith("/*")):
+            if text and (
+                text.startswith("//")
+                or text.startswith("/*")
+                or text.startswith("#region")
+                or text.startswith("#endregion")
+            ):
                 comment_only = True
                 comment_text = text
 
