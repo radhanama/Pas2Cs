@@ -2,7 +2,7 @@
 // CaseFixer.cs – post-transpilation case-repair tool
 // ------------------------------------------------------------
 // Build:  dotnet build -c Release
-// Run:    CaseFixer <solution-root> [--backup] [--threads N] [--verbose]
+// Run:    CaseFixer <solution-root> [--backup] [--threads N] [--verbose] [--dry-run]
 // Requires an OmniSharp instance listening on http://localhost:2000
 // ------------------------------------------------------------
 
@@ -47,13 +47,14 @@ internal static class Program
     {
         if (args.Length == 0 || args[0] is "-h" or "--help")
         {
-            Console.WriteLine("Usage: CaseFixer <root-directory> [--backup] [--threads N] [--verbose]");
+            Console.WriteLine("Usage: CaseFixer <root-directory> [--backup] [--threads N] [--verbose] [--dry-run]");
             return 1;
         }
 
         var root = Path.GetFullPath(args[0]);
         bool backup = args.Contains("--backup");
         bool verbose = args.Contains("--verbose");
+        bool dryRun = args.Contains("--dry-run");
         int threads = args.SkipWhile(a => a != "--threads").Skip(1).Select(int.Parse).FirstOrDefault(Environment.ProcessorCount);
 
         if (!Directory.Exists(root))
@@ -67,7 +68,7 @@ internal static class Program
                              .ToList();
 
         var sem = new SemaphoreSlim(threads);
-        var tasks = files.Select(path => ProcessFileAsync(path, backup, verbose, sem));
+        var tasks = files.Select(path => ProcessFileAsync(path, backup, verbose, dryRun, sem));
         var counts = await Task.WhenAll(tasks);
         var totalFixed = counts.Sum();
 
@@ -129,7 +130,7 @@ internal static class Program
     // --------------------------------------------------------
     // Core per-file processing logic
     // --------------------------------------------------------
-    private static async Task<int> ProcessFileAsync(string path, bool backup, bool verbose, SemaphoreSlim sem)
+    private static async Task<int> ProcessFileAsync(string path, bool backup, bool verbose, bool dryRun, SemaphoreSlim sem)
     {
         await sem.WaitAsync();
         try
@@ -138,10 +139,13 @@ internal static class Program
             var (result, count) = await FixSourceAsync(source, path, ResolveSymbol);
             if (count == 0) return 0;
 
-            if (backup)
-                File.Copy(path, path + ".bak", overwrite: true);
+            if (!dryRun)
+            {
+                if (backup)
+                    File.Copy(path, path + ".bak", overwrite: true);
 
-            await File.WriteAllTextAsync(path, result);
+                await File.WriteAllTextAsync(path, result);
+            }
             if (verbose)
                 Console.WriteLine($"[{Path.GetFileName(path)}] fixed {count} identifier(s).");
 
@@ -163,35 +167,76 @@ internal static class Program
         try
         {
             var res = await Http.PostAsJsonAsync("/v2/gotoDefinition", req);
-            if (!res.IsSuccessStatusCode) return default;
-            var data = await res.Content.ReadFromJsonAsync<GotoResp>();
-            var def = data?.Definitions.FirstOrDefault();
-            if (def == null) return default;
-
-            var guess = Path.GetFileNameWithoutExtension(def.FileName);
-            string? canonical = null;
-            bool isMethod = false;
-            if (string.Equals(guess, token.ValueText, StringComparison.OrdinalIgnoreCase))
-                canonical = guess;
-
-            if (File.Exists(def.FileName))
+            if (res.IsSuccessStatusCode)
             {
-                var defLines = await File.ReadAllLinesAsync(def.FileName);
-                var line = defLines.ElementAtOrDefault(def.Range.Start.Line - 1);
-                if (line != null && def.Range.Start.Column - 1 < line.Length)
+                var data = await res.Content.ReadFromJsonAsync<GotoResp>();
+                var def = data?.Definitions.FirstOrDefault();
+                if (def != null)
                 {
-                    var length = def.Range.End.Column - def.Range.Start.Column;
-                    canonical ??= line.Substring(def.Range.Start.Column - 1, length);
-                    var after = line.Substring(def.Range.Start.Column - 1 + length);
-                    if (System.Text.RegularExpressions.Regex.IsMatch(after, @"^\s*\(\s*\)"))
-                        isMethod = true;
+                    var guess = Path.GetFileNameWithoutExtension(def.FileName);
+                    string? canonical = null;
+                    bool isMethod = false;
+                    if (string.Equals(guess, token.ValueText, StringComparison.OrdinalIgnoreCase))
+                        canonical = guess;
+
+                    if (File.Exists(def.FileName))
+                    {
+                        var defLines = await File.ReadAllLinesAsync(def.FileName);
+                        var line = defLines.ElementAtOrDefault(def.Range.Start.Line - 1);
+                        if (line != null && def.Range.Start.Column - 1 < line.Length)
+                        {
+                            var length = def.Range.End.Column - def.Range.Start.Column;
+                            canonical ??= line.Substring(def.Range.Start.Column - 1, length);
+                            var after = line.Substring(def.Range.Start.Column - 1 + length);
+                            if (System.Text.RegularExpressions.Regex.IsMatch(after, @"^\s*\(\s*\)"))
+                                isMethod = true;
+                        }
+                    }
+                    return (canonical, isMethod);
                 }
             }
-            return (canonical, isMethod);
+
+            // fallback to auto-complete when definition lookup fails
+            var comp = await GetCompletionInfoAsync(filePath, tree, token);
+            return comp;
         }
         catch
         {
             // network / JSON error – ignore, compiler will report later
+        }
+        return default;
+    }
+
+    private static async Task<(string? Name, bool IsParameterless)> GetCompletionInfoAsync(string filePath, SyntaxTree tree, SyntaxToken token)
+    {
+        var pos = tree.GetLineSpan(token.Span).EndLinePosition;
+        var source = await File.ReadAllTextAsync(filePath);
+        var req = new AutoCompleteReq
+        (
+            filePath,
+            pos.Line + 1,
+            pos.Character + 1,
+            source,
+            token.ValueText,
+            true,
+            true,
+            true
+        );
+
+        try
+        {
+            var res = await Http.PostAsJsonAsync("/autocomplete", req);
+            if (!res.IsSuccessStatusCode) return default;
+            var items = await res.Content.ReadFromJsonAsync<AutoCompleteResp[]>();
+            var match = items?.FirstOrDefault(i => string.Equals(i.DisplayText?.Split('(')[0], token.ValueText, StringComparison.OrdinalIgnoreCase));
+            if (match == null) return default;
+            bool paramless = match.Snippet?.Contains("()") == true;
+            var name = match.DisplayText?.Split('(')[0] ?? match.CompletionText;
+            return (name, paramless);
+        }
+        catch
+        {
+            // ignore
         }
         return default;
     }
@@ -204,4 +249,6 @@ internal static class Program
     private record Location(string FileName, TextRange Range);
     private record TextRange(Position Start, Position End);
     private record Position(int Line, int Column);
+    private record AutoCompleteReq(string FileName, int Line, int Column, string Buffer, string WordToComplete, bool WantMethodHeader, bool WantKind, bool WantSnippet);
+    private record AutoCompleteResp(string CompletionText, string DisplayText, string Snippet, string Kind, string MethodHeader);
 }

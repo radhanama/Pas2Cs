@@ -88,6 +88,8 @@ on the root of your generated C# files:
 
 ```bash
 dotnet run --project CaseFixer.csproj ./MyProject --backup --threads 4
+# preview changes without modifying files
+dotnet run --project CaseFixer.csproj ./MyProject --dry-run
 ```
 
 The tool rewrites the files in place (optionally keeping `.bak` backups) so your
