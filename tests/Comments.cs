@@ -10,8 +10,6 @@ namespace Demo {
     }
     
     public partial class Foo {
-        #region extra
-        #endregion
         public int ValueParen() {
             int result;
             /* comment with *** inside
@@ -19,6 +17,7 @@ namespace Demo {
             result = 123;
             return result;
         }
+        #region extra
         public int ValueBrace() {
             int result;
             /* comment
@@ -26,6 +25,7 @@ namespace Demo {
             result = 123;
             return result;
         }
+        #endregion
         public int ValueCStyle() {
             int result;
             /* comment

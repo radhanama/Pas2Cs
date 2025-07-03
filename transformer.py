@@ -27,9 +27,11 @@ class ToCSharp(Transformer):
         self.class_order = []
         self.delegate_defs = []
         self.impl_methods = defaultdict(set)
+        self.impl_map = defaultdict(dict)
         self.class_fields = defaultdict(set)
         self.method_attrs = defaultdict(dict)
         self.curr_impl_class = None
+        self.curr_impl_key = None
         self.curr_unsafe = False
         self.curr_class = None
         self.var_types = {}
@@ -43,6 +45,14 @@ class ToCSharp(Transformer):
         self.class_attributes = defaultdict(list)
         self.in_attribute = False
         self.pending_class_comments = []
+
+    def _append_comment(self, line: str, comment: str) -> str:
+        """Append comment to a line, placing region directives on their own line."""
+        if not comment:
+            return line
+        if comment.strip().startswith("#region") or comment.strip().startswith("#endregion"):
+            return line.rstrip() + "\n" + comment
+        return line + " " + comment
 
     def _translate_expr_text(self, text: str) -> str:
         """Translate simple Pascal expressions used inside array indexes."""
@@ -108,7 +118,12 @@ class ToCSharp(Transformer):
     def expr_with_comment(self, expr, *_comments):
         comments = [c for c in _comments if c]
         if comments:
-            return expr + " " + " ".join(comments)
+            sep = " "
+            for c in comments:
+                if c.strip().startswith("#region") or c.strip().startswith("#endregion"):
+                    sep = "\n"
+                    break
+            return expr + sep + " ".join(comments)
         return expr
 
     def paren_expr(self, *parts):
@@ -181,19 +196,41 @@ class ToCSharp(Transformer):
                 cname, ("class", "", [], set())
             )
             body_lines = []
-            for line in sign_list:
+            regions = {}
+            i = 0
+            while i < len(sign_list):
+                line = sign_list[i]
+                if line.strip().startswith("#region") and i + 2 < len(sign_list):
+                    mid = sign_list[i + 1]
+                    end_line = sign_list[i + 2]
+                    info = self._parse_sig(mid)
+                    if (
+                        info
+                        and info in self.impl_methods.get(cname, set())
+                        and end_line.strip().startswith("#endregion")
+                    ):
+                        regions[info] = (line.rstrip(), end_line.rstrip())
+                        i += 3
+                        continue
                 info = self._parse_sig(line)
                 if info and info in self.impl_methods.get(cname, set()):
+                    i += 1
                     continue
                 if info:
                     if self.emit_comments:
                         stub = line.rstrip().rstrip(";") + " { /* implement */ }"
                         body_lines.append(stub)
-                    else:
-                        continue
                 else:
                     body_lines.append(line.rstrip())
-            body_lines.extend(self.class_impls.get(cname, []))
+                i += 1
+            for key, method in self.class_impls.get(cname, []):
+                reg = regions.get(key)
+                if reg:
+                    body_lines.append(reg[0])
+                    body_lines.append(method)
+                    body_lines.append(reg[1])
+                else:
+                    body_lines.append(method)
             body = "\n".join(body_lines).rstrip()
             body = indent(body) if body else ""
             attrs = self.class_attributes.get(cname, [])
@@ -298,11 +335,14 @@ class ToCSharp(Transformer):
         if attrs and self.curr_impl_class:
             methods = self.class_impls.get(self.curr_impl_class, [])
             if methods:
-                method = methods.pop()
+                key, method = methods.pop()
                 method = "\n".join(attrs) + "\n" + method
-                methods.append(method)
+                methods.append((key, method))
                 self.class_impls[self.curr_impl_class] = methods
+                if self.curr_impl_key is not None:
+                    self.impl_map[self.curr_impl_class][self.curr_impl_key] = method
         self.curr_impl_class = None
+        self.curr_impl_key = None
         return ""
 
     def interface_section(self, *args):
@@ -798,7 +838,10 @@ class ToCSharp(Transformer):
         comment = None
         if len(parts) == 1:
             if isinstance(parts[0], str) and (
-                parts[0].startswith("//") or parts[0].startswith("/*")
+                parts[0].startswith("//")
+                or parts[0].startswith("/*")
+                or parts[0].startswith("#region")
+                or parts[0].startswith("#endregion")
             ):
                 comment = parts[0]
             else:
@@ -841,7 +884,7 @@ class ToCSharp(Transformer):
             self.var_types[str(name)] = t
         line = decl + ";"
         if comment:
-            line += " " + str(comment)
+            line = self._append_comment(line, str(comment))
         return line
 
     def var_decl_infer(self, names, expr, comment=None):
@@ -877,7 +920,7 @@ class ToCSharp(Transformer):
             self.var_types[str(name)] = 'var'
         line = decl + ";"
         if comment:
-            line += " " + str(comment)
+            line = self._append_comment(line, str(comment))
         return line
 
     def field_decl(self, *parts):
@@ -899,7 +942,12 @@ class ToCSharp(Transformer):
         if (
             items
             and isinstance(items[-1], str)
-            and (items[-1].startswith("//") or items[-1].startswith("/*"))
+            and (
+                items[-1].startswith("//")
+                or items[-1].startswith("/*")
+                or items[-1].startswith("#region")
+                or items[-1].startswith("#endregion")
+            )
         ):
             comment = items.pop()
         if len(items) == 3:
@@ -922,7 +970,7 @@ class ToCSharp(Transformer):
         else:
             body = impl
         if comment:
-            body = body + " " + str(comment)
+            body = self._append_comment(body, str(comment))
         if self.emit_comments:
             return info + "\n" + body
         return body
@@ -1124,8 +1172,10 @@ class ToCSharp(Transformer):
             attrs_all.extend(attrs)
         if attrs_all:
             method = "\n".join(attrs_all) + "\n" + method
-        self.class_impls[cls].append(method)
+        self.class_impls[cls].append((key, method))
         self.impl_methods[cls].add(key)
+        self.impl_map[cls][key] = method
+        self.curr_impl_key = key
         # clear method context after generating its body (except curr_impl_class)
         self.curr_method = None
         self.curr_params = []
@@ -1187,49 +1237,67 @@ class ToCSharp(Transformer):
     # ── statements ──────────────────────────────────────────
     def assign(self, var, *parts):
         comment = None
-        if parts and isinstance(parts[-1], str) and parts[-1].startswith("/*"):
+        if parts and isinstance(parts[-1], str) and (
+            parts[-1].startswith("/*")
+            or parts[-1].startswith("#region")
+            or parts[-1].startswith("#endregion")
+        ):
             comment = parts[-1]
             parts = parts[:-1]
         expr = parts[-1]
         lead = [p for p in parts[:-1] if p]
         if lead:
             expr = " ".join(lead + [str(expr)])
+        trailing = None
+        if isinstance(expr, str) and "\n" in expr:
+            expr, trailing = expr.split("\n", 1)
         line = f"{var} = {expr};"
+        if trailing:
+            line = self._append_comment(line, trailing)
         if comment:
-            line += " " + str(comment)
+            line = self._append_comment(line, str(comment))
         return line
 
     def op_assign(self, var, op, *parts):
         comment = None
-        if parts and isinstance(parts[-1], str) and parts[-1].startswith("/*"):
+        if parts and isinstance(parts[-1], str) and (
+            parts[-1].startswith("/*")
+            or parts[-1].startswith("#region")
+            or parts[-1].startswith("#endregion")
+        ):
             comment = parts[-1]
             parts = parts[:-1]
         expr = parts[-1]
         lead = [p for p in parts[:-1] if p]
         if lead:
             expr = " ".join(lead + [str(expr)])
+        trailing = None
+        if isinstance(expr, str) and "\n" in expr:
+            expr, trailing = expr.split("\n", 1)
         line = f"{var} {op} {expr};"
+        if trailing:
+            line = self._append_comment(line, trailing)
         if comment:
-            line += " " + str(comment)
+            line = self._append_comment(line, str(comment))
         return line
 
     def result_ret(self, _tok, expr, comment=None):
         self.used_result = True
         line = f"result = {expr};"
         if comment:
-            line += " " + str(comment)
+            line = self._append_comment(line, str(comment))
         return line
 
     def exit_ret(self, _tok, expr=None, comment=None):
         line = f"return{(' ' + expr) if expr else ''};"
         if comment:
-            line += " " + str(comment)
+            line = self._append_comment(line, str(comment))
         return line
 
     def raise_stmt(self, _tok, expr=None, comment=None):
         line = f"throw{(' ' + expr) if expr else ''};"
         if comment:
-            line += " " + str(comment)
+            line = self._append_comment(line, str(comment))
         return line
 
     def repeat_stmt(self, *parts):
