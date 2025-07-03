@@ -5,8 +5,8 @@ namespace N {
         public void SimpleCase(int x) {
             switch (x)
             {
-                case 1: return; break;
-                case 2: return; break;
+                case 1: return;
+                case 2: return;
             }
         }
         public void WithElse(int x) {
@@ -34,21 +34,21 @@ namespace N {
             string result;
             switch (val)
             {
-                case 'S': result = "one"; break;
-                case 'B': result = "two"; break;
+                case "S": result = "one"; break;
+                case "B": result = "two"; break;
             }
             return result;
         }
         public void CommentBranch(string val) {
             switch (val)
             {
-                case 'FIRST':{
+                case "FIRST":{
                     {
                         Console.WriteLine("one");
                     }
                 break;
                 }
-                case 'SECOND':
+                case "SECOND":
                 /* after colon comment */
                 {
                     {

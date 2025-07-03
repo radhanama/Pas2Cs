@@ -32,6 +32,8 @@ class ToCSharp(Transformer):
         self.curr_impl_class = None
         self.curr_unsafe = False
         self.curr_class = None
+        self.var_types = {}
+        self.curr_case_expr_type = None
         # optional callback invoked when a construct cannot be automatically
         # translated. It should accept (rule_name, children, line) and return a
         # string translation or None.
@@ -674,6 +676,8 @@ class ToCSharp(Transformer):
             self.todo.append(info)
         else:
             t = map_type_ext(str(ptype))
+        for n in name_vals:
+            self.var_types[str(n)] = t
         if default_val is not None:
             return [f"{t} {self._safe_name(n)} = {default_val}" for n in name_vals]
         return [f"{t} {self._safe_name(n)}" for n in name_vals]
@@ -822,6 +826,8 @@ class ToCSharp(Transformer):
             decl += f" = {expr}"
         for name, _ in processed:
             self.curr_locals.add(str(name))
+            self.var_types[str(name)] = "var"
+            self.var_types[str(name)] = t
         line = decl + ";"
         if comment:
             line += " " + str(comment)
@@ -857,6 +863,7 @@ class ToCSharp(Transformer):
             decl = "var " + "\n".join(parts_lines) + f" = {expr}"
         for name, _ in processed:
             self.curr_locals.add(str(name))
+            self.var_types[str(name)] = 'var'
         line = decl + ";"
         if comment:
             line += " " + str(comment)
@@ -1549,6 +1556,10 @@ class ToCSharp(Transformer):
 
     def case_stmt(self, expr, *parts):
         parts = list(parts)
+        self.curr_case_expr_type = None
+        base = expr.split('.')[0]
+        if base in self.var_types:
+            self.curr_case_expr_type = self.var_types[base]
         else_branch = []
         if parts and isinstance(parts[-1], list):
             else_branch = parts.pop()
@@ -1562,16 +1573,32 @@ class ToCSharp(Transformer):
                     if isinstance(label, tuple) and label[0] == "range":
                         start, end = label[1], label[2]
                         patterns.append(f">= {start} and <= {end}")
+                    elif isinstance(label, Token):
+                        if label.type in {"SQ_STRING", "INTERP_SQ_STRING", "STRING", "INTERP_STRING"}:
+                            inner = label.value[1:-1].replace("''", "'")
+                            if self.curr_case_expr_type and self.curr_case_expr_type.lower() == "char" and len(inner) == 1:
+                                patterns.append(f"'{inner}'")
+                            else:
+                                patterns.append(self.string(label))
+                        elif label.type == "NIL":
+                            patterns.append("null")
+                        else:
+                            patterns.append(label.value)
                     else:
                         patterns.append(str(label))
                 for c in pre_comments:
                     switch_body.append(c)
                 case_line = "case " + " or ".join(patterns) + ":"
                 is_multiline = "\n" in stmt or not stmt.strip().endswith(";")
+                stripped = stmt.strip()
+                needs_break = not re.match(r"^(return|throw|break|continue|goto|yield\s+break|yield\s+return)\b", stripped)
                 if is_multiline:
-                    body = f"{{\n{indent(stmt)}\nbreak;\n}}"
+                    inner = indent(stmt)
+                    if needs_break:
+                        inner += "\nbreak;"
+                    body = f"{{\n{inner}\n}}"
                 else:
-                    body = f" {stmt} break;"
+                    body = f" {stmt}" + (" break;" if needs_break else "")
 
                 if not post_comments and (not is_multiline or body.startswith("{")):
                     switch_body.append(case_line + body)
@@ -1593,7 +1620,9 @@ class ToCSharp(Transformer):
                 switch_body.append("default:\n{\nbreak;\n}")
 
         body_cs = indent("\n".join(switch_body))
-        return f"switch ({expr})\n{{\n{body_cs}\n}}"
+        result = f"switch ({expr})\n{{\n{body_cs}\n}}"
+        self.curr_case_expr_type = None
+        return result
 
     def case_branch(self, *parts):
         parts = list(parts)
@@ -1631,9 +1660,7 @@ class ToCSharp(Transformer):
         return ("branch", labels, pre_comments, post_comments, trailing_comments, stmt)
 
     def case_label(self, tok):
-        if isinstance(tok, Token):
-            return "null" if tok.type == "NIL" else tok.value
-        return str(tok)
+        return tok
 
     def label_range(self, start, _dd, end):
         return ("range", int(str(start)), int(str(end)))
