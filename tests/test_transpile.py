@@ -73,6 +73,13 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_region_stmt(self):
+        src = Path('tests/RegionStmt.pas').read_text()
+        expected = Path('tests/RegionStmt.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_line_comment(self):
         src = Path('tests/LineComment.pas').read_text()
         expected = Path('tests/LineComment.cs').read_text().strip()
