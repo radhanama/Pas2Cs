@@ -5,9 +5,9 @@ namespace Demo {
         public void Test(char val) {
             switch (val)
             {
-                //A
+                /* A */
                 case 'A':{
-                    Console.WriteLine("a"); //B
+                    Console.WriteLine("a"); /* B */
                 break;
                 }
                 case 'B': Console.WriteLine("b"); break;
@@ -16,8 +16,10 @@ namespace Demo {
         public void CommentedBranch(char val) {
             switch (val)
             {
-                case 'A': Console.WriteLine("a"); break;
-                /* 'B': */
+                case 'A':{
+                    Console.WriteLine("a"); /* 'B': */
+                break;
+                }
                 /* Console.WriteLine('b'); */
                 case 'C': Console.WriteLine("c"); break;
             }

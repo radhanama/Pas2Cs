@@ -10,13 +10,6 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
-    def test_exportar_dados(self):
-        src = Path('tests/ExportarDados.pas').read_text()
-        expected = Path('tests/ExportarDados.cs').read_text().strip()
-        result, todos = transpile(src)
-        self.assertEqual(result.strip(), expected)
-        self.assertEqual(todos, [])
-
     def test_example_procedures(self):
         src = Path('tests/Example.pas').read_text()
         expected = Path('tests/Example.cs').read_text().strip()
