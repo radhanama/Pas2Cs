@@ -1179,13 +1179,29 @@ class ToCSharp(Transformer):
         return (cls, name, ", ".join(param_list), self.curr_rettype)
 
     # ── statements ──────────────────────────────────────────
-    def assign(self, var, expr, comment=None):
+    def assign(self, var, *parts):
+        comment = None
+        if parts and isinstance(parts[-1], str) and parts[-1].startswith("/*"):
+            comment = parts[-1]
+            parts = parts[:-1]
+        expr = parts[-1]
+        lead = [p for p in parts[:-1] if p]
+        if lead:
+            expr = " ".join(lead + [str(expr)])
         line = f"{var} = {expr};"
         if comment:
             line += " " + str(comment)
         return line
 
-    def op_assign(self, var, op, expr, comment=None):
+    def op_assign(self, var, op, *parts):
+        comment = None
+        if parts and isinstance(parts[-1], str) and parts[-1].startswith("/*"):
+            comment = parts[-1]
+            parts = parts[:-1]
+        expr = parts[-1]
+        lead = [p for p in parts[:-1] if p]
+        if lead:
+            expr = " ".join(lead + [str(expr)])
         line = f"{var} {op} {expr};"
         if comment:
             line += " " + str(comment)

@@ -38,6 +38,13 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_assign_leading_comment(self):
+        src = Path('tests/AssignLeadingComment.pas').read_text()
+        expected = Path('tests/AssignLeadingComment.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_comments(self):
         src = Path('tests/Comments.pas').read_text()
         expected = Path('tests/Comments.cs').read_text().strip()
