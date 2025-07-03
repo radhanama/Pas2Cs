@@ -48,6 +48,18 @@ class ToCSharp(Transformer):
         self.pending_impl_comments = []
         self.last_impl_class = None
 
+    def _close_open_regions(self, lines):
+        stack = []
+        for item in lines:
+            for line in str(item).split('\n'):
+                s = line.strip()
+                if s.startswith('#region'):
+                    stack.append('#endregion')
+                elif s.startswith('#endregion') and stack:
+                    stack.pop()
+        lines.extend(stack)
+        return lines
+
     def _append_comment(self, line: str, comment: str) -> str:
         """Append comment to a line, placing region directives on their own line."""
         if not comment:
@@ -191,6 +203,10 @@ class ToCSharp(Transformer):
 
     # ── root rule -------------------------------------------------
     def start(self, *parts):
+        if self.pending_impl_comments and self.last_impl_class:
+            for c in self.pending_impl_comments:
+                self.class_impls[self.last_impl_class].append((None, c))
+            self.pending_impl_comments = []
         classes = []
         first_class = True
         for cname in self.class_order:
@@ -233,6 +249,7 @@ class ToCSharp(Transformer):
                     body_lines.append(reg[1])
                 else:
                     body_lines.append(method)
+            body_lines = self._close_open_regions(body_lines)
             body = "\n".join(body_lines).rstrip()
             body = indent(body) if body else ""
             attrs = self.class_attributes.get(cname, [])
@@ -276,6 +293,9 @@ class ToCSharp(Transformer):
             ns_items.extend(self.delegate_defs)
         ns_items.extend(classes)
         ns_body = "\n\n".join(ns_items)
+        ns_body_lines = ns_body.split('\n') if ns_body else []
+        ns_body_lines = self._close_open_regions(ns_body_lines)
+        ns_body = "\n".join(ns_body_lines)
         using_lines = ""
         if self.usings:
             using_lines = "\n".join(f"using {u};" for u in self.usings.keys())
@@ -329,34 +349,23 @@ class ToCSharp(Transformer):
         return (name.strip(), params.strip(), ret.strip(), static_flag)
 
     def class_impl(self, *parts):
-        attrs = []
         if len(parts) == 1 and isinstance(parts[0], str):
-            # stand-alone comment between method implementations
-            comment = str(parts[0])
-            if self.curr_impl_class is not None:
-                # comment encountered while a method is active
-                self.pending_impl_comments.append(comment)
-            elif self.last_impl_class is not None:
-                self.class_impls[self.last_impl_class].append((None, comment))
-            else:
-                self.pending_impl_comments.append(comment)
-            self.curr_impl_class = None
-            self.curr_impl_key = None
-            return ""
-
-        if parts and isinstance(parts[0], list):
-            attrs = parts[0]
-            parts = parts[1:]
-        # last element is the processed method implementation (ignored)
-        if attrs and self.curr_impl_class:
-            methods = self.class_impls.get(self.curr_impl_class, [])
-            if methods:
-                key, method = methods.pop()
-                method = "\n".join(attrs) + "\n" + method
-                methods.append((key, method))
-                self.class_impls[self.curr_impl_class] = methods
-                if self.curr_impl_key is not None:
-                    self.impl_map[self.curr_impl_class][self.curr_impl_key] = method
+            self.pending_impl_comments.append(parts[0])
+        else:
+            attrs = []
+            if parts and isinstance(parts[0], list):
+                attrs = parts[0]
+                parts = parts[1:]
+            # last element is the processed method implementation (ignored)
+            if attrs and self.curr_impl_class:
+                methods = self.class_impls.get(self.curr_impl_class, [])
+                if methods:
+                    key, method = methods.pop()
+                    method = "\n".join(attrs) + "\n" + method
+                    methods.append((key, method))
+                    self.class_impls[self.curr_impl_class] = methods
+                    if self.curr_impl_key is not None:
+                        self.impl_map[self.curr_impl_class][self.curr_impl_key] = method
         self.curr_impl_class = None
         self.curr_impl_key = None
         return ""
@@ -1192,10 +1201,15 @@ class ToCSharp(Transformer):
             attrs_all.extend(attrs)
         if attrs_all:
             method = "\n".join(attrs_all) + "\n" + method
+        if self.pending_impl_comments:
+            for c in self.pending_impl_comments:
+                self.class_impls[cls].append((None, c))
+            self.pending_impl_comments = []
         self.class_impls[cls].append((key, method))
         self.impl_methods[cls].add(key)
         self.impl_map[cls][key] = method
         self.curr_impl_key = key
+        self.last_impl_class = cls
         # clear method context after generating its body (except curr_impl_class)
         self.curr_method = None
         self.curr_params = []
