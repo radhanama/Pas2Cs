@@ -870,6 +870,13 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_region_impl(self):
+        src = Path('tests/RegionImpl.pas').read_text()
+        expected = Path('tests/RegionImpl.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
 
 
     def test_safe_print_cp1252(self):
