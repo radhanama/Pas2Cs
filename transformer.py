@@ -45,6 +45,8 @@ class ToCSharp(Transformer):
         self.class_attributes = defaultdict(list)
         self.in_attribute = False
         self.pending_class_comments = []
+        self.pending_impl_comments = []
+        self.last_impl_class = None
 
     def _append_comment(self, line: str, comment: str) -> str:
         """Append comment to a line, placing region directives on their own line."""
@@ -328,6 +330,20 @@ class ToCSharp(Transformer):
 
     def class_impl(self, *parts):
         attrs = []
+        if len(parts) == 1 and isinstance(parts[0], str):
+            # stand-alone comment between method implementations
+            comment = str(parts[0])
+            if self.curr_impl_class is not None:
+                # comment encountered while a method is active
+                self.pending_impl_comments.append(comment)
+            elif self.last_impl_class is not None:
+                self.class_impls[self.last_impl_class].append((None, comment))
+            else:
+                self.pending_impl_comments.append(comment)
+            self.curr_impl_class = None
+            self.curr_impl_key = None
+            return ""
+
         if parts and isinstance(parts[0], list):
             attrs = parts[0]
             parts = parts[1:]
@@ -1130,6 +1146,10 @@ class ToCSharp(Transformer):
             else:
                 vars_code = c_text
         cls, name, params, rettype = head
+        if self.pending_impl_comments:
+            for c in self.pending_impl_comments:
+                self.class_impls[cls].append((None, c))
+            self.pending_impl_comments = []
         params_cs = params or ""
         ret = map_type_ext(rettype) if rettype else "void"
         inner = textwrap.dedent(body[2:-2]).strip()
@@ -1185,6 +1205,7 @@ class ToCSharp(Transformer):
         self.used_result = False
         self.curr_unsafe = False
         # curr_impl_class will be cleared by class_impl
+        self.last_impl_class = cls
         return ""
 
     def impl_head(self, name_parts, *rest):
