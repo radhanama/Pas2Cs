@@ -1,4 +1,4 @@
-using ArrayInt = int[];
+/* alias ArrayInt = int[]; */
 using MimeMappingType = System.Type;
 
 namespace Demo {

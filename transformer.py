@@ -235,12 +235,14 @@ class ToCSharp(Transformer):
         alias_lines = "\n".join(self.alias_defs)
 
         header_parts = []
-        if self.assembly_attrs:
-            header_parts.append("\n".join(self.assembly_attrs))
         if using_lines:
             header_parts.append(using_lines)
-        if alias_lines:
+        if self.assembly_attrs:
             if using_lines:
+                header_parts.append("")
+            header_parts.append("\n".join(self.assembly_attrs))
+        if alias_lines:
+            if using_lines or self.assembly_attrs:
                 header_parts.append("")
             header_parts.append(alias_lines)
         header = "\n".join(header_parts)
@@ -506,7 +508,10 @@ class ToCSharp(Transformer):
             generics = ""
         val = typ.value if isinstance(typ, Token) else str(typ)
         t = map_type_ext(val)
-        self.alias_defs.append(f"using {cname}{generics} = {t};")
+        if t.endswith("[]"):
+            self.alias_defs.append(f"/* alias {cname}{generics} = {t}; */")
+        else:
+            self.alias_defs.append(f"using {cname}{generics} = {t};")
         return ""
 
     def delegate_def(self, cname, *parts):
@@ -1352,10 +1357,15 @@ class ToCSharp(Transformer):
             else:
                 then_block = "\n".join(pre_comments)
         if post_comments:
+            sep = " "
+            for c in post_comments:
+                if c.strip().startswith("#region") or c.strip().startswith("#endregion"):
+                    sep = "\n"
+                    break
             if then_block is not None and str(then_block).strip():
-                then_block = str(then_block).rstrip() + " " + " ".join(post_comments)
+                then_block = str(then_block).rstrip() + sep + " ".join(post_comments)
             else:
-                then_block = " ".join(post_comments)
+                then_block = sep.join(post_comments)
 
         if then_block is None or not str(then_block).strip():
             then_part = "{}"
@@ -1606,6 +1616,8 @@ class ToCSharp(Transformer):
             if s.startswith("//") or s.startswith("/*") or s.startswith("(*"):
                 return True
             if s.startswith("{") and s.endswith("}") and "\n" not in s:
+                return True
+            if s.startswith("#region") or s.startswith("#endregion"):
                 return True
             return False
 
@@ -1905,8 +1917,12 @@ class ToCSharp(Transformer):
     def call_stmt(self, fn, *parts):
         comment = ""
         if parts and isinstance(parts[-1], str) and parts[-1].startswith(("//", "/*", "{", "(*", "#")):
-            comment = " " + parts[-1]
+            trailing = parts[-1]
             parts = parts[:-1]
+            if trailing.startswith("#region") or trailing.startswith("#endregion"):
+                comment = "\n" + trailing
+            else:
+                comment = " " + trailing
         return self.call(fn, *parts) + ";" + comment
 
     def new_stmt(self, expr):
