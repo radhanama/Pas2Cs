@@ -1532,10 +1532,14 @@ class ToCSharp(Transformer):
                 if c.strip().startswith("#region") or c.strip().startswith("#endregion"):
                     sep = "\n"
                     break
-            if then_block is not None and str(then_block).strip():
-                then_block = str(then_block).rstrip() + sep + " ".join(post_comments)
+            if sep == "\n":
+                comments_joined = "\n".join(post_comments)
             else:
-                then_block = sep.join(post_comments)
+                comments_joined = " ".join(post_comments)
+            if then_block is not None and str(then_block).strip():
+                then_block = str(then_block).rstrip() + sep + comments_joined
+            else:
+                then_block = comments_joined
 
         if then_block is None or not str(then_block).strip():
             then_part = "{}"
