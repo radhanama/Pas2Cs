@@ -43,6 +43,8 @@ internal static class Program
 
     internal static SymbolResolver ResolveSymbol = GetSymbolInfoAsync;
 
+    internal static void ResetCache() => CanonicalCaseCache.Clear();
+
     public static async Task<int> Main(string[] args)
     {
         if (args.Length == 0 || args[0] is "-h" or "--help")

@@ -12,6 +12,7 @@ public class CaseFixerTests
     {
         var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         Directory.CreateDirectory(tempDir);
+        Program.ResetCache();
         try
         {
             var file = Path.Combine(tempDir, "Demo.cs");
@@ -23,7 +24,7 @@ public class CaseFixerTests
 }";
             File.WriteAllText(file, original);
 
-            using var server = new OmniSharpStub(file);
+            using var resolver = new RoslynResolver(tempDir);
             int exitCode = await Program.Main(new[] { tempDir, "--threads", "1" });
             Assert.Equal(0, exitCode);
 
@@ -41,6 +42,7 @@ public class CaseFixerTests
     {
         var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         Directory.CreateDirectory(tempDir);
+        Program.ResetCache();
         try
         {
             var file1 = Path.Combine(tempDir, "Demo.cs");
@@ -57,7 +59,7 @@ public class CaseFixerTests
     }
 }");
 
-            using var server = new OmniSharpStub(file1);
+            using var resolver = new RoslynResolver(tempDir);
             int exitCode = await Program.Main(new[] { tempDir, "--threads", "1" });
             Assert.Equal(0, exitCode);
 
@@ -77,6 +79,7 @@ public class CaseFixerTests
     {
         var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         Directory.CreateDirectory(tempDir);
+        Program.ResetCache();
         try
         {
             var file = Path.Combine(tempDir, "Demo.cs");
@@ -87,7 +90,7 @@ public class CaseFixerTests
     }
 }");
 
-            using var server = new OmniSharpStub(file, noDefinition: true);
+            using var resolver = new RoslynResolver(tempDir);
             int exitCode = await Program.Main(new[] { tempDir, "--threads", "1" });
             Assert.Equal(0, exitCode);
 
@@ -104,6 +107,7 @@ public class CaseFixerTests
     {
         var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         Directory.CreateDirectory(tempDir);
+        Program.ResetCache();
         try
         {
             var file = Path.Combine(tempDir, "Demo.cs");
@@ -115,7 +119,7 @@ class Demo {
         var str = s.tostring;
     }
 }");
-            using var server = new OmniSharpStub(file, noDefinition: true, withBuiltins: true);
+            using var resolver = new RoslynResolver(tempDir);
             int exitCode = await Program.Main(new[] { tempDir, "--threads", "1" });
             Assert.Equal(0, exitCode);
 
@@ -134,6 +138,7 @@ class Demo {
     {
         var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         Directory.CreateDirectory(tempDir);
+        Program.ResetCache();
         try
         {
             var file = Path.Combine(tempDir, "Demo.cs");
@@ -144,7 +149,7 @@ class Demo {
     }
 }";
             File.WriteAllText(file, original);
-            using var server = new OmniSharpStub(file);
+            using var resolver = new RoslynResolver(tempDir);
             int exitCode = await Program.Main(new[] { tempDir, "--threads", "1", "--dry-run" });
             Assert.Equal(0, exitCode);
             string result = File.ReadAllText(file);
