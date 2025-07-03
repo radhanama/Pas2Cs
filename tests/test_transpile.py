@@ -636,6 +636,13 @@ class TranspileTests(unittest.TestCase):
         self.assertEqual(result.strip(), expected)
         self.assertEqual(todos, [])
 
+    def test_reserved_after_call(self):
+        src = Path('tests/ReservedAfterCall.pas').read_text()
+        expected = Path('tests/ReservedAfterCall.cs').read_text().strip()
+        result, todos = transpile(src)
+        self.assertEqual(result.strip(), expected)
+        self.assertEqual(todos, [])
+
     def test_keyword_name(self):
         src = Path('tests/KeywordName.pas').read_text()
         expected = Path('tests/KeywordName.cs').read_text().strip()
