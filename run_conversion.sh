@@ -18,9 +18,18 @@ for file in "${files[@]}"; do
 done
 
 # Fix identifier casing using CaseFixer
-# OmniSharp server is expected to be running on port 2000
+# Start a temporary OmniSharp instance listening on port 2000
 if [ -d "$project_dir" ]; then
+    omnisharp -s "$project_dir" >/tmp/omnisharp.log 2>&1 &
+    omni_pid=$!
+    for _ in {1..30}; do
+        if curl -s http://localhost:2000/checkreadiness >/dev/null; then
+            break
+        fi
+        sleep 1
+    done
     dotnet /tool/casefixer/CaseFixer.dll "$project_dir" --threads $(nproc)
+    kill "$omni_pid" && wait "$omni_pid" 2>/dev/null || true
 fi
 
 echo "Conversion completed."
