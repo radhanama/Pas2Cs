@@ -45,6 +45,37 @@ internal static class Program
 
     internal static void ResetCache() => CanonicalCaseCache.Clear();
 
+    private static string ApplyNamingConvention(string name, SyntaxToken token)
+    {
+        if (string.IsNullOrEmpty(name)) return name;
+
+        bool isTypeDecl = token.Parent is ClassDeclarationSyntax cd && cd.Identifier == token ||
+                           token.Parent is StructDeclarationSyntax sd && sd.Identifier == token ||
+                           token.Parent is InterfaceDeclarationSyntax id && id.Identifier == token ||
+                           token.Parent is EnumDeclarationSyntax ed && ed.Identifier == token;
+        if (isTypeDecl)
+            return ToPascalCase(name);
+
+        bool isVarDecl = token.Parent is VariableDeclaratorSyntax ||
+                         token.Parent is ParameterSyntax ||
+                         token.Parent is ForEachStatementSyntax fs && fs.Identifier == token ||
+                         token.Parent is CatchDeclarationSyntax cd2 && cd2.Identifier == token;
+        if (isVarDecl)
+            return ToCamelCase(name);
+
+        return name;
+    }
+
+    private static string ToPascalCase(string s) =>
+        string.IsNullOrEmpty(s) ? s : char.ToUpperInvariant(s[0]) + s.Substring(1);
+
+    private static string ToCamelCase(string s)
+    {
+        if (string.IsNullOrEmpty(s)) return s;
+        if (s.Length == 1) return s.ToLowerInvariant();
+        return char.ToLowerInvariant(s[0]) + s.Substring(1);
+    }
+
     public static async Task<int> Main(string[] args)
     {
         if (args.Length == 0 || args[0] is "-h" or "--help")
@@ -80,7 +111,7 @@ internal static class Program
 
     internal static async Task<(string Result, int Fixed)> FixSourceAsync(string source, string filePath, SymbolResolver resolver)
     {
-        var tree = CSharpSyntaxTree.ParseText(source);
+        var tree = CSharpSyntaxTree.ParseText(source, path: filePath);
         var root = tree.GetRoot();
 
         var edits = new List<(int start, int length, string replacement)>();
@@ -102,9 +133,10 @@ internal static class Program
 
             if (symbolName is not null)
             {
-                CanonicalCaseCache.TryAdd(original, symbolName);
-                if (!string.Equals(original, symbolName, StringComparison.Ordinal))
-                    edits.Add((token.SpanStart, token.Span.Length, symbolName));
+                var fixedName = ApplyNamingConvention(symbolName, token);
+                CanonicalCaseCache.TryAdd(original, fixedName);
+                if (!string.Equals(original, fixedName, StringComparison.Ordinal))
+                    edits.Add((token.SpanStart, token.Span.Length, fixedName));
             }
 
             if (isMethod && token.Parent is IdentifierNameSyntax name)

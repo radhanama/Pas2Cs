@@ -27,8 +27,10 @@ internal sealed class RoslynResolver : IDisposable
         if (_comp == null)
             await BuildCompilationAsync(filePath, tree);
 
-        var model = _comp.GetSemanticModel(tree);
-        SyntaxNode node = token.Parent!;
+        var treeInComp = _comp.SyntaxTrees.FirstOrDefault(t => t.FilePath == tree.FilePath) ?? tree;
+        var model = _comp.GetSemanticModel(treeInComp);
+        var tokenInComp = treeInComp.GetRoot().FindToken(token.SpanStart);
+        SyntaxNode node = tokenInComp.Parent!;
         if (node is MemberAccessExpressionSyntax member && member.Name.Identifier == token)
             node = member.Name;
         else if (node is QualifiedNameSyntax qn && qn.Right.Identifier == token)

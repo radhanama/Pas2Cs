@@ -160,4 +160,35 @@ class Demo {
             Directory.Delete(tempDir, true);
         }
     }
+
+    [Fact]
+    public async Task FixesClassAndVariableCasing()
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempDir);
+        Program.ResetCache();
+        try
+        {
+            var file = Path.Combine(tempDir, "Demo.cs");
+            File.WriteAllText(file, @"class demo {
+    int MyField = 1;
+    void test() {
+        int LocalVar = MyField;
+    }
+}");
+
+            using var resolver = new RoslynResolver(tempDir);
+            int exitCode = await Program.Main(new[] { tempDir, "--threads", "1" });
+            Assert.Equal(0, exitCode);
+
+            string result = File.ReadAllText(file).Replace("\r", "");
+            Assert.Contains("class Demo", result);
+            Assert.Contains("int myField = 1", result);
+            Assert.Contains("int localVar = myField", result);
+        }
+        finally
+        {
+            Directory.Delete(tempDir, true);
+        }
+    }
 }
