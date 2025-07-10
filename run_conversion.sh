@@ -10,11 +10,18 @@ if [ ${#files[@]} -eq 0 ]; then
     exit 0
 fi
 
-# Transpile each file to C# next to the original
-for file in "${files[@]}"; do
-    python3 /tool/pas2cs.py "$file"
-    rm "$file"
-    echo "Converted ${file}"
+# Transpile files in batches to minimize Python startup overhead
+batch_size=300
+count=0
+total=${#files[@]}
+while (( count < total )); do
+    batch=("${files[@]:count:batch_size}")
+    python3 /tool/pas2cs.py "${batch[@]}"
+    for f in "${batch[@]}"; do
+        rm "$f"
+        echo "Converted ${f}"
+    done
+    count=$(( count + ${#batch[@]} ))
 done
 
 # Fix identifier casing using CaseFixer
