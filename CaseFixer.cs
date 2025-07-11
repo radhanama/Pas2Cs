@@ -144,8 +144,18 @@ internal static class Program
             var original = token.ValueText;
             if (string.IsNullOrWhiteSpace(original)) continue;
 
+            if (verbose)
+            {
+                var tp = tree.GetLineSpan(token.Span).StartLinePosition;
+                Console.WriteLine($"  token {original} at {tp.Line + 1}:{tp.Character + 1}");
+            }
+
             if (CanonicalCaseCache.TryGetValue(original, out var cached))
             {
+                if (verbose)
+                {
+                    Console.WriteLine($"  cache for {original} -> {cached.Name} (method={cached.IsMethod})");
+                }
                 if (!string.Equals(original, cached.Name, StringComparison.Ordinal))
                 {
                     edits.Add((token.SpanStart, token.Span.Length, cached.Name));
@@ -175,6 +185,10 @@ internal static class Program
             }
 
             var (symbolName, isMethod) = await resolver(filePath, tree, token);
+            if (verbose)
+            {
+                Console.WriteLine($"  OmniSharp for {original} -> {(symbolName ?? "null")} (paramless={isMethod})");
+            }
             if (symbolName is null && !isMethod) continue;
 
             if (symbolName is not null)

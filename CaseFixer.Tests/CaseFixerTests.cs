@@ -220,6 +220,7 @@ class Demo {
             Assert.Equal(0, exitCode);
 
             string output = sw.ToString();
+            Assert.Contains("OmniSharp for foo", output);
             Assert.Contains("foo -> Foo", output);
             Assert.Contains("added parentheses", output);
         }
