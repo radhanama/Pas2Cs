@@ -45,6 +45,20 @@ internal static class Program
 
     internal static void ResetCache() => CanonicalCaseCache.Clear();
 
+    private static async Task<bool> OmniSharpReadyAsync()
+    {
+        try
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+            var res = await Http.GetAsync("/checkreadiness", cts.Token);
+            return res.IsSuccessStatusCode;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     public static async Task<int> Main(string[] args)
     {
         if (args.Length == 0 || args[0] is "-h" or "--help")
@@ -58,6 +72,13 @@ internal static class Program
         bool verbose = args.Contains("--verbose");
         bool dryRun = args.Contains("--dry-run");
         int threads = args.SkipWhile(a => a != "--threads").Skip(1).Select(int.Parse).FirstOrDefault(Environment.ProcessorCount);
+
+        if (!await OmniSharpReadyAsync())
+        {
+            Console.Error.WriteLine("Error: OmniSharp server not reachable on http://localhost:2000/.");
+            Console.Error.WriteLine("Start the server with 'omnisharp -s <solution>' or use run_conversion.sh.");
+            return 2;
+        }
 
         if (!Directory.Exists(root))
         {
