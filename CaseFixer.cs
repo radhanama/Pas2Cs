@@ -2,8 +2,8 @@
 // CaseFixer.cs – post-transpilation case-repair tool
 // ------------------------------------------------------------
 // Build:  dotnet build -c Release
-// Run:    CaseFixer <solution-root> [--backup] [--threads N] [--verbose] [--dry-run]
-// Requires an OmniSharp instance listening on http://localhost:2000
+// Run:    CaseFixer <solution-root> [--backup] [--threads N] [--verbose] [--dry-run] [--roslyn]
+// Requires an OmniSharp instance listening on http://localhost:2000 unless --roslyn is used
 // ------------------------------------------------------------
 
 using System;
@@ -29,13 +29,13 @@ namespace CaseFixer;
 
 /// <summary>
 /// Walks *.cs files produced by an Oxygene->C# transpiler and fixes
-/// identifier casing mismatches by querying OmniSharp (Roslyn).
+/// identifier casing mismatches by querying OmniSharp or a local Roslyn compiler.
 /// </summary>
 internal static class Program
 {
     private static readonly HttpClient Http = new() { BaseAddress = new("http://localhost:2000/") };
 
-    // Cache to avoid hitting OmniSharp repeatedly for the same symbol
+    // Cache to avoid resolving the same symbol repeatedly
     // Stores the canonical casing and whether the symbol represents a
     // parameterless method (so we know if parentheses should be added)
     private static readonly ConcurrentDictionary<string, (string Name, bool IsMethod)> CanonicalCaseCache =
@@ -96,7 +96,7 @@ internal static class Program
     {
         if (args.Length == 0 || args[0] is "-h" or "--help")
         {
-            Console.WriteLine("Usage: CaseFixer <root-directory> [--backup] [--threads N] [--verbose] [--dry-run]");
+            Console.WriteLine("Usage: CaseFixer <root-directory> [--backup] [--threads N] [--verbose] [--dry-run] [--roslyn]");
             return 1;
         }
 
@@ -104,9 +104,10 @@ internal static class Program
         bool backup = args.Contains("--backup");
         bool verbose = args.Contains("--verbose");
         bool dryRun = args.Contains("--dry-run");
+        bool useRoslyn = args.Contains("--roslyn");
         int threads = args.SkipWhile(a => a != "--threads").Skip(1).Select(int.Parse).FirstOrDefault(Environment.ProcessorCount);
 
-        if (!await OmniSharpReadyAsync())
+        if (!useRoslyn && !await OmniSharpReadyAsync())
         {
             Console.Error.WriteLine("Error: OmniSharp server not reachable on http://localhost:2000/.");
             Console.Error.WriteLine("Start the server with 'omnisharp -s <solution>' or use run_conversion.sh.");
@@ -123,8 +124,16 @@ internal static class Program
                              .Where(f => !f.EndsWith(".Designer.cs", StringComparison.OrdinalIgnoreCase))
                              .ToList();
 
+        SymbolResolver resolver = ResolveSymbol;
+        RoslynResolver? roslyn = null;
+        if (useRoslyn)
+        {
+            roslyn = new RoslynResolver(root);
+            resolver = roslyn.ResolveAsync;
+        }
+
         var sem = new SemaphoreSlim(threads);
-        var tasks = files.Select(path => ProcessFileAsync(path, backup, verbose, dryRun, sem));
+        var tasks = files.Select(path => ProcessFileAsync(path, backup, verbose, dryRun, sem, resolver));
         var counts = await Task.WhenAll(tasks);
         var totalFixed = counts.Sum();
 
@@ -183,7 +192,7 @@ internal static class Program
             {
                 if (symbolName != null)
                 {
-                    Console.WriteLine($"  OmniSharp for {original} -> {(symbolName ?? "null")} (paramless={isMethod})");
+                    Console.WriteLine($"  resolved for {original} -> {(symbolName ?? "null")} (paramless={isMethod})");
                 }
             }
             if (symbolName is null && !isMethod) continue;
@@ -243,14 +252,14 @@ internal static class Program
     // --------------------------------------------------------
     // Core per-file processing logic
     // --------------------------------------------------------
-    private static async Task<int> ProcessFileAsync(string path, bool backup, bool verbose, bool dryRun, SemaphoreSlim sem)
+    private static async Task<int> ProcessFileAsync(string path, bool backup, bool verbose, bool dryRun, SemaphoreSlim sem, SymbolResolver resolver)
     {
         await sem.WaitAsync();
         try
         {
             var source = await File.ReadAllTextAsync(path);
 
-            var (result, count) = await FixSourceAsync(source, path, ResolveSymbol, verbose);
+            var (result, count) = await FixSourceAsync(source, path, resolver, verbose);
             if (count == 0) return 0;
 
             if (!dryRun)
@@ -272,7 +281,7 @@ internal static class Program
     }
 
     // --------------------------------------------------------
-    // OmniSharp helpers
+    // OmniSharp HTTP helpers
     // --------------------------------------------------------
     private static async Task<(string? Name, bool IsParameterless)> GetSymbolInfoAsync(string filePath, SyntaxTree tree, SyntaxToken token)
     {
