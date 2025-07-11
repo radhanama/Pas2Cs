@@ -100,6 +100,14 @@ dotnet run --project CaseFixer.csproj ./MyProject --roslyn
 The tool rewrites the files in place (optionally keeping `.bak` backups) so your
 C# code matches the canonical casing known to Roslyn.
 
+### Handling syntax errors
+
+In some cases the transpiler may leave stray characters when it encounters
+unsupported Pascal constructs. If the C# compiler reports simple errors like
+`CS1002` (`;` expected), inspect the generated file at the reported line and
+remove the offending token or add the missing semicolon. These issues are rare
+and usually stem from unusual Pascal syntax.
+
 ### Installing OmniSharp
 
 `CaseFixer` expects an OmniSharp HTTP server listening on port `2000` unless `--roslyn` is used.
