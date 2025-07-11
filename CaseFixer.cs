@@ -168,7 +168,7 @@ internal static class Program
         var req = new GotoReq(filePath, pos.Line + 1, pos.Character + 1);
         try
         {
-            var res = await Http.PostAsJsonAsync("/v2/gotoDefinition", req);
+            var res = await Http.PostAsJsonAsync("/v2/gotodefinition", req);
             if (res.IsSuccessStatusCode)
             {
                 var data = await res.Content.ReadFromJsonAsync<GotoResp>();

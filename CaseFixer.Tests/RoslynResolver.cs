@@ -24,10 +24,8 @@ internal sealed class RoslynResolver : IDisposable
 
     public async Task<(string? Name, bool IsParameterless)> ResolveAsync(string filePath, SyntaxTree tree, SyntaxToken token)
     {
-        if (_comp == null)
-            await BuildCompilationAsync(filePath, tree);
-
-        var model = _comp.GetSemanticModel(tree);
+        await BuildCompilationAsync(filePath, tree);
+        var model = _comp!.GetSemanticModel(tree);
         SyntaxNode node = token.Parent!;
         if (node is MemberAccessExpressionSyntax member && member.Name.Identifier == token)
             node = member.Name;
