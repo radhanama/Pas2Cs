@@ -95,7 +95,8 @@ dotnet run --project CaseFixer.csproj ./MyProject --dry-run
 ```
 
 The tool rewrites the files in place (optionally keeping `.bak` backups) so your
-C# code matches the canonical casing known to Roslyn.
+C# code matches the canonical casing known to Roslyn and applies standard
+naming conventions (PascalCase for types and camelCase for variables).
 
 ### Installing OmniSharp
 
