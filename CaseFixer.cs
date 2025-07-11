@@ -294,7 +294,9 @@ internal static class Program
             var res = await Http.PostAsJsonAsync("/autocomplete", req);
             if (!res.IsSuccessStatusCode) return default;
             var items = await res.Content.ReadFromJsonAsync<AutoCompleteResp[]>();
-            var match = items?.FirstOrDefault(i => string.Equals(i.DisplayText?.Split('(')[0], token.ValueText, StringComparison.OrdinalIgnoreCase));
+            var match = items?.FirstOrDefault(i =>
+                string.Equals(i.DisplayText?.Split('(')[0], token.ValueText, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(i.CompletionText, token.ValueText, StringComparison.OrdinalIgnoreCase));
             if (match == null) return default;
             bool paramless = match.Snippet?.Contains("()") == true;
             var name = match.DisplayText?.Split('(')[0] ?? match.CompletionText;
