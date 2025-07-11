@@ -232,7 +232,15 @@ internal static class Program
             sb.Remove(start, length).Insert(start, replacement);
         }
 
-        return (sb.ToString(), edits.Count);
+        var result = sb.ToString();
+        if (verbose)
+        {
+            Console.WriteLine("--- syntax tree ---");
+            var newRoot = CSharpSyntaxTree.ParseText(result).GetRoot();
+            DumpSyntaxTree(newRoot, "");
+        }
+
+        return (result, edits.Count);
     }
 
     // --------------------------------------------------------
@@ -362,4 +370,22 @@ internal static class Program
     private record Position(int Line, int Column);
     private record AutoCompleteReq(string FileName, int Line, int Column, string Buffer, string WordToComplete, bool WantMethodHeader, bool WantKind, bool WantSnippet);
     private record AutoCompleteResp(string CompletionText, string DisplayText, string Snippet, string Kind, string MethodHeader);
+
+    private static void DumpSyntaxTree(SyntaxNode node, string indent)
+    {
+        Console.WriteLine($"{indent}{node.Kind()}");
+        indent += "  ";
+        foreach (var child in node.ChildNodesAndTokens())
+        {
+            if (child.IsNode)
+            {
+                DumpSyntaxTree(child.AsNode()!, indent);
+            }
+            else
+            {
+                var tok = child.AsToken();
+                Console.WriteLine($"{indent}{tok.Kind()} {tok.ValueText}");
+            }
+        }
+    }
 }

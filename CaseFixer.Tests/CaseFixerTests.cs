@@ -223,6 +223,7 @@ class Demo {
             Assert.Contains("OmniSharp for foo", output);
             Assert.Contains("foo -> Foo", output);
             Assert.Contains("added parentheses", output);
+            Assert.Contains("CompilationUnit", output);
         }
         finally
         {
