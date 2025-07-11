@@ -36,7 +36,9 @@ internal static class Program
     private static readonly HttpClient Http = new() { BaseAddress = new("http://localhost:2000/") };
 
     // Cache to avoid hitting OmniSharp repeatedly for the same symbol
-    private static readonly ConcurrentDictionary<string, string> CanonicalCaseCache =
+    // Stores the canonical casing and whether the symbol represents a
+    // parameterless method (so we know if parentheses should be added)
+    private static readonly ConcurrentDictionary<string, (string Name, bool IsMethod)> CanonicalCaseCache =
         new(StringComparer.OrdinalIgnoreCase);
 
     internal delegate Task<(string? Name, bool IsParameterless)> SymbolResolver(string filePath, SyntaxTree tree, SyntaxToken token);
@@ -123,8 +125,17 @@ internal static class Program
 
             if (CanonicalCaseCache.TryGetValue(original, out var cached))
             {
-                if (!string.Equals(original, cached, StringComparison.Ordinal))
-                    edits.Add((token.SpanStart, token.Span.Length, cached));
+                if (!string.Equals(original, cached.Name, StringComparison.Ordinal))
+                    edits.Add((token.SpanStart, token.Span.Length, cached.Name));
+
+                if (cached.IsMethod && token.Parent is IdentifierNameSyntax idName)
+                {
+                    bool alreadyCall = idName.Parent is InvocationExpressionSyntax inv && inv.Expression == idName;
+                    if (!alreadyCall && idName.Parent is MemberAccessExpressionSyntax mem && mem.Name == idName && mem.Parent is InvocationExpressionSyntax inv2 && inv2.Expression == mem)
+                        alreadyCall = true;
+                    if (!alreadyCall)
+                        edits.Add((token.SpanStart + token.Span.Length, 0, "()"));
+                }
                 continue;
             }
 
@@ -134,15 +145,15 @@ internal static class Program
             if (symbolName is not null)
             {
                 var fixedName = ApplyNamingConvention(symbolName, token);
-                CanonicalCaseCache.TryAdd(original, fixedName);
+                CanonicalCaseCache.TryAdd(original, (fixedName, isMethod));
                 if (!string.Equals(original, fixedName, StringComparison.Ordinal))
                     edits.Add((token.SpanStart, token.Span.Length, fixedName));
             }
 
-            if (isMethod && token.Parent is IdentifierNameSyntax name)
+            if (isMethod && token.Parent is IdentifierNameSyntax idName2)
             {
-                bool alreadyCall = name.Parent is InvocationExpressionSyntax inv && inv.Expression == name;
-                if (!alreadyCall && name.Parent is MemberAccessExpressionSyntax mem && mem.Name == name && mem.Parent is InvocationExpressionSyntax inv2 && inv2.Expression == mem)
+                bool alreadyCall = idName2.Parent is InvocationExpressionSyntax inv && inv.Expression == idName2;
+                if (!alreadyCall && idName2.Parent is MemberAccessExpressionSyntax mem && mem.Name == idName2 && mem.Parent is InvocationExpressionSyntax inv2 && inv2.Expression == mem)
                     alreadyCall = true;
 
                 if (!alreadyCall)
