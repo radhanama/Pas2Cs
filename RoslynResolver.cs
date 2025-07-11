@@ -70,10 +70,19 @@ internal sealed class RoslynResolver
                 trees.Add(CSharpSyntaxTree.ParseText(await File.ReadAllTextAsync(f), path: f));
         }
 
-        var refs = AppDomain.CurrentDomain.GetAssemblies()
-            .Where(a => !a.IsDynamic && !string.IsNullOrEmpty(a.Location))
-            .Select(a => MetadataReference.CreateFromFile(a.Location))
-            .ToList();
+        var refs = new List<MetadataReference>();
+        if (AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") is string tpa)
+        {
+            refs.AddRange(tpa.Split(Path.PathSeparator)
+                .Where(File.Exists)
+                .Select(MetadataReference.CreateFromFile));
+        }
+        else
+        {
+            refs.AddRange(AppDomain.CurrentDomain.GetAssemblies()
+                .Where(a => !a.IsDynamic && !string.IsNullOrEmpty(a.Location))
+                .Select(a => MetadataReference.CreateFromFile(a.Location)));
+        }
 
         return CSharpCompilation.Create("CaseFixer", trees, refs,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));

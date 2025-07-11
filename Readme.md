@@ -94,6 +94,7 @@ dotnet run --project CaseFixer.csproj ./MyProject --backup --threads 4
 dotnet run --project CaseFixer.csproj ./MyProject --dry-run
 # use Roslyn instead of OmniSharp
 dotnet run --project CaseFixer.csproj ./MyProject --roslyn
+# built-in APIs like ToString and ToList are fixed automatically
 ```
 
 The tool rewrites the files in place (optionally keeping `.bak` backups) so your
