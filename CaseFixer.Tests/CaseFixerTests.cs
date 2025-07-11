@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -185,6 +186,42 @@ class Demo {
             Assert.Contains("class Demo", result);
             Assert.Contains("int myField = 1", result);
             Assert.Contains("int localVar = myField", result);
+        }
+        finally
+        {
+            Directory.Delete(tempDir, true);
+        }
+    }
+
+    [Fact]
+    public async Task LogsChangesWhenVerbose()
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempDir);
+        Program.ResetCache();
+        try
+        {
+            var file = Path.Combine(tempDir, "Demo.cs");
+            File.WriteAllText(file, @"class Demo {
+    int Foo() { return 1; }
+    void Bar() {
+        var x = foo;
+    }
+}");
+
+            using var resolver = new RoslynResolver(tempDir);
+            var sw = new StringWriter();
+            var originalOut = Console.Out;
+            Console.SetOut(sw);
+
+            int exitCode = await Program.Main(new[] { tempDir, "--threads", "1", "--verbose" });
+
+            Console.SetOut(originalOut);
+            Assert.Equal(0, exitCode);
+
+            string output = sw.ToString();
+            Assert.Contains("foo -> Foo", output);
+            Assert.Contains("added parentheses", output);
         }
         finally
         {

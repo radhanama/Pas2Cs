@@ -132,7 +132,7 @@ internal static class Program
         return 0;
     }
 
-    internal static async Task<(string Result, int Fixed)> FixSourceAsync(string source, string filePath, SymbolResolver resolver)
+    internal static async Task<(string Result, int Fixed)> FixSourceAsync(string source, string filePath, SymbolResolver resolver, bool verbose = false)
     {
         var tree = CSharpSyntaxTree.ParseText(source, path: filePath);
         var root = tree.GetRoot();
@@ -147,7 +147,14 @@ internal static class Program
             if (CanonicalCaseCache.TryGetValue(original, out var cached))
             {
                 if (!string.Equals(original, cached.Name, StringComparison.Ordinal))
+                {
                     edits.Add((token.SpanStart, token.Span.Length, cached.Name));
+                    if (verbose)
+                    {
+                        var pos = tree.GetLineSpan(token.Span).StartLinePosition;
+                        Console.WriteLine($"  {original} -> {cached.Name} at {pos.Line + 1}:{pos.Character + 1}");
+                    }
+                }
 
                 if (cached.IsMethod && token.Parent is IdentifierNameSyntax idName)
                 {
@@ -155,7 +162,14 @@ internal static class Program
                     if (!alreadyCall && idName.Parent is MemberAccessExpressionSyntax mem && mem.Name == idName && mem.Parent is InvocationExpressionSyntax inv2 && inv2.Expression == mem)
                         alreadyCall = true;
                     if (!alreadyCall)
+                    {
                         edits.Add((token.SpanStart + token.Span.Length, 0, "()"));
+                        if (verbose)
+                        {
+                            var pos = tree.GetLineSpan(token.Span).StartLinePosition;
+                            Console.WriteLine($"  added parentheses for {token.ValueText} at {pos.Line + 1}:{pos.Character + 1}");
+                        }
+                    }
                 }
                 continue;
             }
@@ -168,7 +182,14 @@ internal static class Program
                 var fixedName = ApplyNamingConvention(symbolName, token);
                 CanonicalCaseCache.TryAdd(original, (fixedName, isMethod));
                 if (!string.Equals(original, fixedName, StringComparison.Ordinal))
+                {
                     edits.Add((token.SpanStart, token.Span.Length, fixedName));
+                    if (verbose)
+                    {
+                        var pos = tree.GetLineSpan(token.Span).StartLinePosition;
+                        Console.WriteLine($"  {original} -> {fixedName} at {pos.Line + 1}:{pos.Character + 1}");
+                    }
+                }
             }
 
             if (isMethod && token.Parent is IdentifierNameSyntax idName2)
@@ -178,7 +199,14 @@ internal static class Program
                     alreadyCall = true;
 
                 if (!alreadyCall)
+                {
                     edits.Add((token.SpanStart + token.Span.Length, 0, "()"));
+                    if (verbose)
+                    {
+                        var pos = tree.GetLineSpan(token.Span).StartLinePosition;
+                        Console.WriteLine($"  added parentheses for {token.ValueText} at {pos.Line + 1}:{pos.Character + 1}");
+                    }
+                }
             }
         }
 
@@ -202,7 +230,10 @@ internal static class Program
         try
         {
             var source = await File.ReadAllTextAsync(path);
-            var (result, count) = await FixSourceAsync(source, path, ResolveSymbol);
+            if (verbose)
+                Console.WriteLine($"Processing {Path.GetFileName(path)}...");
+
+            var (result, count) = await FixSourceAsync(source, path, ResolveSymbol, verbose);
             if (count == 0) return 0;
 
             if (!dryRun)
