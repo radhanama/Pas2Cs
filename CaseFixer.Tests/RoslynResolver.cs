@@ -32,7 +32,9 @@ internal sealed class RoslynResolver : IDisposable
         else if (node is QualifiedNameSyntax qn && qn.Right.Identifier == token)
             node = qn.Right;
 
-        var symbol = model.GetSymbolInfo(node).Symbol ?? model.GetDeclaredSymbol(node);
+        var info = model.GetSymbolInfo(node);
+        var symbol = info.Symbol ?? info.CandidateSymbols.FirstOrDefault() ??
+                     model.GetDeclaredSymbol(node);
         if (symbol == null)
         {
             string text = token.ValueText;
