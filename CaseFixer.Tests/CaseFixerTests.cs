@@ -131,6 +131,36 @@ class Demo {
     }
 
     [Fact]
+    public async Task FixesBuiltInMethodNamesOmniSharp()
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempDir);
+        Program.ResetCache();
+        try
+        {
+            var file = Path.Combine(tempDir, "Demo.cs");
+            File.WriteAllText(file, @"using System.Collections.Generic;
+class Demo {
+    void Bar() {
+        var list = new List<int>();
+        var s = list.tolist();
+        var str = s.tostring;
+    }
+}");
+            int exitCode = await Program.Main(new[] { tempDir, "--threads", "1" });
+            Assert.Equal(0, exitCode);
+
+            string result = File.ReadAllText(file);
+            Assert.Contains("ToList()", result);
+            Assert.Contains("ToString()", result);
+        }
+        finally
+        {
+            Directory.Delete(tempDir, true);
+        }
+    }
+
+    [Fact]
     public async Task DryRunDoesNotModifyFiles()
     {
         var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
