@@ -144,12 +144,6 @@ internal static class Program
             var original = token.ValueText;
             if (string.IsNullOrWhiteSpace(original)) continue;
 
-            if (verbose)
-            {
-                var tp = tree.GetLineSpan(token.Span).StartLinePosition;
-                Console.WriteLine($"  token {original} at {tp.Line + 1}:{tp.Character + 1}");
-            }
-
             if (CanonicalCaseCache.TryGetValue(original, out var cached))
             {
                 if (verbose)
@@ -187,7 +181,10 @@ internal static class Program
             var (symbolName, isMethod) = await resolver(filePath, tree, token);
             if (verbose)
             {
-                Console.WriteLine($"  OmniSharp for {original} -> {(symbolName ?? "null")} (paramless={isMethod})");
+                if (symbolName != null)
+                {
+                    Console.WriteLine($"  OmniSharp for {original} -> {(symbolName ?? "null")} (paramless={isMethod})");
+                }
             }
             if (symbolName is null && !isMethod) continue;
 
@@ -244,8 +241,6 @@ internal static class Program
         try
         {
             var source = await File.ReadAllTextAsync(path);
-            if (verbose)
-                Console.WriteLine($"Processing {Path.GetFileName(path)}...");
 
             var (result, count) = await FixSourceAsync(source, path, ResolveSymbol, verbose);
             if (count == 0) return 0;
