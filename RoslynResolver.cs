@@ -75,7 +75,7 @@ internal sealed class RoslynResolver
         {
             refs.AddRange(tpa.Split(Path.PathSeparator)
                 .Where(File.Exists)
-                .Select(MetadataReference.CreateFromFile));
+                .Select(p => MetadataReference.CreateFromFile(p)));
         }
         else
         {
