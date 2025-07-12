@@ -25,8 +25,7 @@ public class CaseFixerTests
 }";
             File.WriteAllText(file, original);
 
-            using var resolver = new RoslynResolver(tempDir);
-            int exitCode = await Program.Main(new[] { tempDir, "--threads", "1" });
+            int exitCode = await Program.Main(new[] { tempDir, "--threads", "1", "--roslyn" });
             Assert.Equal(0, exitCode);
 
             string result = File.ReadAllText(file);
@@ -60,8 +59,7 @@ public class CaseFixerTests
     }
 }");
 
-            using var resolver = new RoslynResolver(tempDir);
-            int exitCode = await Program.Main(new[] { tempDir, "--threads", "1" });
+            int exitCode = await Program.Main(new[] { tempDir, "--threads", "1", "--roslyn" });
             Assert.Equal(0, exitCode);
 
             string result1 = File.ReadAllText(file1);
@@ -91,8 +89,7 @@ public class CaseFixerTests
     }
 }");
 
-            using var resolver = new RoslynResolver(tempDir);
-            int exitCode = await Program.Main(new[] { tempDir, "--threads", "1" });
+            int exitCode = await Program.Main(new[] { tempDir, "--threads", "1", "--roslyn" });
             Assert.Equal(0, exitCode);
 
             string result = File.ReadAllText(file);
@@ -120,7 +117,36 @@ class Demo {
         var str = s.tostring;
     }
 }");
-            using var resolver = new RoslynResolver(tempDir);
+            int exitCode = await Program.Main(new[] { tempDir, "--threads", "1", "--roslyn" });
+            Assert.Equal(0, exitCode);
+
+            string result = File.ReadAllText(file);
+            Assert.Contains("ToList()", result);
+            Assert.Contains("ToString()", result);
+        }
+        finally
+        {
+            Directory.Delete(tempDir, true);
+        }
+    }
+
+    [Fact]
+    public async Task FixesBuiltInMethodNamesOmniSharp()
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempDir);
+        Program.ResetCache();
+        try
+        {
+            var file = Path.Combine(tempDir, "Demo.cs");
+            File.WriteAllText(file, @"using System.Collections.Generic;
+class Demo {
+    void Bar() {
+        var list = new List<int>();
+        var s = list.tolist();
+        var str = s.tostring;
+    }
+}");
             int exitCode = await Program.Main(new[] { tempDir, "--threads", "1" });
             Assert.Equal(0, exitCode);
 
@@ -150,8 +176,7 @@ class Demo {
     }
 }";
             File.WriteAllText(file, original);
-            using var resolver = new RoslynResolver(tempDir);
-            int exitCode = await Program.Main(new[] { tempDir, "--threads", "1", "--dry-run" });
+            int exitCode = await Program.Main(new[] { tempDir, "--threads", "1", "--dry-run", "--roslyn" });
             Assert.Equal(0, exitCode);
             string result = File.ReadAllText(file);
             Assert.Equal(original.Replace("\r", ""), result.Replace("\r", ""));
@@ -178,8 +203,7 @@ class Demo {
     }
 }");
 
-            using var resolver = new RoslynResolver(tempDir);
-            int exitCode = await Program.Main(new[] { tempDir, "--threads", "1" });
+            int exitCode = await Program.Main(new[] { tempDir, "--threads", "1", "--roslyn" });
             Assert.Equal(0, exitCode);
 
             string result = File.ReadAllText(file).Replace("\r", "");
@@ -209,18 +233,17 @@ class Demo {
     }
 }");
 
-            using var resolver = new RoslynResolver(tempDir);
             var sw = new StringWriter();
             var originalOut = Console.Out;
             Console.SetOut(sw);
 
-            int exitCode = await Program.Main(new[] { tempDir, "--threads", "1", "--verbose" });
+            int exitCode = await Program.Main(new[] { tempDir, "--threads", "1", "--verbose", "--roslyn" });
 
             Console.SetOut(originalOut);
             Assert.Equal(0, exitCode);
 
             string output = sw.ToString();
-            Assert.Contains("OmniSharp for foo", output);
+            Assert.Contains("resolved for foo", output);
             Assert.Contains("foo -> Foo", output);
             Assert.Contains("added parentheses", output);
             Assert.Contains("CompilationUnit", output);

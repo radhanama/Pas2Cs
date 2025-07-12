@@ -7,27 +7,33 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace CaseFixer.Tests;
+namespace CaseFixer;
 
-internal sealed class RoslynResolver : IDisposable
+internal sealed class RoslynResolver
 {
     private readonly string _root;
-    private readonly Program.SymbolResolver _previous;
     private CSharpCompilation? _comp;
+    private readonly object _lock = new();
 
     public RoslynResolver(string root)
     {
         _root = root;
-        _previous = Program.ResolveSymbol;
-        Program.ResolveSymbol = ResolveAsync;
     }
 
     public async Task<(string? Name, bool IsParameterless)> ResolveAsync(string filePath, SyntaxTree tree, SyntaxToken token)
     {
         if (_comp == null)
-            await BuildCompilationAsync(filePath, tree);
+        {
+            lock (_lock)
+            {
+                if (_comp == null)
+                {
+                    _comp = BuildCompilationAsync(filePath, tree).GetAwaiter().GetResult();
+                }
+            }
+        }
 
-        var treeInComp = _comp.SyntaxTrees.FirstOrDefault(t => t.FilePath == tree.FilePath) ?? tree;
+        var treeInComp = _comp.SyntaxTrees.FirstOrDefault(t => Path.GetFullPath(t.FilePath) == Path.GetFullPath(tree.FilePath)) ?? tree;
         var model = _comp.GetSemanticModel(treeInComp);
         var tokenInComp = treeInComp.GetRoot().FindToken(token.SpanStart);
         SyntaxNode node = tokenInComp.Parent!;
@@ -52,7 +58,7 @@ internal sealed class RoslynResolver : IDisposable
         return (symbol.Name, paramless);
     }
 
-    private async Task BuildCompilationAsync(string mainPath, SyntaxTree mainTree)
+    private async Task<CSharpCompilation> BuildCompilationAsync(string mainPath, SyntaxTree mainTree)
     {
         var trees = new List<SyntaxTree>();
         var files = Directory.GetFiles(_root, "*.cs");
@@ -64,17 +70,21 @@ internal sealed class RoslynResolver : IDisposable
                 trees.Add(CSharpSyntaxTree.ParseText(await File.ReadAllTextAsync(f), path: f));
         }
 
-        var refs = AppDomain.CurrentDomain.GetAssemblies()
-            .Where(a => !a.IsDynamic && !string.IsNullOrEmpty(a.Location))
-            .Select(a => MetadataReference.CreateFromFile(a.Location))
-            .ToList();
+        var refs = new List<MetadataReference>();
+        if (AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") is string tpa)
+        {
+            refs.AddRange(tpa.Split(Path.PathSeparator)
+                .Where(File.Exists)
+                .Select(MetadataReference.CreateFromFile));
+        }
+        else
+        {
+            refs.AddRange(AppDomain.CurrentDomain.GetAssemblies()
+                .Where(a => !a.IsDynamic && !string.IsNullOrEmpty(a.Location))
+                .Select(a => MetadataReference.CreateFromFile(a.Location)));
+        }
 
-        _comp = CSharpCompilation.Create("CaseFixerTests", trees, refs,
+        return CSharpCompilation.Create("CaseFixer", trees, refs,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-    }
-
-    public void Dispose()
-    {
-        Program.ResolveSymbol = _previous;
     }
 }

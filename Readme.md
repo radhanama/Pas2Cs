@@ -83,7 +83,7 @@ and compiles everything.
 
 Oxygene source is case-insensitive but C# is not. After transpilation you can
 run the optional `CaseFixer` utility to update the casing of identifiers by
-querying an OmniSharp server. When using the Docker image the included
+querying an OmniSharp server or using a built-in Roslyn resolver. When using the Docker image the included
 `run_conversion.sh` script will launch OmniSharp automatically. Otherwise build
 the tool with `dotnet build` and execute it on the root of your generated C#
 files:
@@ -92,14 +92,25 @@ files:
 dotnet run --project CaseFixer.csproj ./MyProject --backup --threads 4
 # preview changes without modifying files
 dotnet run --project CaseFixer.csproj ./MyProject --dry-run
+# use Roslyn instead of OmniSharp
+dotnet run --project CaseFixer.csproj ./MyProject --roslyn
+# built-in APIs like ToString and ToList are fixed automatically with either resolver
 ```
 
 The tool rewrites the files in place (optionally keeping `.bak` backups) so your
 C# code matches the canonical casing known to Roslyn.
 
+### Handling syntax errors
+
+In some cases the transpiler may leave stray characters when it encounters
+unsupported Pascal constructs. If the C# compiler reports simple errors like
+`CS1002` (`;` expected), inspect the generated file at the reported line and
+remove the offending token or add the missing semicolon. These issues are rare
+and usually stem from unusual Pascal syntax.
+
 ### Installing OmniSharp
 
-`CaseFixer` expects an OmniSharp HTTP server listening on port `2000`.
+`CaseFixer` expects an OmniSharp HTTP server listening on port `2000` unless `--roslyn` is used.
 When using the provided Docker image this server is started automatically.
 For a manual setup, run the script below to download and unpack OmniSharp:
 
