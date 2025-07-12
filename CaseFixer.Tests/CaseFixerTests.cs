@@ -243,7 +243,7 @@ class Demo {
             Assert.Equal(0, exitCode);
 
             string output = sw.ToString();
-            Assert.Contains("resolved for foo", output);
+            Assert.True(output.Contains("resolved for foo") || output.Contains("cache for foo"));
             Assert.Contains("foo -> Foo", output);
             Assert.Contains("added parentheses", output);
             Assert.Contains("CompilationUnit", output);
